@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>常见问题解答</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #f4f4f4;
+            overflow-y: auto;
+            border-right: 1px solid #e0e0e0;
+        }
+        .sidebar-title {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .sidebar-content {
+            padding: 20px;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .sidebar-item {
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #e0e0e0;
+            transition: background-color 0.3s;
+        }
+        .sidebar-item:hover {
+            background-color: #d0d0d0;
+        }
+        .section {
+            margin-bottom: 40px;
+            scroll-margin-top: 20px;
+        }
+        .active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .category-title {
+            margin-top: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* 折叠样式，当内容区域隐藏时可添加此类 */
+        .collapsed {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-title">常见问题</div>
+            <div class="sidebar-content" id="sidebar-content">
+                <!-- 目录动态生成 -->
+            </div>
+        </div>
+        <div class="content" id="content">
+            <!-- 内容动态生成 -->
+        </div>
+    </div>
+
+    <script>
+        const faqData = [
+            {
+                category: "账户问题",
+                items: [
+                    {
+                        title: "如何注册账户",
+                        content: `
+                            <p>点击网站右上角的'注册'按钮，填写个人基本信息即可完成注册。</p>
+                            <ul>
+                                <li>输入手机号</li>
+                                <li>设置密码</li>
+                                <li>验证邮箱</li>
+                            </ul>
+                        `
+                    },
+                    {
+                        title: "忘记密码怎么办",
+                        content: `
+                            <p>在登录页面点击'忘记密码'，按照以下步骤操作：</p>
+                            <ol>
+                                <li>输入注册手机号</li>
+                                <li>获取验证码</li>
+                                <li>重置密码</li>
+                            </ol>
+                        `
+                    }
+                ]
+            },
+            {
+                category: "支付问题",
+                items: [
+                    {
+                        title: "支持哪些支付方式",
+                        content: `
+                            <p>目前支持多种支付方式：</p>
+                            <ul>
+                                <li>微信支付</li>
+                                <li>支付宝</li>
+                                <li>银行卡在线支付</li>
+                                <li>Apple Pay</li>
+                            </ul>
+                        `
+                    }
+                ]
+            }
+        ];
+
+        function generateSidebar() {
+            const sidebar = document.getElementById('sidebar-content');
+            const content = document.getElementById('content');
+
+            faqData.forEach((category, categoryIndex) => {
+                // 创建一个分类容器
+                const categoryContainer = document.createElement('div');
+
+                // 创建分类标题
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.textContent = category.category;
+                categoryTitle.className = 'category-title';
+
+                // 创建一个承载items的容器
+                const itemsContainer = document.createElement('div');
+
+                category.items.forEach((item, itemIndex) => {
+                    // 创建侧边栏项目
+                    const sidebarItem = document.createElement('div');
+                    sidebarItem.className = 'sidebar-item';
+                    sidebarItem.textContent = item.title;
+
+                    // 添加点击事件
+                    sidebarItem.onclick = () => {
+                        document.querySelectorAll('.sidebar-item').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                        sidebarItem.classList.add('active');
+
+                        const targetSection = document.getElementById(`section-${categoryIndex}-${itemIndex}`);
+                        targetSection.scrollIntoView({ behavior: 'smooth' });
+                    };
+
+                    itemsContainer.appendChild(sidebarItem);
+
+                    // 创建内容区域
+                    const section = document.createElement('div');
+                    section.id = `section-${categoryIndex}-${itemIndex}`;
+                    section.className = 'section';
+
+                    const title = document.createElement('h2');
+                    title.textContent = item.title;
+                    section.appendChild(title);
+
+                    const cnt = document.createElement('div');
+                    cnt.innerHTML = item.content;
+                    section.appendChild(cnt);
+
+                    content.appendChild(section);
+                });
+
+                // 默认展开，可以根据需要默认折叠 itemsContainer.style.display = 'none';
+                categoryTitle.onclick = () => {
+                    if (itemsContainer.classList.contains('collapsed')) {
+                        itemsContainer.classList.remove('collapsed');
+                    } else {
+                        itemsContainer.classList.add('collapsed');
+                    }
+                };
+
+                categoryContainer.appendChild(categoryTitle);
+                categoryContainer.appendChild(itemsContainer);
+                sidebar.appendChild(categoryContainer);
+            });
+        }
+
+        window.onload = generateSidebar;
+    </script>
+</body>
+</html>
