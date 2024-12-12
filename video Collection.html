@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BB Charging Hub Video Collection</title>
+    <style>
+        /* 基本样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff; /* 白色背景 */
+            color: #000000; /* 黑色文字 */
+            padding: 20px;
+        }
+
+        /* 主标题样式 */
+        .main-title {
+            text-align: left; /* 左对齐 */
+            color: #cc0000; /* 红色 */
+            margin-bottom: 40px;
+            font-size: 2em;
+        }
+
+        /* 按钮容器 */
+        .button-container {
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            gap: 20px; /* 按钮之间的间距 */
+            margin-bottom: 40px;
+            align-items: flex-start; /* 左对齐 */
+        }
+
+        /* 按钮样式 */
+        .open-modal {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #cc0000; /* 红色背景 */
+            color: #ffffff; /* 白色文字 */
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .open-modal:hover {
+            background-color: #a30000; /* 深红色背景 */
+        }
+
+        /* 模态对话框背景 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5); /* 半透明黑色背景 */
+            display: none; /* 默认隐藏 */
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        /* 当目标元素被选中时显示模态 */
+        .modal:target {
+            display: flex;
+        }
+
+        /* 模态内容容器 */
+        .modal-content {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        /* 关闭按钮 */
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5em;
+            color: #cc0000;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .close-modal:hover {
+            color: #a30000;
+        }
+
+        /* 视频展示的专属命名空间，避免影响全局样式 */
+        .video-display {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff; /* 白色背景 */
+            color: #000000; /* 黑色文字 */
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 标题样式 */
+        .video-display h1 {
+            text-align: center;
+            color: #cc0000; /* 红色 */
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        /* 表格容器 */
+        .video-display .video-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* 表头样式 */
+        .video-display .video-table thead {
+            background-color: #cc0000; /* 红色背景 */
+            color: #ffffff; /* 白色文字 */
+        }
+
+        .video-display .video-table th, 
+        .video-display .video-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* 表格行的悬停效果 */
+        .video-display .video-table tbody tr:hover {
+            background-color: #f2f2f2;
+        }
+
+        /* 链接样式 */
+        .video-display .video-table a {
+            color: #cc0000;
+            text-decoration: none;
+        }
+
+        .video-display .video-table a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式设计：小屏幕下表头隐藏，每行独立显示标签 */
+        @media (max-width: 600px) {
+            .video-display .video-table thead {
+                display: none;
+            }
+
+            .video-display .video-table, 
+            .video-display .video-table tbody, 
+            .video-display .video-table tr, 
+            .video-display .video-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .video-display .video-table tr {
+                margin-bottom: 15px;
+                border: 1px solid #ddd;
+                padding: 10px;
+            }
+
+            .video-display .video-table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+
+            .video-display .video-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                padding-left: 15px;
+                font-weight: bold;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主标题 -->
+    <div class="main-title">BB charging hub video Collection</div>
+
+    <!-- 按钮容器 -->
+    <div class="button-container">
+        <!-- 触发 Y2023 模态的链接 -->
+        <a href="#videoModal2023" class="open-modal">Y2023 Collection</a>
+        <!-- 触发 Y2024 模态的链接 -->
+        <a href="#videoModal2024" class="open-modal">Y2024 Collection</a>
+    </div>
+
+    <!-- Y2023 模态窗口 -->
+    <div id="videoModal2023" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close-modal">&times;</a>
+            <div class="video-display">
+                <h1>Y2023 Video Collection</h1>
+                <table class="video-table">
+                    <thead>
+                        <tr>
+                            <th>视频名称</th>
+                            <th>链接</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-label="视频名称">示例视频1 (2023)</td>
+                            <td data-label="链接"><a href="https://example.com/video1-2023" target="_blank">观看</a></td>
+                        </tr>
+                        <tr>
+                            <td data-label="视频名称">示例视频2 (2023)</td>
+                            <td data-label="链接"><a href="https://example.com/video2-2023" target="_blank">观看</a></td>
+                        </tr>
+                        <tr>
+                            <td data-label="视频名称">示例视频3 (2023)</td>
+                            <td data-label="链接"><a href="https://example.com/video3-2023" target="_blank">观看</a></td>
+                        </tr>
+                        <!-- 可以根据需要添加更多行 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Y2024 模态窗口 -->
+    <div id="videoModal2024" class="modal">
+        <div class="modal-content">
+            <a href="#" class="close-modal">&times;</a>
+            <div class="video-display">
+                <h1>Y2024 Video Collection</h1>
+                <table class="video-table">
+                    <thead>
+                        <tr>
+                            <th>视频名称</th>
+                            <th>链接</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-label="视频名称">示例视频1 (2024)</td>
+                            <td data-label="链接"><a href="https://example.com/video1-2024" target="_blank">观看</a></td>
+                        </tr>
+                        <tr>
+                            <td data-label="视频名称">示例视频2 (2024)</td>
+                            <td data-label="链接"><a href="https://example.com/video2-2024" target="_blank">观看</a></td>
+                        </tr>
+                        <tr>
+                            <td data-label="视频名称">示例视频3 (2024)</td>
+                            <td data-label="链接"><a href="https://example.com/video3-2024" target="_blank">观看</a></td>
+                        </tr>
+                        <!-- 可以根据需要添加更多行 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
