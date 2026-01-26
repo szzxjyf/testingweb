@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试系统 - 出题端 V2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: #666;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            background: #f0f0f0;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-primary:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        .preview {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .preview-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .preview-item:last-child {
+            border-bottom: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .format-help {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+
+        .format-help h4 {
+            margin-bottom: 8px;
+            color: #92400e;
+        }
+
+        .format-help pre {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+
+        .version-badge {
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📝 考试系统 - 出题端 <span class="version-badge">V2 即时评分</span></h1>
+
+        <div class="card">
+            <h2>1. 上传题库</h2>
+            <div class="upload-area" id="uploadArea">
+                <div style="font-size: 2rem; margin-bottom: 10px;">📄</div>
+                <p>点击或拖拽上传题库文件 (.txt)</p>
+                <input type="file" id="fileInput" accept=".txt">
+            </div>
+
+            <div id="statsContainer" class="hidden">
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">总题数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="singleCount">0</div>
+                        <div class="stat-label">单选</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="multiCount">0</div>
+                        <div class="stat-label">多选</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="tfCount">0</div>
+                        <div class="stat-label">判断</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="essayCount">0</div>
+                        <div class="stat-label">论述</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="format-help">
+                <h4>📋 题库格式说明</h4>
+                <pre>**1. 这是单选题题目？**
+A. 选项A
+B. 选项B
+C. 选项C
+D. 选项D
+> **答案：B**
+
+**2. 这是多选题？**
+A. 选项A
+B. 选项B
+> **答案：A, B**
+
+3. 这是判断题描述。
+**（正确）** 或 **（错误）**
+
+**4. 论述题**
+*   **答案：**
+参考答案内容...</pre>
+            </div>
+        </div>
+
+        <div class="card hidden" id="settingsCard">
+            <h2>2. 设置考试信息</h2>
+            <div class="form-group">
+                <label>考试标题</label>
+                <input type="text" id="examTitle" value="测试考试" placeholder="输入考试标题">
+            </div>
+            <div class="form-group">
+                <label>考生姓名字段提示</label>
+                <input type="text" id="namePrompt" value="请输入您的姓名" placeholder="姓名输入提示">
+            </div>
+            <div class="form-group">
+                <label>题型筛选</label>
+                <select id="questionType">
+                    <option value="all">全部题型</option>
+                    <option value="single">仅单选题</option>
+                    <option value="multiple">仅多选题</option>
+                    <option value="truefalse">仅判断题</option>
+                    <option value="essay">仅论述题</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>抽取题数（0表示全部）</label>
+                <input type="number" id="questionCount" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="shuffleQuestions" style="width: auto;">
+                    随机打乱题目顺序
+                </label>
+            </div>
+        </div>
+
+        <div class="card hidden" id="exportCard">
+            <h2>3. 导出考试页面</h2>
+            <p style="margin-bottom: 16px; color: #666;">点击下方按钮，生成独立的考试HTML页面。<br><strong style="color: #10b981;">✨
+                    V2新功能：考试完成后即时显示得分、错题和所有答案</strong></p>
+            <button class="btn btn-primary" id="exportBtn">📥 导出考试页面</button>
+
+            <div id="previewContainer" class="hidden">
+                <h3 style="margin-top: 20px; margin-bottom: 10px;">题目预览</h3>
+                <div class="preview" id="previewList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const state = {
+            questions: [],
+            questionBank: { single: [], multiple: [], truefalse: [], essay: [] }
+        };
+
+        // Parse question bank
+        function parseQuestionBank(text) {
+            const lines = text.split('\n');
+            const questions = [];
+            let currentQuestion = null;
+            let currentSection = '';
+            let isEssayAnswer = false;
+            let essayAnswerLines = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                if (line.startsWith('### ')) {
+                    currentSection = line.replace('### ', '');
+                    continue;
+                }
+
+                // Question patterns
+                const questionMatch = line.match(/^\*\*(\d+)\.\s*(.+?)\*\*$/) || line.match(/^\*\*(\d+)\.\s*(.+)/);
+                if (questionMatch) {
+                    if (currentQuestion) {
+                        if (isEssayAnswer) {
+                            currentQuestion.answer = essayAnswerLines.join('\n').trim();
+                            isEssayAnswer = false;
+                            essayAnswerLines = [];
+                        }
+                        questions.push(currentQuestion);
+                    }
+                    let content = questionMatch[2];
+                    if (content.endsWith('**')) content = content.slice(0, -2);
+                    currentQuestion = {
+                        id: parseInt(questionMatch[1]),
+                        content: content,
+                        section: currentSection,
+                        options: [],
+                        answer: '',
+                        type: 'single'
+                    };
+                    continue;
+                }
+
+                if (!currentQuestion) continue;
+
+                // Options
+                const optionMatch = line.match(/^([A-D])\.\s*(.+)/);
+                if (optionMatch) {
+                    currentQuestion.options.push({ letter: optionMatch[1], text: optionMatch[2] });
+                    continue;
+                }
+
+                // Choice answer
+                const answerMatch = line.match(/>\s*\*\*答案[：:]\s*([A-D,\s]+)\*\*/);
+                if (answerMatch) {
+                    const answers = answerMatch[1].replace(/\s/g, '').split(',');
+                    currentQuestion.answer = answers;
+                    currentQuestion.type = answers.length > 1 ? 'multiple' : 'single';
+                    continue;
+                }
+
+                // True/False
+                if (line.includes('**（正确）**') || line.match(/^\*\*（正确）\*\*/)) {
+                    currentQuestion.type = 'truefalse';
+                    currentQuestion.answer = 'true';
+                    currentQuestion.options = [];
+                    continue;
+                }
+                if (line.includes('**（错误）**') || line.match(/^\*\*（错误）\*\*/)) {
+                    currentQuestion.type = 'truefalse';
+                    currentQuestion.answer = 'false';
+                    currentQuestion.options = [];
+                    continue;
+                }
+
+                // Essay
+                if (line.match(/^\*\s+\*\*答案[：:]\*\*/) || line.match(/>\s*\*\*答案[：:]\*\*$/)) {
+                    currentQuestion.type = 'essay';
+                    currentQuestion.options = [];
+                    isEssayAnswer = true;
+                    essayAnswerLines = [];
+                    continue;
+                }
+
+                if (isEssayAnswer && currentQuestion && line) {
+                    essayAnswerLines.push(line.replace(/^\*\s+/, '').replace(/^\s*\*\s*/, ''));
+                }
+            }
+
+            if (currentQuestion) {
+                if (isEssayAnswer) currentQuestion.answer = essayAnswerLines.join('\n').trim();
+                questions.push(currentQuestion);
+            }
+
+            return questions;
+        }
+
+        function categorizeQuestions(questions) {
+            state.questionBank = { single: [], multiple: [], truefalse: [], essay: [] };
+            questions.forEach(q => {
+                if (state.questionBank[q.type]) state.questionBank[q.type].push(q);
+            });
+
+            document.getElementById('totalCount').textContent = questions.length;
+            document.getElementById('singleCount').textContent = state.questionBank.single.length;
+            document.getElementById('multiCount').textContent = state.questionBank.multiple.length;
+            document.getElementById('tfCount').textContent = state.questionBank.truefalse.length;
+            document.getElementById('essayCount').textContent = state.questionBank.essay.length;
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function getFilteredQuestions() {
+            const type = document.getElementById('questionType').value;
+            const count = parseInt(document.getElementById('questionCount').value) || 0;
+            const shuffle = document.getElementById('shuffleQuestions').checked;
+
+            let pool = type === 'all'
+                ? [...state.questionBank.single, ...state.questionBank.multiple, ...state.questionBank.truefalse, ...state.questionBank.essay]
+                : [...state.questionBank[type]];
+
+            if (shuffle) pool = shuffleArray(pool);
+            if (count > 0) pool = pool.slice(0, count);
+
+            return pool;
+        }
+
+        function generateExamHTML(questions, title, namePrompt) {
+            const typeLabels = { single: '单选', multiple: '多选', truefalse: '判断', essay: '论述' };
+
+            // Generate question HTML (without answers)
+            const questionsHTML = questions.map((q, i) => {
+                let optionsHTML = '';
+                if (q.type === 'single') {
+                    optionsHTML = q.options.map(opt => `
+                        <label class="option"><input type="radio" name="q${i}" value="${opt.letter}"><span class="marker">${opt.letter}</span>${opt.text}</label>
+                    `).join('');
+                } else if (q.type === 'multiple') {
+                    optionsHTML = q.options.map(opt => `
+                        <label class="option"><input type="checkbox" name="q${i}" value="${opt.letter}"><span class="marker">${opt.letter}</span>${opt.text}</label>
+                    `).join('');
+                } else if (q.type === 'truefalse') {
+                    optionsHTML = `
+                        <label class="option"><input type="radio" name="q${i}" value="true"><span class="marker">✓</span>正确</label>
+                        <label class="option"><input type="radio" name="q${i}" value="false"><span class="marker">✗</span>错误</label>
+                    `;
+                } else if (q.type === 'essay') {
+                    optionsHTML = `<textarea name="q${i}" rows="4" placeholder="请输入您的答案..."></textarea>`;
+                }
+
+                return `
+                <div class="question" data-type="${q.type}" data-index="${i}">
+                    <div class="q-header">
+                        <span class="q-num">${i + 1}.</span>
+                        <span class="q-type">${typeLabels[q.type]}</span>
+                    </div>
+                    <div class="q-content">${q.content}</div>
+                    <div class="q-options">${optionsHTML}</div>
+                </div>`;
+            }).join('\n');
+
+            // Generate answer key with full question data for review
+            const answerKey = questions.map((q, i) => ({
+                index: i,
+                type: q.type,
+                answer: q.answer,
+                content: q.content,
+                options: q.options
+            }));
+
+            return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; line-height: 1.8; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; padding: 20px 0; font-size: 1.5rem; }
+        .name-input { background: white; padding: 16px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .name-input label { font-weight: 500; margin-right: 10px; }
+        .name-input input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; width: 200px; }
+        .question { background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid transparent; }
+        .question.correct { border-left-color: #10b981; background: linear-gradient(to right, #f0fdf4, white 50px); }
+        .question.wrong { border-left-color: #ef4444; background: linear-gradient(to right, #fef2f2, white 50px); }
+        .question.essay-type { border-left-color: #f59e0b; background: linear-gradient(to right, #fffbeb, white 50px); }
+        .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .q-num { font-weight: bold; font-size: 1.1rem; }
+        .q-type { font-size: 0.8rem; padding: 2px 8px; background: #e5e7eb; border-radius: 4px; color: #666; }
+        .q-badge { margin-left: auto; padding: 2px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .q-badge.correct { background: #d1fae5; color: #059669; }
+        .q-badge.wrong { background: #fee2e2; color: #dc2626; }
+        .q-badge.essay { background: #fef3c7; color: #d97706; }
+        .q-content { margin-bottom: 16px; font-size: 1rem; }
+        .q-options { display: flex; flex-direction: column; gap: 10px; }
+        .option { display: flex; align-items: flex-start; gap: 8px; padding: 10px; background: #f9f9f9; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .option:hover { background: #f0f0f0; }
+        .option.correct-opt { background: #d1fae5; }
+        .option.wrong-opt { background: #fee2e2; text-decoration: line-through; }
+        .option input { margin-top: 4px; }
+        .marker { font-weight: bold; min-width: 20px; }
+        textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; resize: vertical; font-family: inherit; }
+        .submit-area { text-align: center; padding: 30px 0; }
+        .btn { padding: 14px 40px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #1d4ed8; }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
+        .btn-secondary { background: #6b7280; }
+        .btn-secondary:hover { background: #4b5563; }
+        .result-card { background: white; padding: 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+        .score-display { font-size: 4rem; font-weight: bold; color: #2563eb; margin: 20px 0; }
+        .score-stats { display: flex; justify-content: center; gap: 40px; margin: 20px 0; }
+        .score-stat { text-align: center; }
+        .score-stat-num { font-size: 2rem; font-weight: bold; }
+        .score-stat-num.correct { color: #10b981; }
+        .score-stat-num.wrong { color: #ef4444; }
+        .score-stat-num.essay { color: #f59e0b; }
+        .score-stat-label { font-size: 0.9rem; color: #666; }
+        .answer-display { margin-top: 16px; padding: 12px; border-radius: 6px; text-align: left; }
+        .answer-display.user { background: #fee2e2; color: #991b1b; }
+        .answer-display.correct { background: #d1fae5; color: #065f46; }
+        .answer-display.reference { background: #f0f9ff; color: #1e40af; border-left: 4px solid #3b82f6; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>${title}</h1>
+        <div class="name-input">
+            <label>${namePrompt}：</label>
+            <input type="text" id="userName" required>
+        </div>
+        <form id="examForm">
+            ${questionsHTML}
+            <div class="submit-area">
+                <button type="submit" class="btn">提交答卷</button>
+            </div>
+        </form>
+        
+        <!-- Result Section -->
+        <div id="resultSection" class="hidden">
+            <div class="result-card">
+                <h2>🎉 考试完成！</h2>
+                <p id="resultName" style="color: #666; margin-top: 10px;"></p>
+                <div class="score-display" id="scoreDisplay">0%</div>
+                <div class="score-stats">
+                    <div class="score-stat">
+                        <div class="score-stat-num correct" id="correctCount">0</div>
+                        <div class="score-stat-label">正确</div>
+                    </div>
+                    <div class="score-stat">
+                        <div class="score-stat-num wrong" id="wrongCount">0</div>
+                        <div class="score-stat-label">错误</div>
+                    </div>
+                    <div class="score-stat">
+                        <div class="score-stat-num essay" id="essayCount">0</div>
+                        <div class="score-stat-label">论述题</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button type="button" class="btn" onclick="showWrongQuestions()">❌ 查看错题</button>
+                    <button type="button" class="btn btn-success" onclick="showAllReview()">📖 Review 全部</button>
+                    <button type="button" class="btn btn-secondary" onclick="location.reload()">🔄 重新答题</button>
+                </div>
+            </div>
+            
+            <div id="wrongSection" class="hidden">
+                <h2 style="margin-bottom: 16px; color: #ef4444;">❌ 错题列表</h2>
+                <div id="wrongList"></div>
+            </div>
+            
+            <div id="reviewSection" class="hidden">
+                <h2 style="margin-bottom: 16px; color: #2563eb;">📖 全部题目与答案</h2>
+                <div id="reviewList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const answerKey = ${JSON.stringify(answerKey)};
+        const typeLabels = { single: '单选', multiple: '多选', truefalse: '判断', essay: '论述' };
+        let results = { correct: [], wrong: [], essay: [], all: [] };
+
+        document.getElementById('examForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('userName').value.trim();
+            if (!name) { alert('请输入姓名'); return; }
+
+            let correctCount = 0;
+            let wrongCount = 0;
+            let essayCount = 0;
+            results = { correct: [], wrong: [], essay: [], all: [] };
+
+            answerKey.forEach((item, i) => {
+                let userAnswer = '';
+                let isCorrect = false;
+
+                if (item.type === 'single' || item.type === 'truefalse') {
+                    const checked = document.querySelector('input[name="q' + i + '"]:checked');
+                    userAnswer = checked ? checked.value : '';
+                    if (item.type === 'single') {
+                        isCorrect = userAnswer === item.answer[0];
+                    } else {
+                        isCorrect = userAnswer === item.answer;
+                    }
+                } else if (item.type === 'multiple') {
+                    const checked = document.querySelectorAll('input[name="q' + i + '"]:checked');
+                    userAnswer = Array.from(checked).map(c => c.value).sort();
+                    const correctAnswer = [...item.answer].sort();
+                    isCorrect = JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
+                    userAnswer = userAnswer.join(', ');
+                } else if (item.type === 'essay') {
+                    userAnswer = document.querySelector('textarea[name="q' + i + '"]').value.trim();
+                    essayCount++;
+                }
+
+                const result = {
+                    index: i,
+                    question: item,
+                    userAnswer: userAnswer,
+                    isCorrect: isCorrect
+                };
+
+                results.all.push(result);
+
+                if (item.type === 'essay') {
+                    results.essay.push(result);
+                } else if (isCorrect) {
+                    correctCount++;
+                    results.correct.push(result);
+                } else {
+                    wrongCount++;
+                    results.wrong.push(result);
+                }
+            });
+
+            const gradeable = answerKey.length - essayCount;
+            const percent = gradeable > 0 ? Math.round((correctCount / gradeable) * 100) : 0;
+
+            document.getElementById('resultName').textContent = '考生：' + name;
+            document.getElementById('scoreDisplay').textContent = percent + '%';
+            document.getElementById('correctCount').textContent = correctCount;
+            document.getElementById('wrongCount').textContent = wrongCount;
+            document.getElementById('essayCount').textContent = essayCount;
+
+            document.getElementById('examForm').classList.add('hidden');
+            document.getElementById('resultSection').classList.remove('hidden');
+        });
+
+        function formatAnswer(item, userAnswer) {
+            if (item.type === 'single') return item.answer[0];
+            if (item.type === 'multiple') return item.answer.join(', ');
+            if (item.type === 'truefalse') return item.answer === 'true' ? '正确' : '错误';
+            return item.answer;
+        }
+
+        function formatUserAnswer(item, userAnswer) {
+            if (!userAnswer) return '（未作答）';
+            if (item.type === 'truefalse') return userAnswer === 'true' ? '正确' : '错误';
+            return userAnswer;
+        }
+
+        function renderQuestion(result, showResult) {
+            const item = result.question;
+            const i = result.index;
+            let statusClass = '';
+            let badgeHTML = '';
+
+            if (showResult) {
+                if (item.type === 'essay') {
+                    statusClass = 'essay-type';
+                    badgeHTML = '<span class="q-badge essay">📝 论述题</span>';
+                } else if (result.isCorrect) {
+                    statusClass = 'correct';
+                    badgeHTML = '<span class="q-badge correct">✓ 正确</span>';
+                } else {
+                    statusClass = 'wrong';
+                    badgeHTML = '<span class="q-badge wrong">✗ 错误</span>';
+                }
+            }
+
+            let optionsHTML = '';
+            if (item.options && item.options.length > 0) {
+                optionsHTML = '<div style="margin: 12px 0; padding: 12px; background: #f9f9f9; border-radius: 6px;">';
+                item.options.forEach(opt => {
+                    let optClass = '';
+                    if (showResult && item.type !== 'essay') {
+                        const isCorrectOpt = item.answer.includes(opt.letter);
+                        const userAnswerArr = typeof result.userAnswer === 'string' ? result.userAnswer.split(', ') : [];
+                        const isUserOpt = userAnswerArr.includes(opt.letter);
+                        if (isCorrectOpt) optClass = 'style="color: #059669; font-weight: 600;"';
+                        if (isUserOpt && !isCorrectOpt) optClass = 'style="color: #dc2626; text-decoration: line-through;"';
+                    }
+                    optionsHTML += '<div ' + optClass + '><strong>' + opt.letter + '.</strong> ' + opt.text + '</div>';
+                });
+                optionsHTML += '</div>';
+            }
+
+            let answerSection = '';
+            if (showResult) {
+                if (item.type === 'essay') {
+                    answerSection = '<div class="answer-display user"><strong>您的答案：</strong><br>' + (result.userAnswer || '（未作答）') + '</div>';
+                    answerSection += '<div class="answer-display reference" style="margin-top: 8px;"><strong>参考答案：</strong><br>' + item.answer + '</div>';
+                } else {
+                    answerSection = '<div class="answer-display ' + (result.isCorrect ? 'correct' : 'user') + '">';
+                    answerSection += '<strong>您的答案：</strong> ' + formatUserAnswer(item, result.userAnswer);
+                    if (!result.isCorrect) {
+                        answerSection += ' &nbsp;|&nbsp; <strong>正确答案：</strong> ' + formatAnswer(item, result.userAnswer);
+                    }
+                    answerSection += '</div>';
+                }
+            }
+
+            return '<div class="question ' + statusClass + '">' +
+                '<div class="q-header">' +
+                '<span class="q-num">' + (i + 1) + '.</span>' +
+                '<span class="q-type">' + typeLabels[item.type] + '</span>' +
+                badgeHTML +
+                '</div>' +
+                '<div class="q-content">' + item.content + '</div>' +
+                optionsHTML +
+                answerSection +
+                '</div>';
+        }
+
+        function showWrongQuestions() {
+            document.getElementById('reviewSection').classList.add('hidden');
+            const section = document.getElementById('wrongSection');
+            const list = document.getElementById('wrongList');
+
+            if (!section.classList.contains('hidden')) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            if (results.wrong.length === 0) {
+                list.innerHTML = '<div class="result-card"><p style="color: #10b981; font-size: 1.2rem;">🎉 恭喜！没有错题！</p></div>';
+            } else {
+                list.innerHTML = results.wrong.map(r => renderQuestion(r, true)).join('');
+            }
+            section.classList.remove('hidden');
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showAllReview() {
+            document.getElementById('wrongSection').classList.add('hidden');
+            const section = document.getElementById('reviewSection');
+            const list = document.getElementById('reviewList');
+
+            if (!section.classList.contains('hidden')) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            list.innerHTML = results.all.map(r => renderQuestion(r, true)).join('');
+            section.classList.remove('hidden');
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    <` + `/script>
+<` + `/body>
+<` + `/html>`;
+        }
+
+        function exportExam() {
+            const questions = getFilteredQuestions();
+            if (questions.length === 0) {
+                alert('没有可用的题目！');
+                return;
+            }
+
+            const title = document.getElementById('examTitle').value || '考试';
+            const namePrompt = document.getElementById('namePrompt').value || '请输入姓名';
+            const html = generateExamHTML(questions, title, namePrompt);
+
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = title + '_考试_V2.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function updatePreview() {
+            const questions = getFilteredQuestions();
+            const typeLabels = { single: '单选', multiple: '多选', truefalse: '判断', essay: '论述' };
+            const list = document.getElementById('previewList');
+            list.innerHTML = questions.map((q, i) =>
+                `<div class="preview-item"><strong>${i + 1}.</strong> [${typeLabels[q.type]}] ${q.content.substring(0, 50)}...</div>`
+            ).join('');
+            document.getElementById('previewContainer').classList.remove('hidden');
+        }
+
+        // File upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = '#666'; });
+        uploadArea.addEventListener('dragleave', () => uploadArea.style.borderColor = '#ccc');
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files[0]) processFile(e.target.files[0]);
+        });
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                state.questions = parseQuestionBank(e.target.result);
+                categorizeQuestions(state.questions);
+                document.getElementById('statsContainer').classList.remove('hidden');
+                document.getElementById('settingsCard').classList.remove('hidden');
+                document.getElementById('exportCard').classList.remove('hidden');
+                document.getElementById('questionCount').max = state.questions.length;
+                updatePreview();
+            };
+            reader.readAsText(file);
+        }
+
+        // Event listeners
+        document.getElementById('exportBtn').addEventListener('click', exportExam);
+        ['questionType', 'questionCount', 'shuffleQuestions'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updatePreview);
+        });
+    </script>
+</body>
+
+</html>
