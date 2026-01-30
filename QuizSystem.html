@@ -457,7 +457,8 @@ B. 选项B
             const answerKey = questions.map((q, i) => ({
                 index: i,
                 type: q.type,
-                answer: q.answer
+                answer: q.answer,
+                content: q.content
             }));
 
             return `<!DOCTYPE html>
@@ -510,7 +511,7 @@ B. 选项B
             <h2>提交成功</h2>
             <p id="resultInfo"></p>
             <div style="margin-top: 16px;">
-                <button type="button" class="btn" onclick="downloadResult()">📥 导出答卷</button>
+                <button type="button" class="btn" style="background: #8b5cf6;" onclick="downloadResult()">� 导出CSV</button>
             </div>
         </div>
     </div>
@@ -544,24 +545,35 @@ B. 选项B
 
         function downloadResult() {
             const name = document.getElementById('userName').value.trim();
+            const timestamp = new Date().toLocaleString('zh-CN');
             const typeLabels = { single: '单选', multiple: '多选', truefalse: '判断', essay: '论述' };
-            const lines = [
-                '===== 答卷 =====',
-                '考试：${title}',
-                '考生：' + name,
-                '提交时间：' + new Date().toLocaleString('zh-CN'),
-                '',
-                '===== 答题记录 ====='
-            ];
-            userAnswers.forEach(a => {
-                lines.push('第' + a.index + '题 [' + typeLabels[a.type] + ']：' + (a.answer || '（未作答）'));
+            
+            // CSV header with BOM for UTF-8
+            let csv = '\\uFEFF';
+            csv += '考生姓名,提交时间,题号,题目内容,题型,用户答案\\n';
+            
+            userAnswers.forEach((a, i) => {
+                const item = answerKey[i];
+                const qContent = (item.content || '').replace(/"/g, '""').replace(/,/g, '，');
+                const qType = typeLabels[a.type];
+                let userAns = '';
+                
+                if (a.type === 'essay') {
+                    userAns = (a.answer || '未作答').replace(/"/g, '""').replace(/,/g, '，').replace(/\\n/g, ' ');
+                } else if (a.type === 'truefalse') {
+                    userAns = a.answer === 'true' ? '正确' : (a.answer === 'false' ? '错误' : '未作答');
+                } else {
+                    userAns = a.answer || '未作答';
+                }
+                
+                csv += '"' + name + '","' + timestamp + '",' + a.index + ',"' + qContent + '","' + qType + '","' + userAns + '"\\n';
             });
             
-            const blob = new Blob([lines.join('\\n')], { type: 'text/plain;charset=utf-8' });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = '答卷_' + name + '_' + new Date().toISOString().slice(0,10) + '.txt';
+            a.download = name + '_考试结果_' + new Date().toISOString().slice(0,10) + '.csv';
             a.click();
             URL.revokeObjectURL(url);
         }
