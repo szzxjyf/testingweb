@@ -568,6 +568,7 @@ B. 选项B
                     <button type="button" class="btn" onclick="showWrongQuestions()">❌ 查看错题</button>
                     <button type="button" class="btn btn-success" onclick="showAllReview()">📖 Review 全部</button>
                     <button type="button" class="btn btn-secondary" onclick="location.reload()">🔄 重新答题</button>
+                    <button type="button" class="btn" style="background: #8b5cf6;" onclick="exportCSV()">📊 导出CSV</button>
                 </div>
             </div>
             
@@ -762,6 +763,50 @@ B. 选项B
             list.innerHTML = results.all.map(r => renderQuestion(r, true)).join('');
             section.classList.remove('hidden');
             section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function exportCSV() {
+            const name = document.getElementById('userName').value.trim();
+            const timestamp = new Date().toLocaleString('zh-CN');
+            
+            // CSV header
+            let csv = '\\uFEFF'; // BOM for UTF-8
+            csv += '考生姓名,提交时间,题号,题目内容,题型,用户答案,正确答案,是否正确\\n';
+            
+            results.all.forEach((r, i) => {
+                const item = r.question;
+                const qNum = r.index + 1;
+                const qContent = item.content.replace(/"/g, '""').replace(/,/g, '，');
+                const qType = typeLabels[item.type];
+                
+                let userAns = '';
+                let correctAns = '';
+                let isCorrectText = '';
+                
+                if (item.type === 'essay') {
+                    userAns = (r.userAnswer || '未作答').replace(/"/g, '""').replace(/,/g, '，').replace(/\\n/g, ' ');
+                    correctAns = (typeof item.answer === 'string' ? item.answer : '').replace(/"/g, '""').replace(/,/g, '，').replace(/\\n/g, ' ');
+                    isCorrectText = '待批阅';
+                } else if (item.type === 'truefalse') {
+                    userAns = r.userAnswer === 'true' ? '正确' : (r.userAnswer === 'false' ? '错误' : '未作答');
+                    correctAns = item.answer === 'true' ? '正确' : '错误';
+                    isCorrectText = r.isCorrect ? '正确' : '错误';
+                } else {
+                    userAns = r.userAnswer || '未作答';
+                    correctAns = Array.isArray(item.answer) ? item.answer.join(',') : item.answer;
+                    isCorrectText = r.isCorrect ? '正确' : '错误';
+                }
+                
+                csv += '"' + name + '","' + timestamp + '",' + qNum + ',"' + qContent + '","' + qType + '","' + userAns + '","' + correctAns + '","' + isCorrectText + '"\\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name + '_考试结果_' + new Date().toISOString().slice(0, 10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
     <` + `/script>
 <` + `/body>
