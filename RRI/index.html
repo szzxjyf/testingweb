@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汇丰数据分析工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #d32f2f, #b71c1c);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .upload-section h2 {
+            color: #d32f2f;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 10px;
+        }
+
+        .file-upload {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 2px dashed #d32f2f;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #b71c1c;
+            background-color: #fff5f5;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload label {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #d32f2f;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .file-upload label:hover {
+            background-color: #b71c1c;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .file-selected {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            color: #2e7d32;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .process-btn {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .process-btn:hover {
+            background-color: #b71c1c;
+        }
+
+        .process-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .results-section h2 {
+            color: #d32f2f;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .stat-card h3 {
+            color: #d32f2f;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .export-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .export-section h2 {
+            color: #d32f2f;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 10px;
+        }
+
+        .month-selector {
+            margin-bottom: 20px;
+        }
+
+        .month-selector label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .month-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        .export-btn {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background-color: #b71c1c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #c62828;
+        }
+
+        .success {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background-color: #d32f2f;
+            color: white;
+            font-weight: 500;
+        }
+
+        .data-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HSBC Data Analysis Tool</h1>
+            <p>Secure and efficient data processing solution</p>
+        </div>
+
+        <div class="upload-section">
+            <h2>File Upload</h2>
+            
+            <div class="file-upload">
+                <label for="file1">Select First CSV File (SMT Data)</label>
+                <input type="file" id="file1" accept=".csv" />
+                <div class="file-info">Contains SMT Orginator, Month ID, SMT Type columns</div>
+                <div class="file-selected" id="file1-selected" style="display: none;"></div>
+            </div>
+
+            <div class="file-upload">
+                <label for="file2">Select Second CSV File (Meeting Data)</label>
+                <input type="file" id="file2" accept=".csv" />
+                <div class="file-info">Contains Attendee Employee ID, Created By Employee ID, Year & Month, Interaction ID, Meeting Type columns</div>
+                <div class="file-selected" id="file2-selected" style="display: none;"></div>
+            </div>
+
+            <div class="file-upload">
+                <label for="file3">Select Third CSV File (Deal Data)</label>
+                <input type="file" id="file3" accept=".csv" />
+                <div class="file-info">Contains Deal TL PS ID, Month&Year, Staff Team Country, Domestic Contribution, Deal Category_Alt, EBV (USD000) columns</div>
+                <div class="file-selected" id="file3-selected" style="display: none;"></div>
+            </div>
+
+            <button class="process-btn" id="processBtn" disabled>Start Data Processing</button>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <h2>Processing Results</h2>
+            <div id="loadingMessage" class="loading" style="display: none;">
+                Processing data, please wait...
+            </div>
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            <div id="successMessage" class="success" style="display: none;"></div>
+            <div id="resultsContent"></div>
+        </div>
+
+        <div class="export-section" id="exportSection">
+            <h2>Export Data</h2>
+            <div class="month-selector">
+                <label for="monthSelect">Select month to export:</label>
+                <select id="monthSelect">
+                    <option value="">Please select a month</option>
+                </select>
+            </div>
+            <button class="export-btn" id="exportBtn" disabled>Export CSV File</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let file1Data = null;
+        let file2Data = null;
+        let file3Data = null;
+        let processedData = null;
+        let availableMonths = [];
+
+        // 文件上传处理
+        document.getElementById('file1').addEventListener('change', handleFileUpload);
+        document.getElementById('file2').addEventListener('change', handleFileUpload);
+        document.getElementById('file3').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // 显示选中的文件信息
+                const fileSelectedElement = document.getElementById(event.target.id + '-selected');
+                fileSelectedElement.innerHTML = `📁 Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                fileSelectedElement.style.display = 'block';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const csv = e.target.result;
+                        console.log('File content length:', csv.length);
+                        console.log('First 1000 characters:', csv.substring(0, 1000));
+                        
+                        const data = parseCSV(csv);
+                        
+                        if (event.target.id === 'file1') {
+                            file1Data = data;
+                            if (data.length === 0) {
+                                showError('⚠️ SMT file uploaded but no data parsed. Check console for details.');
+                            } else {
+                                showSuccess(`✅ First file (SMT Data) uploaded successfully! Parsed ${data.length} rows.`);
+                            }
+                        } else if (event.target.id === 'file2') {
+                            file2Data = data;
+                            if (data.length === 0) {
+                                showError('⚠️ Meeting file uploaded but no data parsed. Check console for details.');
+                            } else {
+                                showSuccess(`✅ Second file (Meeting Data) uploaded successfully! Parsed ${data.length} rows.`);
+                            }
+                        } else if (event.target.id === 'file3') {
+                            file3Data = data;
+                            if (data.length === 0) {
+                                showError('⚠️ Deal file uploaded but no data parsed. Check console for details.');
+                            } else {
+                                showSuccess(`✅ Third file (Deal Data) uploaded successfully! Parsed ${data.length} rows.`);
+                            }
+                        }
+                        
+                        // 延迟检查，确保成功消息先显示
+                        setTimeout(() => {
+                            checkAllFilesUploaded();
+                        }, 100);
+                        
+                    } catch (error) {
+                        showError('❌ File parsing failed: ' + error.message);
+                        console.error('Parse error:', error);
+                    }
+                };
+                reader.readAsText(file, 'UTF-8');
+            } else {
+                // 文件选择被取消时，隐藏文件信息
+                const fileSelectedElement = document.getElementById(event.target.id + '-selected');
+                fileSelectedElement.style.display = 'none';
+                
+                // 显示提示
+                if (event.target.id === 'file1') {
+                    showError('⚠️ Please select the first file (SMT Data)');
+                } else if (event.target.id === 'file2') {
+                    showError('⚠️ Please select the second file (Meeting Data)');
+                } else if (event.target.id === 'file3') {
+                    showError('⚠️ Please select the third file (Deal Data)');
+                }
+            }
+        }
+
+        function parseCSV(csv) {
+            console.log('Raw CSV content (first 500 chars):', csv.substring(0, 500));
+            
+            // Handle different line endings
+            const lines = csv.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+            console.log('Total lines found:', lines.length);
+            console.log('First few lines:', lines.slice(0, 3));
+            
+            if (lines.length < 2) {
+                console.log('Not enough lines in CSV');
+                return [];
+            }
+            
+            // More robust header parsing
+            const headerLine = lines[0];
+            console.log('Header line:', headerLine);
+            
+            // Try different splitting methods
+            let headers;
+            if (headerLine.includes('","')) {
+                // Handle quoted CSV
+                headers = headerLine.split('","').map(h => h.replace(/^"|"$/g, '').trim());
+            } else {
+                // Handle simple CSV
+                headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+            }
+            
+            console.log('Parsed headers:', headers);
+            
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    console.log(`Processing line ${i}:`, line.substring(0, 100) + '...');
+                    
+                    let values;
+                    if (line.includes('","')) {
+                        // Handle quoted CSV
+                        values = line.split('","').map(v => v.replace(/^"|"$/g, '').trim());
+                    } else {
+                        // Handle simple CSV
+                        values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                    }
+                    
+                    console.log(`Parsed values for line ${i}:`, values);
+                    
+                    if (values.length >= headers.length) {
+                        const row = {};
+                        headers.forEach((header, index) => {
+                            row[header] = values[index] || '';
+                        });
+                        data.push(row);
+                        console.log(`Added row ${i}:`, row);
+                    } else {
+                        console.log(`Skipped line ${i} - insufficient columns (${values.length} vs ${headers.length})`);
+                    }
+                }
+            }
+            
+            console.log('Final parsed data:', data);
+            return data;
+        }
+
+        function checkAllFilesUploaded() {
+            if (file1Data && file2Data && file3Data) {
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        // 数据处理
+        document.getElementById('processBtn').addEventListener('click', processData);
+
+        function processData() {
+            showLoading();
+            
+            try {
+                // Process first file - SMT data
+                const smtStats = processSMTData(file1Data);
+                
+                // Process second file - Meeting data
+                const meetingStats = processMeetingData(file2Data);
+                
+                // Process third file - Deal data
+                const dealStats = processDealData(file3Data);
+                
+                // Outer join all data
+                processedData = outerJoinData(smtStats, meetingStats, dealStats);
+                
+                // Get all months
+                availableMonths = [...new Set(Object.keys(processedData))].sort();
+                
+                // Update month selector
+                updateMonthSelector();
+                
+                // Display results
+                displayResults();
+                
+                showSuccess('Data processing completed!');
+                
+            } catch (error) {
+                showError('Data processing failed: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function processSMTData(data) {
+            const stats = {};
+            console.log('Processing SMT data, total rows:', data.length);
+            
+            data.forEach((row, index) => {
+                const smtOriginator = row['SMT Orginator'];
+                const monthId = row['Month ID'];
+                const smtType = row['SMT Type'];
+                
+                // Debug information
+                if (index < 5) {
+                    console.log(`Row ${index}:`, {
+                        smtOriginator,
+                        monthId,
+                        smtType,
+                        allKeys: Object.keys(row)
+                    });
+                }
+                
+                if (smtOriginator && monthId && smtType) {
+                    // Extract Staff ID from SMT Orginator column (should contain 8-digit staff ID)
+                    let staffId = smtOriginator.toString().trim();
+                    
+                    // Remove any non-numeric characters to get clean staff ID
+                    const numbersOnly = staffId.replace(/[^\d]/g, '');
+                    
+                    // Take first 8 digits if available
+                    if (numbersOnly.length >= 8) {
+                        staffId = numbersOnly.substring(0, 8);
+                    } else if (numbersOnly.length >= 6) {
+                        // Pad with zeros if 6-7 digits
+                        staffId = numbersOnly.padStart(8, '0');
+                    } else {
+                        console.log(`Invalid staff ID: ${smtOriginator}, skipping row`);
+                        return; // Skip this row
+                    }
+                    
+                    // Process month ID (should be in YYYYMM format)
+                    let month = monthId.toString().trim();
+                    
+                    // Remove any non-numeric characters
+                    const cleanMonth = month.replace(/[^\d]/g, '');
+                    
+                    if (cleanMonth.length === 6) {
+                        month = cleanMonth;
+                    } else if (cleanMonth.length === 4) {
+                        // If only 4 digits, assume it's YYYY and add 01
+                        month = cleanMonth + '01';
+                    } else {
+                        console.log(`Invalid month format: ${monthId}, skipping row`);
+                        return; // Skip this row
+                    }
+                    
+                    if (!stats[month]) {
+                        stats[month] = {};
+                    }
+                    if (!stats[month][staffId]) {
+                        stats[month][staffId] = {
+                            crossSell: 0,
+                            leadReferral: 0,
+                            testimonial: 0
+                        };
+                    }
+                    
+                    // Only count specific SMT Type types
+                    if (smtType === 'Cross-sell') {
+                        stats[month][staffId].crossSell++;
+                    } else if (smtType === 'Lead Referral') {
+                        stats[month][staffId].leadReferral++;
+                    } else if (smtType === 'Testimonial/Compliment') {
+                        stats[month][staffId].testimonial++;
+                    }
+                    // Other SMT Type types (like Client Engagement) will be ignored
+                    
+                    // Debug: show processed data
+                    if (index < 10) {
+                        console.log(`Processing staff ${staffId} in ${month} month, type: ${smtType}`);
+                    }
+                }
+            });
+            
+            console.log('SMT processing results:', stats);
+            return stats;
+        }
+
+        function processMeetingData(data) {
+            const stats = {};
+            
+            data.forEach(row => {
+                const attendeeId = String(row['Attendee Employee ID']).trim();
+                const createdById = String(row['Created By Employee ID']).trim();
+                const yearMonth = row['Year & Month'];
+                const meetingType = row['Meeting Type'];
+                
+                if (yearMonth && meetingType) {
+                    const month = yearMonth;
+                    
+                    if (!stats[month]) {
+                        stats[month] = {};
+                    }
+                    
+                    // 统计Client Meeting
+                    if (attendeeId && meetingType === 'Client Meeting') {
+                        if (!stats[month][attendeeId]) {
+                            stats[month][attendeeId] = {
+                                clientMeetings: 0,
+                                serviceReviews: 0
+                            };
+                        }
+                        stats[month][attendeeId].clientMeetings++;
+                    }
+                    
+                    // 统计Service Review
+                    if (createdById && meetingType === 'Service Review') {
+                        if (!stats[month][createdById]) {
+                            stats[month][createdById] = {
+                                clientMeetings: 0,
+                                serviceReviews: 0
+                            };
+                        }
+                        stats[month][createdById].serviceReviews++;
+                    }
+                }
+            });
+            
+            return stats;
+        }
+
+        function processDealData(data) {
+            const stats = {};
+            
+            data.forEach(row => {
+                const dealTlPsId = row['Deal TL PS ID'];
+                const monthYear = row['Month&Year'];
+                const country = row['Staff Team Country'];
+                const domesticContribution = row['Domestic Contribution'];
+                const dealCategory = row['Deal Category_Alt'];
+                const ebv = parseFloat(row['EBV (USD000)']) || 0;
+                
+                if (dealTlPsId && monthYear && 
+                    country === 'China' && 
+                    domesticContribution === '100' && 
+                    dealCategory === 'Won') {
+                    
+                    const month = monthYear;
+                    
+                    if (!stats[month]) {
+                        stats[month] = {};
+                    }
+                    if (!stats[month][dealTlPsId]) {
+                        stats[month][dealTlPsId] = {
+                            dealCount: 0,
+                            totalEBV: 0
+                        };
+                    }
+                    
+                    stats[month][dealTlPsId].dealCount++;
+                    stats[month][dealTlPsId].totalEBV += ebv;
+                }
+            });
+            
+            return stats;
+        }
+
+        function outerJoinData(smtStats, meetingStats, dealStats) {
+            const result = {};
+            const allMonths = new Set([
+                ...Object.keys(smtStats),
+                ...Object.keys(meetingStats),
+                ...Object.keys(dealStats)
+            ]);
+            
+            allMonths.forEach(month => {
+                result[month] = {};
+                const allStaffIds = new Set();
+                
+                // 收集所有Staff ID
+                if (smtStats[month]) {
+                    Object.keys(smtStats[month]).forEach(id => allStaffIds.add(id));
+                }
+                if (meetingStats[month]) {
+                    Object.keys(meetingStats[month]).forEach(id => allStaffIds.add(id));
+                }
+                if (dealStats[month]) {
+                    Object.keys(dealStats[month]).forEach(id => allStaffIds.add(id));
+                }
+                
+                // 合并数据
+                allStaffIds.forEach(staffId => {
+                    result[month][staffId] = {
+                        // SMT数据
+                        crossSell: 0,
+                        leadReferral: 0,
+                        testimonial: 0,
+                        // 会议数据
+                        clientMeetings: 0,
+                        serviceReviews: 0,
+                        // 交易数据
+                        dealCount: 0,
+                        totalEBV: 0
+                    };
+                    
+                    // 合并SMT数据
+                    if (smtStats[month] && smtStats[month][staffId]) {
+                        Object.assign(result[month][staffId], smtStats[month][staffId]);
+                    }
+                    
+                    // 合并会议数据
+                    if (meetingStats[month] && meetingStats[month][staffId]) {
+                        Object.assign(result[month][staffId], meetingStats[month][staffId]);
+                    }
+                    
+                    // 合并交易数据
+                    if (dealStats[month] && dealStats[month][staffId]) {
+                        Object.assign(result[month][staffId], dealStats[month][staffId]);
+                    }
+                });
+            });
+            
+            return result;
+        }
+
+        function updateMonthSelector() {
+            const select = document.getElementById('monthSelect');
+            select.innerHTML = '<option value="">请选择月份</option>';
+            
+            availableMonths.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = month;
+                select.appendChild(option);
+            });
+        }
+
+        function displayResults() {
+            const resultsContent = document.getElementById('resultsContent');
+            let html = '<h3>Data Overview</h3>';
+            
+            // Display overall statistics
+            let totalStaff = 0;
+            let totalMonths = availableMonths.length;
+            
+            availableMonths.forEach(month => {
+                totalStaff += Object.keys(processedData[month]).length;
+            });
+            
+            html += `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Months</h3>
+                        <div class="stat-value">${totalMonths}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Staff</h3>
+                        <div class="stat-value">${totalStaff}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Display first month data as example
+            if (availableMonths.length > 0) {
+                const firstMonth = availableMonths[0];
+                const monthData = processedData[firstMonth];
+                const staffIds = Object.keys(monthData).slice(0, 10); // Show first 10 staff
+                
+                html += `
+                    <h3>${firstMonth} Month Data Sample (First 10 Staff)</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Staff ID</th>
+                                <th>Cross-sell</th>
+                                <th>Lead Referral</th>
+                                <th>Testimonial</th>
+                                <th>Client Meetings</th>
+                                <th>Service Reviews</th>
+                                <th>Deal Count</th>
+                                <th>Total EBV</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                staffIds.forEach(staffId => {
+                    const data = monthData[staffId];
+                    html += `
+                        <tr>
+                            <td>${staffId}</td>
+                            <td>${data.crossSell}</td>
+                            <td>${data.leadReferral}</td>
+                            <td>${data.testimonial}</td>
+                            <td>${data.clientMeetings}</td>
+                            <td>${data.serviceReviews}</td>
+                            <td>${data.dealCount}</td>
+                            <td>${data.totalEBV.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+            }
+            
+            resultsContent.innerHTML = html;
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('exportSection').style.display = 'block';
+        }
+
+        // 导出功能
+        document.getElementById('monthSelect').addEventListener('change', function() {
+            document.getElementById('exportBtn').disabled = !this.value;
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', exportData);
+
+        function exportData() {
+            const selectedMonth = document.getElementById('monthSelect').value;
+            if (!selectedMonth || !processedData[selectedMonth]) {
+                showError('Please select a valid month');
+                return;
+            }
+            
+            const monthData = processedData[selectedMonth];
+            const csvContent = generateCSV(monthData);
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `HSBC_Data_Analysis_${selectedMonth}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccess(`Data exported as: HSBC_Data_Analysis_${selectedMonth}.csv`);
+        }
+
+        function generateCSV(data) {
+            const headers = [
+                'Staff ID',
+                'Cross-sell',
+                'Lead Referral', 
+                'Testimonial',
+                'Client Meetings',
+                'Service Reviews',
+                'Deal Count',
+                'Total EBV (USD000)'
+            ];
+            
+            let csv = headers.join(',') + '\n';
+            
+            Object.keys(data).forEach(staffId => {
+                const row = data[staffId];
+                const values = [
+                    staffId,
+                    row.crossSell,
+                    row.leadReferral,
+                    row.testimonial,
+                    row.clientMeetings,
+                    row.serviceReviews,
+                    row.dealCount,
+                    row.totalEBV.toFixed(2)
+                ];
+                csv += values.join(',') + '\n';
+            });
+            
+            return csv;
+        }
+
+        // 工具函数
+        function showLoading() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingMessage').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const successElement = document.getElementById('successMessage');
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // 确保成功消息可见
+            successElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // 3秒后自动隐藏成功消息（可选）
+            setTimeout(() => {
+                if (successElement.textContent === message) {
+                    successElement.style.display = 'none';
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

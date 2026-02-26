@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMI Performance Tracking Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #DB0011;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            background: #fff;
+            border: 2px solid #DB0011;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-section h2 {
+            color: #DB0011;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .upload-card {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .upload-card h3 {
+            color: #DB0011;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .upload-card p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 10px 20px;
+            background-color: #DB0011;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        .file-input-label:hover {
+            background-color: #B00010;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-status {
+            font-size: 13px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .file-status.uploaded {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .process-btn {
+            background: #DB0011;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .process-btn:hover {
+            background-color: #B00010;
+        }
+
+        .process-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .process-section {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .process-section.hidden {
+            display: none;
+        }
+
+        .process-title {
+            color: #DB0011;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hide-btn {
+            background: #DB0011;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+
+        .hide-btn:hover {
+            background-color: #B00010;
+        }
+
+        .process-log {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        .log-item {
+            padding: 4px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-info {
+            color: #007bff;
+        }
+
+        .log-warning {
+            color: #ffc107;
+        }
+
+        .results-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .results-title {
+            color: #DB0011;
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .display-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            color: #856404;
+            font-size: 13px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+
+        th {
+            background-color: #DB0011;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background-color: #f8f8f8;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #DB0011;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #DB0011;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .export-btn {
+            background: #DB0011;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .export-btn:hover {
+            background-color: #B00010;
+        }
+
+        .export-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .export-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .month-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-filter label {
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .month-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .month-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .month-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #DB0011;
+        }
+
+        .month-checkbox label {
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .select-all-months {
+            background: transparent;
+            color: #DB0011;
+            border: 1px solid #DB0011;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .select-all-months:hover {
+            background: #DB0011;
+            color: white;
+        }
+
+        .number-right {
+            text-align: right;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .chart-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            color: #DB0011;
+            font-weight: 600;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .chart-tab {
+            padding: 10px 20px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .chart-tab:hover {
+            background: #fff;
+            border-color: #DB0011;
+        }
+
+        .chart-tab.active {
+            background: #DB0011;
+            color: white;
+            border-color: #DB0011;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .data-table-section {
+            margin-top: 30px;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #DB0011, transparent);
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AMI Performance Tracking Tool</h1>
+        <div class="subtitle">Upload three CSV files, the system will automatically process and generate comprehensive statistical reports by staff and month</div>
+
+        <div class="upload-section">
+            <h2>Step 1: Upload Data Files</h2>
+            <div class="upload-grid">
+                <div class="upload-card">
+                    <h3>File 1: SMT Data</h3>
+                    <p>Statistics for Cross-sell, Lead Referral and Testimonial/Compliment</p>
+                    <div class="file-input-wrapper">
+                        <label class="file-input-label" for="smtFile">Select SMT CSV File</label>
+                        <input type="file" id="smtFile" accept=".csv">
+                    </div>
+                    <div class="file-status" id="smtStatus">Not uploaded</div>
+                </div>
+
+                <div class="upload-card">
+                    <h3>File 2: CME Client Engagement</h3>
+                    <p>Statistics for Client Meeting (Attendee) and Service Review (Creator)</p>
+                    <div class="file-input-wrapper">
+                        <label class="file-input-label" for="meetingFile">Select CME Client Engagement CSV File</label>
+                        <input type="file" id="meetingFile" accept=".csv">
+                    </div>
+                    <div class="file-status" id="meetingStatus">Not uploaded</div>
+                </div>
+
+                <div class="upload-card">
+                    <h3>File 3: CME PG</h3>
+                    <p>Statistics for Deal Count and EBV Total (China, Won, Domestic=100)</p>
+                    <div class="file-input-wrapper">
+                        <label class="file-input-label" for="dealFile">Select CME PG CSV File</label>
+                        <input type="file" id="dealFile" accept=".csv">
+                    </div>
+                    <div class="file-status" id="dealStatus">Not uploaded</div>
+                </div>
+            </div>
+
+            <button class="process-btn" id="processBtn" onclick="processAllFiles()" disabled>
+                Start Processing
+            </button>
+        </div>
+
+        <div class="process-section hidden" id="processSection">
+            <div class="process-title">
+                <span>Processing Log</span>
+                <button class="hide-btn" onclick="hideProcess()">Hide Log</button>
+            </div>
+            <div class="process-log" id="processLog"></div>
+        </div>
+
+        <div class="results-section hidden" id="resultsSection">
+            <div class="results-title">Comprehensive Statistics</div>
+            
+            <div class="display-info" id="displayInfo"></div>
+            
+            <div class="stats-summary" id="statsSummary"></div>
+
+            <div class="chart-section">
+                <div class="chart-title">Data Trend Analysis</div>
+                <div class="chart-tabs" id="chartTabs"></div>
+                <div class="chart-container">
+                    <canvas id="trendChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <div class="data-table-section">
+                <h3 style="color: #DB0011; margin-bottom: 15px;">Detailed Data (Showing Top 20 Records)</h3>
+                <div class="table-container">
+                    <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Staff ID</th>
+                            <th>Month</th>
+                            <th class="number-right">Cross-sell</th>
+                            <th class="number-right">Lead Referral</th>
+                            <th class="number-right">Testimonial</th>
+                            <th class="number-right">Client Meeting</th>
+                            <th class="number-right">Service Review</th>
+                            <th class="number-right">Deal Count</th>
+                            <th class="number-right">EBV Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <div class="export-controls">
+                <div class="month-filter">
+                    <label>Select Export Months:</label>
+                    <button class="select-all-months" onclick="toggleAllMonths()">Select All / Deselect All</button>
+                </div>
+            </div>
+            
+            <div class="month-checkboxes" id="monthCheckboxes"></div>
+
+            <button class="export-btn" onclick="exportResults()">Export Selected Months</button>
+        </div>
+    </div>
+
+    <script>
+        let smtFileData = null;
+        let meetingFileData = null;
+        let dealFileData = null;
+        let processedData = [];
+        const MAX_DISPLAY_ROWS = 20;
+
+        // 文件上传监听
+        document.getElementById('smtFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                smtFileData = file;
+                document.getElementById('smtStatus').textContent = `Selected: ${file.name}`;
+                document.getElementById('smtStatus').classList.add('uploaded');
+                checkAllFilesUploaded();
+            }
+        });
+
+        document.getElementById('meetingFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                meetingFileData = file;
+                document.getElementById('meetingStatus').textContent = `Selected: ${file.name}`;
+                document.getElementById('meetingStatus').classList.add('uploaded');
+                checkAllFilesUploaded();
+            }
+        });
+
+        document.getElementById('dealFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                dealFileData = file;
+                document.getElementById('dealStatus').textContent = `Selected: ${file.name}`;
+                document.getElementById('dealStatus').classList.add('uploaded');
+                checkAllFilesUploaded();
+            }
+        });
+
+        function checkAllFilesUploaded() {
+            const processBtn = document.getElementById('processBtn');
+            if (smtFileData && meetingFileData && dealFileData) {
+                processBtn.disabled = false;
+            }
+        }
+
+        let logBuffer = [];
+        let logTimer = null;
+
+        function addLog(message, type = 'info') {
+            logBuffer.push({ message, type });
+            
+            if (logTimer) clearTimeout(logTimer);
+            
+            logTimer = setTimeout(() => {
+                flushLogs();
+            }, 100);
+        }
+
+        function flushLogs() {
+            const logDiv = document.getElementById('processLog');
+            const fragment = document.createDocumentFragment();
+            
+            logBuffer.forEach(log => {
+                const logItem = document.createElement('div');
+                logItem.className = `log-item log-${log.type}`;
+                logItem.textContent = log.message;
+                fragment.appendChild(logItem);
+            });
+            
+            logDiv.appendChild(fragment);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            logBuffer = [];
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            
+            return result.map(field => {
+                if (field.startsWith('"') && field.endsWith('"')) {
+                    return field.slice(1, -1);
+                }
+                return field;
+            });
+        }
+
+        function normalizeStaffId(staffId) {
+            if (!staffId) return '';
+            return String(staffId).replace(/"/g, '').trim();
+        }
+
+        function extractStaffId(originator) {
+            const cleanOriginator = originator.replace(/"/g, '').trim();
+            
+            const match = cleanOriginator.match(/^\d{8}/);
+            if (match) {
+                return match[0];
+            }
+            
+            const slashIndex = cleanOriginator.indexOf('/');
+            if (slashIndex > 0) {
+                const beforeSlash = cleanOriginator.substring(0, slashIndex).trim();
+                const digits = beforeSlash.replace(/\D/g, '');
+                if (digits.length >= 8) {
+                    return digits.substring(0, 8);
+                }
+            }
+            
+            const allDigits = cleanOriginator.replace(/\D/g, '');
+            if (allDigits.length >= 8) {
+                return allDigits.substring(0, 8);
+            }
+            
+            return cleanOriginator.substring(0, 8);
+        }
+
+        function parseYearMonth(yearMonth) {
+            const str = String(yearMonth).trim();
+            
+            if (str.length >= 5) {
+                const year = str.substring(0, 4);
+                const month = str.substring(4).padStart(2, '0');
+                return year + month;
+            }
+            
+            return str;
+        }
+
+        function parseNumber(value) {
+            if (!value) return 0;
+            const num = parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+            return isNaN(num) ? 0 : num;
+        }
+
+        async function processAllFiles() {
+            const processSection = document.getElementById('processSection');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            processSection.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            
+            document.getElementById('processLog').innerHTML = '';
+            document.getElementById('processBtn').disabled = true;
+
+            addLog('=== Start Processing ===', 'info');
+            
+            try {
+                // Process three files
+                const smtData = await processSMTFile(smtFileData);
+                const meetingData = await processMeetingFile(meetingFileData);
+                const dealData = await processDealFile(dealFileData);
+
+                // Merge data
+                await mergeAllData(smtData, meetingData, dealData);
+                
+            } catch (error) {
+                addLog(`Error: ${error.message}`, 'warning');
+            } finally {
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsText(file);
+            });
+        }
+
+        async function processSMTFile(file) {
+            addLog('--- Processing SMT File ---', 'info');
+            const text = await readFileAsText(file);
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            addLog(`SMT: Read ${lines.length} lines`, 'info');
+            
+            const headers = parseCSVLine(lines[0]);
+            const monthIdIndex = headers.indexOf('Month ID');
+            const smtTypeIndex = headers.indexOf('SMT Type');
+            const smtOriginatorIndex = headers.indexOf('SMT Orginator');
+
+            if (monthIdIndex === -1 || smtTypeIndex === -1 || smtOriginatorIndex === -1) {
+                throw new Error('SMT file missing required columns');
+            }
+
+            const data = {};
+            const targetTypes = ['Cross-sell', 'Lead Referral', 'Testimonial/Compliment'];
+            let processedRows = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i].trim());
+                if (values.length <= Math.max(monthIdIndex, smtTypeIndex, smtOriginatorIndex)) continue;
+
+                const monthId = values[monthIdIndex];
+                const smtType = values[smtTypeIndex];
+                const staffId = extractStaffId(values[smtOriginatorIndex]);
+
+                if (targetTypes.includes(smtType) && staffId) {
+                    const key = `${staffId}_${monthId}`;
+                    if (!data[key]) {
+                        data[key] = { staffId, monthId, crossSell: 0, leadReferral: 0, testimonial: 0 };
+                    }
+                    
+                    if (smtType === 'Cross-sell') data[key].crossSell++;
+                    else if (smtType === 'Lead Referral') data[key].leadReferral++;
+                    else if (smtType === 'Testimonial/Compliment') data[key].testimonial++;
+                    
+                    processedRows++;
+                    if (processedRows % 100 === 0) {
+                        addLog(`SMT: Processed ${processedRows} records`, 'info');
+                    }
+                }
+            }
+
+            addLog(`SMT: Completed, ${processedRows} valid records`, 'success');
+            return data;
+        }
+
+        async function processMeetingFile(file) {
+            addLog('--- Processing CME Client Engagement File ---', 'info');
+            const text = await readFileAsText(file);
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            addLog(`CME Client Engagement: Read ${lines.length} lines`, 'info');
+            
+            const headers = parseCSVLine(lines[0]);
+            const attendeeIdIndex = headers.indexOf('Attendee Employee ID');
+            const creatorIdIndex = headers.indexOf('Created By Employee ID');
+            const yearMonthIndex = headers.indexOf('Year & Month');
+            const meetingTypeIndex = headers.indexOf('Meeting Type');
+
+            if (attendeeIdIndex === -1 || creatorIdIndex === -1 || yearMonthIndex === -1 || meetingTypeIndex === -1) {
+                throw new Error('CME Client Engagement file missing required columns');
+            }
+
+            const data = {};
+            let processedRows = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i].trim());
+                if (values.length <= Math.max(attendeeIdIndex, creatorIdIndex, yearMonthIndex, meetingTypeIndex)) continue;
+
+                const attendeeId = normalizeStaffId(values[attendeeIdIndex]);
+                const creatorId = normalizeStaffId(values[creatorIdIndex]);
+                const yearMonth = parseYearMonth(values[yearMonthIndex]);
+                const meetingType = values[meetingTypeIndex];
+
+                if (meetingType === 'Client Meeting' && attendeeId) {
+                    const key = `${attendeeId}_${yearMonth}`;
+                    if (!data[key]) {
+                        data[key] = { staffId: attendeeId, monthId: yearMonth, clientMeeting: 0, serviceReview: 0 };
+                    }
+                    data[key].clientMeeting++;
+                    processedRows++;
+                }
+
+                if (meetingType === 'Service Review' && creatorId) {
+                    const key = `${creatorId}_${yearMonth}`;
+                    if (!data[key]) {
+                        data[key] = { staffId: creatorId, monthId: yearMonth, clientMeeting: 0, serviceReview: 0 };
+                    }
+                    data[key].serviceReview++;
+                    processedRows++;
+                }
+
+                if (processedRows % 100 === 0) {
+                    addLog(`CME Client Engagement: Processed ${processedRows} records`, 'info');
+                }
+            }
+
+            addLog(`CME Client Engagement: Completed, ${processedRows} valid records`, 'success');
+            return data;
+        }
+
+        async function processDealFile(file) {
+            addLog('--- Processing CME PG File ---', 'info');
+            const text = await readFileAsText(file);
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            addLog(`CME PG: Read ${lines.length} lines`, 'info');
+            
+            const headers = parseCSVLine(lines[0]);
+            const dealTlPsIdIndex = headers.indexOf('Deal TL PS ID');
+            const monthYearIndex = headers.indexOf('Month&Year');
+            const staffTeamCountryIndex = headers.indexOf('Staff Team Country');
+            const domesticContributionIndex = headers.indexOf('Domestic Contribution');
+            const dealCategoryAltIndex = headers.indexOf('Deal Category_Alt');
+            const ebvIndex = headers.indexOf('EBV (USD000)');
+
+            if (dealTlPsIdIndex === -1 || monthYearIndex === -1 || staffTeamCountryIndex === -1 || 
+                domesticContributionIndex === -1 || dealCategoryAltIndex === -1 || ebvIndex === -1) {
+                throw new Error('CME PG file missing required columns');
+            }
+
+            const data = {};
+            let processedRows = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i].trim());
+                const maxIndex = Math.max(dealTlPsIdIndex, monthYearIndex, staffTeamCountryIndex, 
+                                         domesticContributionIndex, dealCategoryAltIndex, ebvIndex);
+                
+                if (values.length <= maxIndex) continue;
+
+                const staffTeamCountry = values[staffTeamCountryIndex].trim();
+                const domesticContribution = parseNumber(values[domesticContributionIndex]);
+                const dealCategoryAlt = values[dealCategoryAltIndex].trim();
+
+                if (staffTeamCountry === 'China' && domesticContribution === 100 && dealCategoryAlt === 'Won') {
+                    const staffId = normalizeStaffId(values[dealTlPsIdIndex]);
+                    const monthYear = parseYearMonth(values[monthYearIndex]);
+                    const ebv = parseNumber(values[ebvIndex]);
+
+                    if (staffId) {
+                        const key = `${staffId}_${monthYear}`;
+                        if (!data[key]) {
+                            data[key] = { staffId, monthId: monthYear, dealCount: 0, ebvTotal: 0 };
+                        }
+                        data[key].dealCount++;
+                        data[key].ebvTotal += ebv;
+                        processedRows++;
+
+                        if (processedRows % 100 === 0) {
+                            addLog(`CME PG: Processed ${processedRows} records`, 'info');
+                        }
+                    }
+                }
+            }
+
+            addLog(`CME PG: Completed, ${processedRows} valid records`, 'success');
+            return data;
+        }
+
+        async function mergeAllData(smtData, meetingData, dealData) {
+            addLog('--- Merging Data ---', 'info');
+            
+            const merged = {};
+            
+            // 合并SMT数据
+            Object.values(smtData).forEach(item => {
+                const key = `${item.staffId}_${item.monthId}`;
+                merged[key] = {
+                    staffId: item.staffId,
+                    monthId: item.monthId,
+                    crossSell: item.crossSell || 0,
+                    leadReferral: item.leadReferral || 0,
+                    testimonial: item.testimonial || 0,
+                    clientMeeting: 0,
+                    serviceReview: 0,
+                    dealCount: 0,
+                    ebvTotal: 0
+                };
+            });
+
+            // 合并Meeting数据
+            Object.values(meetingData).forEach(item => {
+                const key = `${item.staffId}_${item.monthId}`;
+                if (!merged[key]) {
+                    merged[key] = {
+                        staffId: item.staffId,
+                        monthId: item.monthId,
+                        crossSell: 0,
+                        leadReferral: 0,
+                        testimonial: 0,
+                        clientMeeting: 0,
+                        serviceReview: 0,
+                        dealCount: 0,
+                        ebvTotal: 0
+                    };
+                }
+                merged[key].clientMeeting = item.clientMeeting || 0;
+                merged[key].serviceReview = item.serviceReview || 0;
+            });
+
+            // 合并Deal数据
+            Object.values(dealData).forEach(item => {
+                const key = `${item.staffId}_${item.monthId}`;
+                if (!merged[key]) {
+                    merged[key] = {
+                        staffId: item.staffId,
+                        monthId: item.monthId,
+                        crossSell: 0,
+                        leadReferral: 0,
+                        testimonial: 0,
+                        clientMeeting: 0,
+                        serviceReview: 0,
+                        dealCount: 0,
+                        ebvTotal: 0
+                    };
+                }
+                merged[key].dealCount = item.dealCount || 0;
+                merged[key].ebvTotal = item.ebvTotal || 0;
+            });
+
+            processedData = Object.values(merged);
+            
+            processedData.sort((a, b) => {
+                if (a.monthId !== b.monthId) {
+                    return a.monthId.localeCompare(b.monthId);
+                }
+                return a.staffId.localeCompare(b.staffId);
+            });
+
+            addLog(`Merge completed, total ${processedData.length} records`, 'success');
+            
+            setTimeout(() => {
+                flushLogs();
+                displayResults();
+            }, 50);
+        }
+
+        let currentChartType = 'crossSell';
+
+        function displayResults() {
+            addLog('Rendering results...', 'info');
+            
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.remove('hidden');
+
+            const displayInfo = document.getElementById('displayInfo');
+            if (processedData.length > MAX_DISPLAY_ROWS) {
+                displayInfo.textContent = `Total ${processedData.length} records, showing top ${MAX_DISPLAY_ROWS}. Export function includes all data.`;
+            } else {
+                displayInfo.textContent = `Total ${processedData.length} records`;
+            }
+
+            const statsSummary = document.getElementById('statsSummary');
+            const totalCrossSell = processedData.reduce((sum, item) => sum + item.crossSell, 0);
+            const totalLeadReferral = processedData.reduce((sum, item) => sum + item.leadReferral, 0);
+            const totalTestimonial = processedData.reduce((sum, item) => sum + item.testimonial, 0);
+            const totalClientMeeting = processedData.reduce((sum, item) => sum + item.clientMeeting, 0);
+            const totalServiceReview = processedData.reduce((sum, item) => sum + item.serviceReview, 0);
+            const totalDeals = processedData.reduce((sum, item) => sum + item.dealCount, 0);
+            const totalEbv = processedData.reduce((sum, item) => sum + item.ebvTotal, 0);
+
+            statsSummary.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalCrossSell}</div>
+                    <div class="stat-label">Cross-sell</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalLeadReferral}</div>
+                    <div class="stat-label">Lead Referral</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalTestimonial}</div>
+                    <div class="stat-label">Testimonial</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalClientMeeting}</div>
+                    <div class="stat-label">Client Meeting</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalServiceReview}</div>
+                    <div class="stat-label">Service Review</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalDeals}</div>
+                    <div class="stat-label">Deal Count</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalEbv.toFixed(2)}</div>
+                    <div class="stat-label">EBV Total</div>
+                </div>
+            `;
+
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+
+            const fragment = document.createDocumentFragment();
+            const displayData = processedData.slice(0, MAX_DISPLAY_ROWS);
+            
+            displayData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${item.staffId}</td>
+                    <td>${item.monthId}</td>
+                    <td class="number-right">${item.crossSell}</td>
+                    <td class="number-right">${item.leadReferral}</td>
+                    <td class="number-right">${item.testimonial}</td>
+                    <td class="number-right">${item.clientMeeting}</td>
+                    <td class="number-right">${item.serviceReview}</td>
+                    <td class="number-right">${item.dealCount}</td>
+                    <td class="number-right">${item.ebvTotal.toFixed(2)}</td>
+                `;
+                fragment.appendChild(row);
+            });
+            
+            tbody.appendChild(fragment);
+
+            generateMonthCheckboxes();
+            initializeCharts();
+
+            addLog('Results displayed successfully', 'success');
+            flushLogs();
+        }
+
+        function initializeCharts() {
+            const chartTabs = document.getElementById('chartTabs');
+            const charts = [
+                { id: 'crossSell', label: 'Cross-sell', key: 'crossSell' },
+                { id: 'leadReferral', label: 'Lead Referral', key: 'leadReferral' },
+                { id: 'testimonial', label: 'Testimonial/Compliment', key: 'testimonial' },
+                { id: 'clientMeeting', label: 'Client Meeting', key: 'clientMeeting' },
+                { id: 'serviceReview', label: 'Service Review', key: 'serviceReview' },
+                { id: 'dealCount', label: 'Deal Count', key: 'dealCount' },
+                { id: 'ebvTotal', label: 'EBV Total', key: 'ebvTotal' }
+            ];
+
+            chartTabs.innerHTML = '';
+            charts.forEach((chart, index) => {
+                const tab = document.createElement('div');
+                tab.className = `chart-tab ${index === 0 ? 'active' : ''}`;
+                tab.textContent = chart.label;
+                tab.onclick = () => switchChart(chart.id);
+                chartTabs.appendChild(tab);
+            });
+
+            drawChart(currentChartType);
+        }
+
+        function switchChart(chartType) {
+            currentChartType = chartType;
+            
+            // 更新标签状态
+            const tabs = document.querySelectorAll('.chart-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            drawChart(chartType);
+        }
+
+        function aggregateDataByMonth(data, key) {
+            const monthData = {};
+            
+            data.forEach(item => {
+                const month = item.monthId;
+                if (!monthData[month]) {
+                    monthData[month] = 0;
+                }
+                monthData[month] += item[key] || 0;
+            });
+
+            const months = Object.keys(monthData).sort();
+            const values = months.map(m => monthData[m]);
+            
+            return { months, values };
+        }
+
+        function drawChart(chartType) {
+            const canvas = document.getElementById('trendChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置canvas实际像素
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            
+            const width = rect.width;
+            const height = rect.height;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, width, height);
+            
+            // 获取数据
+            const { months, values } = aggregateDataByMonth(processedData, chartType);
+            
+            if (months.length === 0) return;
+            
+            // 设置边距
+            const padding = { top: 40, right: 40, bottom: 60, left: 80 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            // 计算最大值和最小值
+            const maxValue = Math.max(...values);
+            const minValue = Math.min(...values);
+            const valueRange = maxValue - minValue || 1;
+            
+            // 绘制标题
+            ctx.fillStyle = '#DB0011';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            const chartLabels = {
+                'crossSell': 'Cross-sell Trend',
+                'leadReferral': 'Lead Referral Trend',
+                'testimonial': 'Testimonial/Compliment Trend',
+                'clientMeeting': 'Client Meeting Trend',
+                'serviceReview': 'Service Review Trend',
+                'dealCount': 'Deal Count Trend',
+                'ebvTotal': 'EBV Total Trend'
+            };
+            ctx.fillText(chartLabels[chartType] || 'Data Trend', width / 2, 20);
+            
+            // 绘制Y轴
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, height - padding.bottom);
+            ctx.stroke();
+            
+            // 绘制X轴
+            ctx.beginPath();
+            ctx.moveTo(padding.left, height - padding.bottom);
+            ctx.lineTo(width - padding.right, height - padding.bottom);
+            ctx.stroke();
+            
+            // 绘制Y轴刻度和网格线
+            const ySteps = 5;
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            
+            for (let i = 0; i <= ySteps; i++) {
+                const y = height - padding.bottom - (chartHeight / ySteps) * i;
+                const value = minValue + (valueRange / ySteps) * i;
+                
+                // 刻度值
+                const displayValue = chartType === 'ebvTotal' ? value.toFixed(1) : Math.round(value);
+                ctx.fillText(displayValue, padding.left - 10, y);
+                
+                // 网格线
+                if (i > 0) {
+                    ctx.strokeStyle = '#f0f0f0';
+                    ctx.beginPath();
+                    ctx.moveTo(padding.left, y);
+                    ctx.lineTo(width - padding.right, y);
+                    ctx.stroke();
+                }
+            }
+            
+            // 绘制X轴标签
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            const xStep = chartWidth / (months.length - 1 || 1);
+            months.forEach((month, index) => {
+                const x = padding.left + xStep * index;
+                ctx.fillText(month, x, height - padding.bottom + 10);
+            });
+            
+            // 绘制折线
+            if (values.length > 0) {
+                ctx.strokeStyle = '#DB0011';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                values.forEach((value, index) => {
+                    const x = padding.left + xStep * index;
+                    const normalizedValue = (value - minValue) / valueRange;
+                    const y = height - padding.bottom - normalizedValue * chartHeight;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+                
+                // 绘制数据点
+                ctx.fillStyle = '#DB0011';
+                values.forEach((value, index) => {
+                    const x = padding.left + xStep * index;
+                    const normalizedValue = (value - minValue) / valueRange;
+                    const y = height - padding.bottom - normalizedValue * chartHeight;
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // 在点上方显示数值
+                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 11px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    const displayValue = chartType === 'ebvTotal' ? value.toFixed(1) : Math.round(value);
+                    ctx.fillText(displayValue, x, y - 10);
+                    ctx.fillStyle = '#DB0011';
+                });
+            }
+        }
+
+        function generateMonthCheckboxes() {
+            const months = [...new Set(processedData.map(item => item.monthId))].sort();
+            const monthCheckboxesDiv = document.getElementById('monthCheckboxes');
+            
+            monthCheckboxesDiv.innerHTML = '';
+            
+            months.forEach(month => {
+                const checkbox = document.createElement('div');
+                checkbox.className = 'month-checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" id="month_${month}" value="${month}" checked>
+                    <label for="month_${month}">${month}</label>
+                `;
+                monthCheckboxesDiv.appendChild(checkbox);
+            });
+        }
+
+        function toggleAllMonths() {
+            const checkboxes = document.querySelectorAll('#monthCheckboxes input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+            });
+        }
+
+        function getSelectedMonths() {
+            const checkboxes = document.querySelectorAll('#monthCheckboxes input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function hideProcess() {
+            document.getElementById('processSection').classList.add('hidden');
+        }
+
+        // 窗口大小改变时重绘图表
+        window.addEventListener('resize', function() {
+            if (processedData.length > 0) {
+                drawChart(currentChartType);
+            }
+        });
+
+        function exportResults() {
+            if (processedData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+
+            const selectedMonths = getSelectedMonths();
+            
+            if (selectedMonths.length === 0) {
+                alert('Please select at least one month');
+                return;
+            }
+
+            const filteredData = processedData.filter(item => selectedMonths.includes(item.monthId));
+
+            if (filteredData.length === 0) {
+                alert('No data for selected months');
+                return;
+            }
+
+            let csv = 'Staff ID,Month ID,Cross-sell,Lead Referral,Testimonial/Compliment,Client Meeting (Attendee),Service Review (Creator),Deal Count,EBV Total (USD000)\n';
+            
+            filteredData.forEach(item => {
+                csv += `${item.staffId},${item.monthId},${item.crossSell},${item.leadReferral},${item.testimonial},${item.clientMeeting},${item.serviceReview},${item.dealCount},${item.ebvTotal.toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const monthsStr = selectedMonths.length === [...new Set(processedData.map(item => item.monthId))].length 
+                ? 'all' 
+                : selectedMonths.join('_');
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `rri_combined_statistics_${monthsStr}_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

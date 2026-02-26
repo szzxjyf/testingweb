@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RRI - Deal数据处理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #DB0011;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .upload-section {
+            background: #fff;
+            border: 2px solid #DB0011;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .file-input-wrapper {
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #DB0011;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .file-input-label:hover {
+            background-color: #B00010;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-name {
+            display: inline-block;
+            margin-left: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .process-section {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .process-section.hidden {
+            display: none;
+        }
+
+        .process-title {
+            color: #DB0011;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hide-btn {
+            background: #DB0011;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+
+        .hide-btn:hover {
+            background-color: #B00010;
+        }
+
+        .process-log {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        .log-item {
+            padding: 4px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-info {
+            color: #007bff;
+        }
+
+        .log-warning {
+            color: #ffc107;
+        }
+
+        .results-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .results-title {
+            color: #DB0011;
+            font-weight: 600;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .display-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            color: #856404;
+            font-size: 13px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+
+        th {
+            background-color: #DB0011;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background-color: #f8f8f8;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #DB0011;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #DB0011;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .export-btn {
+            background: #DB0011;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .export-btn:hover {
+            background-color: #B00010;
+        }
+
+        .export-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .export-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .month-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-filter label {
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .month-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .month-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .month-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #DB0011;
+        }
+
+        .month-checkbox label {
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .select-all-months {
+            background: transparent;
+            color: #DB0011;
+            border: 1px solid #DB0011;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .select-all-months:hover {
+            background: #DB0011;
+            color: white;
+        }
+
+        .number-right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RRI - Deal数据处理（第三步）</h1>
+        <div class="subtitle">
+            上传Deal CSV文件，系统将按月统计每个Deal TL PS ID的行数和EBV总额<br>
+            筛选条件：Staff Team Country = China，Domestic Contribution = 100，Deal Category_Alt = Won
+        </div>
+
+        <div class="upload-section">
+            <h3 style="color: #DB0011; margin-bottom: 20px;">上传Deal数据文件</h3>
+            <div class="file-input-wrapper">
+                <label class="file-input-label" for="dealFile">
+                    选择CSV文件
+                </label>
+                <input type="file" id="dealFile" accept=".csv">
+            </div>
+            <span class="file-name" id="fileName">未选择文件</span>
+        </div>
+
+        <div class="process-section hidden" id="processSection">
+            <div class="process-title">
+                <span>处理过程</span>
+                <button class="hide-btn" onclick="hideProcess()">隐藏处理过程</button>
+            </div>
+            <div class="process-log" id="processLog"></div>
+        </div>
+
+        <div class="results-section hidden" id="resultsSection">
+            <div class="results-title">统计结果</div>
+            
+            <div class="display-info" id="displayInfo"></div>
+            
+            <div class="stats-summary" id="statsSummary"></div>
+
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Staff ID</th>
+                        <th>月份</th>
+                        <th class="number-right">Deal数量</th>
+                        <th class="number-right">EBV总额 (USD000)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+
+            <div class="export-controls">
+                <div class="month-filter">
+                    <label>选择导出月份：</label>
+                    <button class="select-all-months" onclick="toggleAllMonths()">全选/取消全选</button>
+                </div>
+            </div>
+            
+            <div class="month-checkboxes" id="monthCheckboxes"></div>
+
+            <button class="export-btn" onclick="exportResults()">导出选中月份的数据</button>
+        </div>
+    </div>
+
+    <script>
+        let processedData = [];
+        let rawData = [];
+        const MAX_DISPLAY_ROWS = 100;
+
+        document.getElementById('dealFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                processFile(file);
+            }
+        });
+
+        let logBuffer = [];
+        let logTimer = null;
+
+        function addLog(message, type = 'info') {
+            logBuffer.push({ message, type });
+            
+            if (logTimer) clearTimeout(logTimer);
+            
+            logTimer = setTimeout(() => {
+                flushLogs();
+            }, 100);
+        }
+
+        function flushLogs() {
+            const logDiv = document.getElementById('processLog');
+            const fragment = document.createDocumentFragment();
+            
+            logBuffer.forEach(log => {
+                const logItem = document.createElement('div');
+                logItem.className = `log-item log-${log.type}`;
+                logItem.textContent = log.message;
+                fragment.appendChild(logItem);
+            });
+            
+            logDiv.appendChild(fragment);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            logBuffer = [];
+        }
+
+        function processFile(file) {
+            const processSection = document.getElementById('processSection');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            processSection.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            
+            document.getElementById('processLog').innerHTML = '';
+            
+            addLog('开始读取文件...', 'info');
+
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    addLog('文件读取成功', 'success');
+                    parseCSV(text);
+                } catch (error) {
+                    addLog('文件读取失败: ' + error.message, 'warning');
+                }
+            };
+
+            reader.onerror = function() {
+                addLog('文件读取错误', 'warning');
+            };
+
+            reader.readAsText(file);
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            
+            return result.map(field => {
+                if (field.startsWith('"') && field.endsWith('"')) {
+                    return field.slice(1, -1);
+                }
+                return field;
+            });
+        }
+
+        function normalizeStaffId(staffId) {
+            if (!staffId) return '';
+            return String(staffId).replace(/"/g, '').trim();
+        }
+
+        function parseMonthYear(monthYear) {
+            const str = String(monthYear).trim();
+            
+            if (str.length >= 5) {
+                const year = str.substring(0, 4);
+                const month = str.substring(4).padStart(2, '0');
+                return year + month;
+            }
+            
+            return str;
+        }
+
+        function parseNumber(value) {
+            if (!value) return 0;
+            const num = parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+            return isNaN(num) ? 0 : num;
+        }
+
+        function parseCSV(text) {
+            addLog('开始解析CSV数据...', 'info');
+            
+            const lines = text.split('\n').filter(line => line.trim());
+            addLog(`共读取 ${lines.length} 行数据（含表头）`, 'info');
+            
+            if (lines.length < 2) {
+                addLog('文件内容为空或格式错误', 'warning');
+                return;
+            }
+
+            const headers = parseCSVLine(lines[0]);
+            addLog(`表头字段: ${headers.join(', ')}`, 'info');
+
+            const dealTlPsIdIndex = headers.indexOf('Deal TL PS ID');
+            const monthYearIndex = headers.indexOf('Month&Year');
+            const staffTeamCountryIndex = headers.indexOf('Staff Team Country');
+            const domesticContributionIndex = headers.indexOf('Domestic Contribution');
+            const dealCategoryAltIndex = headers.indexOf('Deal Category_Alt');
+            const ebvIndex = headers.indexOf('EBV (USD000)');
+
+            if (dealTlPsIdIndex === -1 || monthYearIndex === -1 || staffTeamCountryIndex === -1 || 
+                domesticContributionIndex === -1 || dealCategoryAltIndex === -1 || ebvIndex === -1) {
+                addLog('错误: 找不到必需的列', 'warning');
+                return;
+            }
+
+            addLog('列索引识别成功', 'success');
+            addLog('开始处理数据行...', 'info');
+
+            rawData = [];
+            let skippedRows = 0;
+            let processedRows = 0;
+            let totalRows = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                totalRows++;
+                const values = parseCSVLine(line);
+                
+                const maxIndex = Math.max(dealTlPsIdIndex, monthYearIndex, staffTeamCountryIndex, 
+                                         domesticContributionIndex, dealCategoryAltIndex, ebvIndex);
+                
+                if (values.length <= maxIndex) {
+                    skippedRows++;
+                    continue;
+                }
+
+                const staffTeamCountry = values[staffTeamCountryIndex].trim();
+                const domesticContribution = parseNumber(values[domesticContributionIndex]);
+                const dealCategoryAlt = values[dealCategoryAltIndex].trim();
+
+                // 应用筛选条件
+                if (staffTeamCountry !== 'China' || domesticContribution !== 100 || dealCategoryAlt !== 'Won') {
+                    skippedRows++;
+                    continue;
+                }
+
+                const dealTlPsId = normalizeStaffId(values[dealTlPsIdIndex]);
+                const monthYear = parseMonthYear(values[monthYearIndex]);
+                const ebv = parseNumber(values[ebvIndex]);
+
+                if (!dealTlPsId) {
+                    skippedRows++;
+                    continue;
+                }
+
+                const item = {
+                    staffId: dealTlPsId,
+                    monthYear: monthYear,
+                    ebv: ebv
+                };
+
+                rawData.push(item);
+                processedRows++;
+
+                // 每100行输出一次进度
+                if (processedRows % 100 === 0) {
+                    addLog(`已处理 ${processedRows} 条符合条件的数据...`, 'info');
+                }
+            }
+
+            addLog(`总行数: ${totalRows}, 符合条件: ${rawData.length}, 跳过: ${skippedRows}`, 'success');
+            
+            // 使用setTimeout避免阻塞UI
+            setTimeout(() => {
+                flushLogs();
+                calculateStatistics();
+            }, 50);
+        }
+
+        function calculateStatistics() {
+            addLog('开始统计数据...', 'info');
+
+            const stats = {};
+            let totalDeals = 0;
+            let totalEbv = 0;
+
+            rawData.forEach(item => {
+                const key = `${item.staffId}_${item.monthYear}`;
+                
+                if (!stats[key]) {
+                    stats[key] = {
+                        staffId: item.staffId,
+                        monthId: item.monthYear,
+                        dealCount: 0,
+                        ebvTotal: 0
+                    };
+                }
+                
+                stats[key].dealCount++;
+                stats[key].ebvTotal += item.ebv;
+                totalDeals++;
+                totalEbv += item.ebv;
+            });
+
+            processedData = Object.values(stats);
+            
+            processedData.sort((a, b) => {
+                if (a.monthId !== b.monthId) {
+                    return a.monthId.localeCompare(b.monthId);
+                }
+                return a.staffId.localeCompare(b.staffId);
+            });
+
+            addLog(`统计完成: Deal总数=${totalDeals}, EBV总额=${totalEbv.toFixed(2)}`, 'success');
+            addLog(`生成 ${processedData.length} 条统计记录`, 'success');
+            
+            setTimeout(() => {
+                flushLogs();
+                displayResults();
+            }, 50);
+        }
+
+        function displayResults() {
+            addLog('开始渲染结果...', 'info');
+            
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.remove('hidden');
+
+            // 显示信息提示
+            const displayInfo = document.getElementById('displayInfo');
+            if (processedData.length > MAX_DISPLAY_ROWS) {
+                displayInfo.textContent = `共 ${processedData.length} 条记录，页面显示前 ${MAX_DISPLAY_ROWS} 条。导出功能将包含全部数据。`;
+            } else {
+                displayInfo.textContent = `共 ${processedData.length} 条记录`;
+            }
+
+            const statsSummary = document.getElementById('statsSummary');
+            const totalDeals = processedData.reduce((sum, item) => sum + item.dealCount, 0);
+            const totalEbv = processedData.reduce((sum, item) => sum + item.ebvTotal, 0);
+
+            statsSummary.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalDeals}</div>
+                    <div class="stat-label">Deal 总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalEbv.toFixed(2)}</div>
+                    <div class="stat-label">EBV 总额 (USD000)</div>
+                </div>
+            `;
+
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+
+            // 使用文档片段批量添加，提高性能
+            const fragment = document.createDocumentFragment();
+            
+            // 只显示前100条
+            const displayData = processedData.slice(0, MAX_DISPLAY_ROWS);
+            
+            displayData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${item.staffId}</td>
+                    <td>${item.monthId}</td>
+                    <td class="number-right">${item.dealCount}</td>
+                    <td class="number-right">${item.ebvTotal.toFixed(2)}</td>
+                `;
+                fragment.appendChild(row);
+            });
+            
+            tbody.appendChild(fragment);
+
+            generateMonthCheckboxes();
+
+            addLog('结果显示完成', 'success');
+            flushLogs();
+        }
+
+        function generateMonthCheckboxes() {
+            const months = [...new Set(processedData.map(item => item.monthId))].sort();
+            const monthCheckboxesDiv = document.getElementById('monthCheckboxes');
+            
+            monthCheckboxesDiv.innerHTML = '';
+            
+            months.forEach(month => {
+                const checkbox = document.createElement('div');
+                checkbox.className = 'month-checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" id="month_${month}" value="${month}" checked>
+                    <label for="month_${month}">${month}</label>
+                `;
+                monthCheckboxesDiv.appendChild(checkbox);
+            });
+        }
+
+        function toggleAllMonths() {
+            const checkboxes = document.querySelectorAll('#monthCheckboxes input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+            });
+        }
+
+        function getSelectedMonths() {
+            const checkboxes = document.querySelectorAll('#monthCheckboxes input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function hideProcess() {
+            document.getElementById('processSection').classList.add('hidden');
+        }
+
+        function exportResults() {
+            if (processedData.length === 0) {
+                alert('没有可导出的数据');
+                return;
+            }
+
+            const selectedMonths = getSelectedMonths();
+            
+            if (selectedMonths.length === 0) {
+                alert('请至少选择一个月份');
+                return;
+            }
+
+            // 导出全部数据，不受页面显示限制
+            const filteredData = processedData.filter(item => selectedMonths.includes(item.monthId));
+
+            if (filteredData.length === 0) {
+                alert('选中的月份没有数据');
+                return;
+            }
+
+            let csv = 'Staff ID,Month ID,Deal Count,EBV Total (USD000)\n';
+            
+            filteredData.forEach(item => {
+                csv += `${item.staffId},${item.monthId},${item.dealCount},${item.ebvTotal.toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const monthsStr = selectedMonths.length === [...new Set(processedData.map(item => item.monthId))].length 
+                ? 'all' 
+                : selectedMonths.join('_');
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `deal_statistics_${monthsStr}_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

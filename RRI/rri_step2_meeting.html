@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RRI - Meeting数据处理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #DB0011;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            background: #fff;
+            border: 2px solid #DB0011;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .file-input-wrapper {
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #DB0011;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .file-input-label:hover {
+            background-color: #B00010;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-name {
+            display: inline-block;
+            margin-left: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .process-section {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .process-section.hidden {
+            display: none;
+        }
+
+        .process-title {
+            color: #DB0011;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hide-btn {
+            background: #DB0011;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+
+        .hide-btn:hover {
+            background-color: #B00010;
+        }
+
+        .process-log {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        .log-item {
+            padding: 4px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-info {
+            color: #007bff;
+        }
+
+        .log-warning {
+            color: #ffc107;
+        }
+
+        .results-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .results-title {
+            color: #DB0011;
+            font-weight: 600;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+
+        th {
+            background-color: #DB0011;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background-color: #f8f8f8;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #DB0011;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #DB0011;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .export-btn {
+            background: #DB0011;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .export-btn:hover {
+            background-color: #B00010;
+        }
+
+        .export-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .export-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .month-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-filter label {
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .month-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .month-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .month-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #DB0011;
+        }
+
+        .month-checkbox label {
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .select-all-months {
+            background: transparent;
+            color: #DB0011;
+            border: 1px solid #DB0011;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .select-all-months:hover {
+            background: #DB0011;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RRI - Meeting数据处理（第二步）</h1>
+        <div class="subtitle">上传Meeting CSV文件，系统将按月统计Client Meeting（作为Attendee）和Service Review（作为Creator）的数量</div>
+
+        <div class="upload-section">
+            <h3 style="color: #DB0011; margin-bottom: 20px;">上传Meeting数据文件</h3>
+            <div class="file-input-wrapper">
+                <label class="file-input-label" for="meetingFile">
+                    选择CSV文件
+                </label>
+                <input type="file" id="meetingFile" accept=".csv">
+            </div>
+            <span class="file-name" id="fileName">未选择文件</span>
+        </div>
+
+        <div class="process-section hidden" id="processSection">
+            <div class="process-title">
+                <span>处理过程</span>
+                <button class="hide-btn" onclick="hideProcess()">隐藏处理过程</button>
+            </div>
+            <div class="process-log" id="processLog"></div>
+        </div>
+
+        <div class="results-section hidden" id="resultsSection">
+            <div class="results-title">统计结果</div>
+            
+            <div class="stats-summary" id="statsSummary"></div>
+
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Staff ID</th>
+                        <th>月份</th>
+                        <th>Client Meeting (Attendee)</th>
+                        <th>Service Review (Creator)</th>
+                        <th>总计</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+
+            <div class="export-controls">
+                <div class="month-filter">
+                    <label>选择导出月份：</label>
+                    <button class="select-all-months" onclick="toggleAllMonths()">全选/取消全选</button>
+                </div>
+            </div>
+            
+            <div class="month-checkboxes" id="monthCheckboxes"></div>
+
+            <button class="export-btn" onclick="exportResults()">导出选中月份的数据</button>
+        </div>
+    </div>
+
+    <script>
+        let processedData = [];
+        let rawData = [];
+
+        document.getElementById('meetingFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                processFile(file);
+            }
+        });
+
+        let logBuffer = [];
+        let logTimer = null;
+
+        function addLog(message, type = 'info') {
+            logBuffer.push({ message, type });
+            
+            if (logTimer) clearTimeout(logTimer);
+            
+            logTimer = setTimeout(() => {
+                flushLogs();
+            }, 100);
+        }
+
+        function flushLogs() {
+            const logDiv = document.getElementById('processLog');
+            const fragment = document.createDocumentFragment();
+            
+            logBuffer.forEach(log => {
+                const logItem = document.createElement('div');
+                logItem.className = `log-item log-${log.type}`;
+                logItem.textContent = log.message;
+                fragment.appendChild(logItem);
+            });
+            
+            logDiv.appendChild(fragment);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            logBuffer = [];
+        }
+
+        function processFile(file) {
+            const processSection = document.getElementById('processSection');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            processSection.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            
+            document.getElementById('processLog').innerHTML = '';
+            
+            addLog('开始读取文件...', 'info');
+
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    addLog('文件读取成功', 'success');
+                    parseCSV(text);
+                } catch (error) {
+                    addLog('文件读取失败: ' + error.message, 'warning');
+                }
+            };
+
+            reader.onerror = function() {
+                addLog('文件读取错误', 'warning');
+            };
+
+            reader.readAsText(file);
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            
+            return result.map(field => {
+                if (field.startsWith('"') && field.endsWith('"')) {
+                    return field.slice(1, -1);
+                }
+                return field;
+            });
+        }
+
+        function normalizeStaffId(staffId) {
+            if (!staffId) return '';
+            return String(staffId).replace(/"/g, '').trim();
+        }
+
+        function parseYearMonth(yearMonth) {
+            const str = String(yearMonth).trim();
+            
+            if (str.length >= 5) {
+                const year = str.substring(0, 4);
+                const month = str.substring(4).padStart(2, '0');
+                return year + month;
+            }
+            
+            return str;
+        }
+
+        function parseCSV(text) {
+            addLog('开始解析CSV数据...', 'info');
+            
+            const lines = text.split('\n').filter(line => line.trim());
+            addLog(`共读取 ${lines.length} 行数据（含表头）`, 'info');
+            
+            if (lines.length < 2) {
+                addLog('文件内容为空或格式错误', 'warning');
+                return;
+            }
+
+            const headers = parseCSVLine(lines[0]);
+            addLog(`表头字段: ${headers.join(', ')}`, 'info');
+
+            const attendeeIdIndex = headers.indexOf('Attendee Employee ID');
+            const creatorIdIndex = headers.indexOf('Created By Employee ID');
+            const yearMonthIndex = headers.indexOf('Year & Month');
+            const meetingTypeIndex = headers.indexOf('Meeting Type');
+
+            if (attendeeIdIndex === -1 || creatorIdIndex === -1 || yearMonthIndex === -1 || meetingTypeIndex === -1) {
+                addLog('错误: 找不到必需的列', 'warning');
+                return;
+            }
+
+            addLog('列索引识别成功', 'success');
+            addLog('开始处理数据行...', 'info');
+
+            rawData = [];
+            let skippedRows = 0;
+            let processedRows = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = parseCSVLine(line);
+                
+                if (values.length <= Math.max(attendeeIdIndex, creatorIdIndex, yearMonthIndex, meetingTypeIndex)) {
+                    skippedRows++;
+                    continue;
+                }
+
+                const attendeeId = normalizeStaffId(values[attendeeIdIndex]);
+                const creatorId = normalizeStaffId(values[creatorIdIndex]);
+                const yearMonth = parseYearMonth(values[yearMonthIndex]);
+                const meetingType = values[meetingTypeIndex];
+
+                if (!attendeeId && !creatorId) {
+                    skippedRows++;
+                    continue;
+                }
+
+                const item = {
+                    attendeeId: attendeeId,
+                    creatorId: creatorId,
+                    yearMonth: yearMonth,
+                    meetingType: meetingType
+                };
+
+                rawData.push(item);
+                processedRows++;
+
+                // 每100行输出一次进度
+                if (processedRows % 100 === 0) {
+                    addLog(`已处理 ${processedRows} 行...`, 'info');
+                }
+            }
+
+            if (skippedRows > 0) {
+                addLog(`跳过 ${skippedRows} 行无效数据`, 'warning');
+            }
+            addLog(`数据处理完成，共 ${rawData.length} 条有效记录`, 'success');
+            
+            // 使用setTimeout避免阻塞UI
+            setTimeout(() => {
+                flushLogs();
+                calculateStatistics();
+            }, 50);
+        }
+
+        function calculateStatistics() {
+            addLog('开始统计数据...', 'info');
+
+            const stats = {};
+            let clientMeetingCount = 0;
+            let serviceReviewCount = 0;
+
+            rawData.forEach(item => {
+                if (item.meetingType === 'Client Meeting' && item.attendeeId) {
+                    const key = `${item.attendeeId}_${item.yearMonth}`;
+                    
+                    if (!stats[key]) {
+                        stats[key] = {
+                            staffId: item.attendeeId,
+                            monthId: item.yearMonth,
+                            clientMeetingAsAttendee: 0,
+                            serviceReviewAsCreator: 0
+                        };
+                    }
+                    
+                    stats[key].clientMeetingAsAttendee++;
+                    clientMeetingCount++;
+                }
+
+                if (item.meetingType === 'Service Review' && item.creatorId) {
+                    const key = `${item.creatorId}_${item.yearMonth}`;
+                    
+                    if (!stats[key]) {
+                        stats[key] = {
+                            staffId: item.creatorId,
+                            monthId: item.yearMonth,
+                            clientMeetingAsAttendee: 0,
+                            serviceReviewAsCreator: 0
+                        };
+                    }
+                    
+                    stats[key].serviceReviewAsCreator++;
+                    serviceReviewCount++;
+                }
+            });
+
+            processedData = Object.values(stats);
+            
+            processedData.sort((a, b) => {
+                if (a.monthId !== b.monthId) {
+                    return a.monthId.localeCompare(b.monthId);
+                }
+                return a.staffId.localeCompare(b.staffId);
+            });
+
+            addLog(`统计完成: Client Meeting=${clientMeetingCount}, Service Review=${serviceReviewCount}`, 'success');
+            addLog(`生成 ${processedData.length} 条统计记录`, 'success');
+            
+            setTimeout(() => {
+                flushLogs();
+                displayResults();
+            }, 50);
+        }
+
+        function displayResults() {
+            addLog('开始渲染结果...', 'info');
+            
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.remove('hidden');
+
+            const statsSummary = document.getElementById('statsSummary');
+            const totalClientMeeting = processedData.reduce((sum, item) => sum + item.clientMeetingAsAttendee, 0);
+            const totalServiceReview = processedData.reduce((sum, item) => sum + item.serviceReviewAsCreator, 0);
+
+            statsSummary.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalClientMeeting}</div>
+                    <div class="stat-label">Client Meeting 总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalServiceReview}</div>
+                    <div class="stat-label">Service Review 总数</div>
+                </div>
+            `;
+
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+
+            // 使用文档片段批量添加，提高性能
+            const fragment = document.createDocumentFragment();
+            
+            processedData.forEach(item => {
+                const row = document.createElement('tr');
+                const total = item.clientMeetingAsAttendee + item.serviceReviewAsCreator;
+                
+                row.innerHTML = `
+                    <td>${item.staffId}</td>
+                    <td>${item.monthId}</td>
+                    <td>${item.clientMeetingAsAttendee}</td>
+                    <td>${item.serviceReviewAsCreator}</td>
+                    <td><strong>${total}</strong></td>
+                `;
+                fragment.appendChild(row);
+            });
+            
+            tbody.appendChild(fragment);
+
+            generateMonthCheckboxes();
+
+            addLog('结果显示完成', 'success');
+            flushLogs();
+        }
+
+        function generateMonthCheckboxes() {
+            const months = [...new Set(processedData.map(item => item.monthId))].sort();
+            const monthCheckboxesDiv = document.getElementById('monthCheckboxes');
+            
+            monthCheckboxesDiv.innerHTML = '';
+            
+            months.forEach(month => {
+                const checkbox = document.createElement('div');
+                checkbox.className = 'month-checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" id="month_${month}" value="${month}" checked>
+                    <label for="month_${month}">${month}</label>
+                `;
+                monthCheckboxesDiv.appendChild(checkbox);
+            });
+        }
+
+        function toggleAllMonths() {
+            const checkboxes = document.querySelectorAll('#monthCheckboxes input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+            });
+        }
+
+        function getSelectedMonths() {
+            const checkboxes = document.querySelectorAll('#monthCheckboxes input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function hideProcess() {
+            document.getElementById('processSection').classList.add('hidden');
+        }
+
+        function exportResults() {
+            if (processedData.length === 0) {
+                alert('没有可导出的数据');
+                return;
+            }
+
+            const selectedMonths = getSelectedMonths();
+            
+            if (selectedMonths.length === 0) {
+                alert('请至少选择一个月份');
+                return;
+            }
+
+            const filteredData = processedData.filter(item => selectedMonths.includes(item.monthId));
+
+            if (filteredData.length === 0) {
+                alert('选中的月份没有数据');
+                return;
+            }
+
+            let csv = 'Staff ID,Month ID,Client Meeting (Attendee),Service Review (Creator),Total\n';
+            
+            filteredData.forEach(item => {
+                const total = item.clientMeetingAsAttendee + item.serviceReviewAsCreator;
+                csv += `${item.staffId},${item.monthId},${item.clientMeetingAsAttendee},${item.serviceReviewAsCreator},${total}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const monthsStr = selectedMonths.length === [...new Set(processedData.map(item => item.monthId))].length 
+                ? 'all' 
+                : selectedMonths.join('_');
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `meeting_statistics_${monthsStr}_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

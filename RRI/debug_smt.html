@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMT Data Processing Debug Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #d32f2f, #b71c1c);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .debug-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .debug-section h2 {
+            color: #d32f2f;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 10px;
+        }
+
+        .file-upload {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 2px dashed #d32f2f;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #b71c1c;
+            background-color: #fff5f5;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload label {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #d32f2f;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .file-upload label:hover {
+            background-color: #b71c1c;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .file-selected {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            color: #2e7d32;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .process-btn {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .process-btn:hover {
+            background-color: #b71c1c;
+        }
+
+        .process-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .step h3 {
+            color: #d32f2f;
+            margin-bottom: 10px;
+        }
+
+        .step-content {
+            font-family: 'Courier New', monospace;
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+
+        .data-table th {
+            background-color: #d32f2f;
+            color: white;
+            font-weight: 500;
+        }
+
+        .data-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .success {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #c62828;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #d32f2f;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            color: #d32f2f;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SMT Data Processing Debug Tool</h1>
+            <p>Step-by-step analysis of SMT data processing</p>
+        </div>
+
+        <div class="debug-section">
+            <h2>1. File Upload</h2>
+            <div class="file-upload">
+                <label for="smtFile">Select SMT CSV File</label>
+                <input type="file" id="smtFile" accept=".csv" />
+                <div class="file-info">Expected columns: SMT Orginator, Month ID, SMT Type</div>
+                <div class="file-selected" id="file-selected" style="display: none;"></div>
+            </div>
+            <button class="process-btn" id="processBtn" disabled>Start Debug Processing</button>
+        </div>
+
+        <div class="debug-section" id="debugResults" style="display: none;">
+            <h2>2. Debug Results</h2>
+            <div id="debugContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let smtData = null;
+
+        // File upload handling
+        document.getElementById('smtFile').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Show selected file info
+                const fileSelectedElement = document.getElementById('file-selected');
+                fileSelectedElement.innerHTML = `📁 Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                fileSelectedElement.style.display = 'block';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const csv = e.target.result;
+                        console.log('File content length:', csv.length);
+                        console.log('First 1000 characters:', csv.substring(0, 1000));
+                        
+                        smtData = parseCSV(csv);
+                        document.getElementById('processBtn').disabled = false;
+                        
+                        if (smtData.length === 0) {
+                            showError('⚠️ File uploaded but no data parsed. Check console for details.');
+                        } else {
+                            showSuccess(`✅ File uploaded successfully! Parsed ${smtData.length} rows.`);
+                        }
+                    } catch (error) {
+                        showError('❌ File parsing failed: ' + error.message);
+                        console.error('Parse error:', error);
+                    }
+                };
+                reader.readAsText(file, 'UTF-8');
+            } else {
+                document.getElementById('file-selected').style.display = 'none';
+                document.getElementById('processBtn').disabled = true;
+            }
+        }
+
+        function parseCSV(csv) {
+            console.log('Raw CSV content (first 500 chars):', csv.substring(0, 500));
+            
+            // Handle different line endings
+            const lines = csv.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+            console.log('Total lines found:', lines.length);
+            console.log('First few lines:', lines.slice(0, 3));
+            
+            if (lines.length < 2) {
+                console.log('Not enough lines in CSV');
+                return [];
+            }
+            
+            // More robust header parsing
+            const headerLine = lines[0];
+            console.log('Header line:', headerLine);
+            
+            // Try different splitting methods
+            let headers;
+            if (headerLine.includes('","')) {
+                // Handle quoted CSV
+                headers = headerLine.split('","').map(h => h.replace(/^"|"$/g, '').trim());
+            } else {
+                // Handle simple CSV
+                headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+            }
+            
+            console.log('Parsed headers:', headers);
+            
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    console.log(`Processing line ${i}:`, line.substring(0, 100) + '...');
+                    
+                    let values;
+                    if (line.includes('","')) {
+                        // Handle quoted CSV
+                        values = line.split('","').map(v => v.replace(/^"|"$/g, '').trim());
+                    } else {
+                        // Handle simple CSV
+                        values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                    }
+                    
+                    console.log(`Parsed values for line ${i}:`, values);
+                    
+                    if (values.length >= headers.length) {
+                        const row = {};
+                        headers.forEach((header, index) => {
+                            row[header] = values[index] || '';
+                        });
+                        data.push(row);
+                        console.log(`Added row ${i}:`, row);
+                    } else {
+                        console.log(`Skipped line ${i} - insufficient columns (${values.length} vs ${headers.length})`);
+                    }
+                }
+            }
+            
+            console.log('Final parsed data:', data);
+            return data;
+        }
+
+        // Process button
+        document.getElementById('processBtn').addEventListener('click', processSMTData);
+
+        function processSMTData() {
+            if (!smtData) {
+                showError('No data to process');
+                return;
+            }
+
+            let debugContent = '';
+            const stats = {};
+            
+            // Step 0: Show CSV content preview
+            debugContent += createStep('Step 0: CSV Content Preview', `
+File size: ${document.getElementById('smtFile').files[0].size} bytes
+File name: ${document.getElementById('smtFile').files[0].name}
+
+Note: Check browser console (F12) for detailed parsing logs.
+            `);
+            
+            // Step 1: Show raw data
+            debugContent += createStep('Step 1: Raw Data Analysis', `
+Total rows: ${smtData.length}
+Columns found: ${Object.keys(smtData[0] || {}).join(', ')}
+
+Column details:
+${Object.keys(smtData[0] || {}).map(col => `- ${col}`).join('\n')}
+
+First 5 rows:
+${JSON.stringify(smtData.slice(0, 5), null, 2)}
+
+Data validation:
+- Has data: ${smtData.length > 0 ? 'YES' : 'NO'}
+- Expected columns present:
+  - SMT Orginator: ${smtData[0] && 'SMT Orginator' in smtData[0] ? 'YES' : 'NO'}
+  - Month ID: ${smtData[0] && 'Month ID' in smtData[0] ? 'YES' : 'NO'}
+  - SMT Type: ${smtData[0] && 'SMT Type' in smtData[0] ? 'YES' : 'NO'}
+
+SMT Orginator format analysis:
+${smtData.slice(0, 10).map((row, i) => {
+    const originator = row['SMT Orginator'];
+    if (originator) {
+        const isDate = /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(originator) || /^\d{4}-\d{1,2}-\d{1,2}$/.test(originator);
+        const hasNumbers = /\d{8}/.test(originator);
+        return `Row ${i+1}: "${originator}" - Date format: ${isDate ? 'YES' : 'NO'}, Has 8 digits: ${hasNumbers ? 'YES' : 'NO'}`;
+    }
+    return `Row ${i+1}: No SMT Orginator data`;
+}).join('\n')}
+            `);
+
+            // Step 2: Process each row
+            debugContent += createStep('Step 2: Row-by-Row Processing', '');
+            
+            smtData.forEach((row, index) => {
+                const smtOriginator = row['SMT Orginator'];
+                const monthId = row['Month ID'];
+                const smtType = row['SMT Type'];
+                
+                let rowDebug = `Row ${index + 1}:\n`;
+                rowDebug += `  SMT Orginator: "${smtOriginator}"\n`;
+                rowDebug += `  Month ID: "${monthId}"\n`;
+                rowDebug += `  SMT Type: "${smtType}"\n`;
+                
+                if (smtOriginator && monthId && smtType) {
+                    // Extract Staff ID - handle various formats including date conversions
+                    let staffId;
+                    let originalStaffId = smtOriginator;
+                    
+                    rowDebug += `  → Original SMT Orginator: "${smtOriginator}"\n`;
+                    
+                    // Check if it's a date format (Excel conversion)
+                    const isDate = /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(smtOriginator) || 
+                                  /^\d{4}-\d{1,2}-\d{1,2}$/.test(smtOriginator) ||
+                                  /^\d{1,2}-\d{1,2}-\d{4}$/.test(smtOriginator);
+                    
+                    if (isDate) {
+                        rowDebug += `  → Detected date format: ${smtOriginator}\n`;
+                        // Try to extract 8-digit number from the date
+                        const numbersOnly = smtOriginator.replace(/[^\d]/g, '');
+                        if (numbersOnly.length >= 8) {
+                            staffId = numbersOnly.substring(0, 8);
+                            rowDebug += `  → Extracted from date: ${staffId}\n`;
+                        } else {
+                            // If not enough digits, try to reconstruct from date
+                            const dateParts = smtOriginator.split(/[\/\-]/);
+                            if (dateParts.length === 3) {
+                                const year = dateParts[2] || dateParts[0];
+                                const month = dateParts[1] || dateParts[1];
+                                const day = dateParts[0] || dateParts[2];
+                                // Try different combinations
+                                const combinations = [
+                                    year + month + day,
+                                    month + day + year,
+                                    day + month + year
+                                ];
+                                for (let combo of combinations) {
+                                    if (combo.length === 8 && /^\d{8}$/.test(combo)) {
+                                        staffId = combo;
+                                        rowDebug += `  → Reconstructed from date parts: ${staffId}\n`;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Try to extract 8-digit number from various formats
+                        const digitMatch = smtOriginator.match(/(\d{8})/);
+                        if (digitMatch) {
+                            staffId = digitMatch[1];
+                            rowDebug += `  → Extracted 8-digit number: ${staffId}\n`;
+                        } else {
+                            // If no 8-digit number found, try first 8 characters
+                            staffId = smtOriginator.substring(0, 8);
+                            rowDebug += `  → Using first 8 characters: ${staffId}\n`;
+                        }
+                        
+                        // Clean up any date formatting issues
+                        if (staffId.includes('/') || staffId.includes('-')) {
+                            const numbersOnly = staffId.replace(/[^\d]/g, '');
+                            if (numbersOnly.length >= 8) {
+                                staffId = numbersOnly.substring(0, 8);
+                                rowDebug += `  → Cleaned date format: ${staffId}\n`;
+                            }
+                        }
+                    }
+                    
+                    // Validate final staff ID
+                    if (!staffId || staffId.length !== 8 || !/^\d{8}$/.test(staffId)) {
+                        rowDebug += `  → ❌ Invalid staff ID: ${staffId}, skipping row\n`;
+                        return; // Skip this row
+                    }
+                    
+                    // Process month ID
+                    let month = monthId;
+                    rowDebug += `  → Processing Month ID: "${monthId}"\n`;
+                    
+                    // Validate and clean month format
+                    if (typeof monthId === 'string') {
+                        // Remove any non-numeric characters and ensure 6 digits
+                        const cleanMonth = monthId.replace(/[^\d]/g, '');
+                        if (cleanMonth.length === 6) {
+                            month = cleanMonth;
+                            rowDebug += `  → Cleaned month: ${month}\n`;
+                        } else if (cleanMonth.length === 4) {
+                            // If only 4 digits, assume it's YYYY and add 01
+                            month = cleanMonth + '01';
+                            rowDebug += `  → Extended month: ${month}\n`;
+                        } else {
+                            rowDebug += `  → ❌ Invalid month format: ${monthId}, skipping row\n`;
+                            return; // Skip this row
+                        }
+                    } else {
+                        rowDebug += `  → ❌ Invalid month type: ${typeof monthId}, skipping row\n`;
+                        return; // Skip this row
+                    }
+                    
+                    rowDebug += `  → Final Staff ID: "${staffId}"\n`;
+                    rowDebug += `  → Final Month: "${month}"\n`;
+                    
+                    // Show Staff ID extraction details
+                    if (smtOriginator !== staffId) {
+                        rowDebug += `  → Staff ID transformation: "${smtOriginator}" → "${staffId}"\n`;
+                    }
+                    
+                    // Initialize stats structure
+                    if (!stats[month]) {
+                        stats[month] = {};
+                    }
+                    if (!stats[month][staffId]) {
+                        stats[month][staffId] = {
+                            crossSell: 0,
+                            leadReferral: 0,
+                            testimonial: 0
+                        };
+                    }
+                    
+                    // Count specific types
+                    let counted = false;
+                    if (smtType === 'Cross-sell') {
+                        stats[month][staffId].crossSell++;
+                        rowDebug += `  → ✅ Counted as Cross-sell\n`;
+                        counted = true;
+                    } else if (smtType === 'Lead Referral') {
+                        stats[month][staffId].leadReferral++;
+                        rowDebug += `  → ✅ Counted as Lead Referral\n`;
+                        counted = true;
+                    } else if (smtType === 'Testimonial/Compliment') {
+                        stats[month][staffId].testimonial++;
+                        rowDebug += `  → ✅ Counted as Testimonial/Compliment\n`;
+                        counted = true;
+                    } else {
+                        rowDebug += `  → ❌ Ignored (not in target types)\n`;
+                    }
+                } else {
+                    rowDebug += `  → ❌ Skipped (missing required fields)\n`;
+                }
+                
+                debugContent += createStep(`Row ${index + 1} Details`, rowDebug);
+            });
+
+            // Step 3: Show final statistics
+            debugContent += createStep('Step 3: Final Statistics', `
+Final processing results:
+${JSON.stringify(stats, null, 2)}
+
+Summary by month:
+${Object.keys(stats).map(month => {
+    const monthData = stats[month];
+    const staffCount = Object.keys(monthData).length;
+    const totalCrossSell = Object.values(monthData).reduce((sum, staff) => sum + staff.crossSell, 0);
+    const totalLeadReferral = Object.values(monthData).reduce((sum, staff) => sum + staff.leadReferral, 0);
+    const totalTestimonial = Object.values(monthData).reduce((sum, staff) => sum + staff.testimonial, 0);
+    
+    return `${month}: ${staffCount} staff, Cross-sell: ${totalCrossSell}, Lead Referral: ${totalLeadReferral}, Testimonial: ${totalTestimonial}`;
+}).join('\n')}
+            `);
+
+            // Step 4: Show data table
+            debugContent += createStep('Step 4: Data Table', '');
+            let tableHtml = '<table class="data-table"><thead><tr><th>Month</th><th>Staff ID</th><th>Cross-sell</th><th>Lead Referral</th><th>Testimonial</th></tr></thead><tbody>';
+            
+            Object.keys(stats).sort().forEach(month => {
+                Object.keys(stats[month]).sort().forEach(staffId => {
+                    const data = stats[month][staffId];
+                    tableHtml += `<tr><td>${month}</td><td>${staffId}</td><td>${data.crossSell}</td><td>${data.leadReferral}</td><td>${data.testimonial}</td></tr>`;
+                });
+            });
+            
+            tableHtml += '</tbody></table>';
+            debugContent += tableHtml;
+
+            // Display results
+            document.getElementById('debugContent').innerHTML = debugContent;
+            document.getElementById('debugResults').style.display = 'block';
+        }
+
+        function createStep(title, content) {
+            return `
+                <div class="step">
+                    <h3>${title}</h3>
+                    <div class="step-content">${content}</div>
+                </div>
+            `;
+        }
+
+        function showSuccess(message) {
+            const existing = document.querySelector('.success');
+            if (existing) existing.remove();
+            
+            const div = document.createElement('div');
+            div.className = 'success';
+            div.textContent = message;
+            document.querySelector('.debug-section').appendChild(div);
+        }
+
+        function showError(message) {
+            const existing = document.querySelector('.error');
+            if (existing) existing.remove();
+            
+            const div = document.createElement('div');
+            div.className = 'error';
+            div.textContent = message;
+            document.querySelector('.debug-section').appendChild(div);
+        }
+    </script>
+</body>
+</html>

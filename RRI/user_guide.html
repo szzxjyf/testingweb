@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMI Performance Tracking Tool - User Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #fff;
+        }
+
+        h1 {
+            color: #DB0011;
+            font-size: 32px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #DB0011;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #DB0011;
+            font-size: 24px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: #333;
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            background: #DB0011;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f8f8f8;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .highlight {
+            background: #ffebee;
+            border-left: 4px solid #DB0011;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>AMI Performance Tracking Tool - User Guide</h1>
+
+    <div class="section">
+        <h2>Overview</h2>
+        <p>This tool processes three CSV files and generates comprehensive performance statistics by staff and month. All processing is done locally in your browser - no data is uploaded to any server.</p>
+    </div>
+
+    <div class="section">
+        <h2>Required Files</h2>
+        
+        <h3>File 1: SMT Data</h3>
+        <p><strong>Required Columns:</strong></p>
+        <ul>
+            <li><code>Month ID</code> - Format: 6 digits (e.g., "202501")</li>
+            <li><code>SMT Type</code> - Must contain: Cross-sell, Lead Referral, or Testimonial/Compliment</li>
+            <li><code>SMT Orginator</code> - Staff ID is extracted from first 8 characters</li>
+        </ul>
+        <p><strong>Logic:</strong> Counts records by Staff ID + Month for the three SMT types.</p>
+
+        <h3>File 2: CME Client Engagement</h3>
+        <p><strong>Required Columns:</strong></p>
+        <ul>
+            <li><code>Attendee Employee ID</code> - Staff ID (text/number)</li>
+            <li><code>Created By Employee ID</code> - Staff ID (text/number)</li>
+            <li><code>Year & Month</code> - Format: 5 digits (e.g., "20253" → "202503")</li>
+            <li><code>Meeting Type</code> - Values: Client Meeting, Service Review</li>
+        </ul>
+        <p><strong>Logic:</strong></p>
+        <ul>
+            <li>Client Meeting: Count by <code>Attendee Employee ID</code> + Month</li>
+            <li>Service Review: Count by <code>Created By Employee ID</code> + Month</li>
+        </ul>
+
+        <h3>File 3: CME PG</h3>
+        <p><strong>Required Columns:</strong></p>
+        <ul>
+            <li><code>Deal TL PS ID</code> - Staff ID</li>
+            <li><code>Month&Year</code> - Format: 5 digits (e.g., "20253")</li>
+            <li><code>Staff Team Country</code> - Must be "China"</li>
+            <li><code>Domestic Contribution</code> - Must equal 100</li>
+            <li><code>Deal Category_Alt</code> - Must be "Won"</li>
+            <li><code>EBV (USD000)</code> - Numeric value</li>
+        </ul>
+        <p><strong>Logic:</strong> For records matching <strong>ALL</strong> three filters (China + Won + Domestic=100):</p>
+        <ul>
+            <li>Count records by Staff ID + Month</li>
+            <li>Sum EBV values by Staff ID + Month</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Data Merging</h2>
+        <p>Data from all three files is merged using <code>Staff ID + Month</code> as the key. Missing values default to 0.</p>
+    </div>
+
+    <div class="section">
+        <h2>Output</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Staff ID</td>
+                    <td>Employee identifier</td>
+                </tr>
+                <tr>
+                    <td>Month</td>
+                    <td>Period (YYYYMM)</td>
+                </tr>
+                <tr>
+                    <td>Cross-sell</td>
+                    <td>Count from SMT file</td>
+                </tr>
+                <tr>
+                    <td>Lead Referral</td>
+                    <td>Count from SMT file</td>
+                </tr>
+                <tr>
+                    <td>Testimonial</td>
+                    <td>Count from SMT file</td>
+                </tr>
+                <tr>
+                    <td>Client Meeting</td>
+                    <td>Count as attendee from CME Client Engagement</td>
+                </tr>
+                <tr>
+                    <td>Service Review</td>
+                    <td>Count as creator from CME Client Engagement</td>
+                </tr>
+                <tr>
+                    <td>Deal Count</td>
+                    <td>Number of deals from CME PG</td>
+                </tr>
+                <tr>
+                    <td>EBV Total</td>
+                    <td>Sum of EBV values from CME PG</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>How to Use</h2>
+        <ol>
+            <li>Open the tool in your web browser</li>
+            <li>Upload all three CSV files (any order)</li>
+            <li>Click "Start Processing"</li>
+            <li>Review the processing log (optional)</li>
+            <li>View statistics and trend charts</li>
+            <li>Select months and click "Export Selected Months" to download results</li>
+        </ol>
+
+        <div class="note">
+            <strong>Note:</strong> The table displays only the top 20 records, but the export function includes ALL data.
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Chart Features</h2>
+        <ul>
+            <li>7 trend charts available (click tabs to switch)</li>
+            <li>Data aggregated by month across all staff</li>
+            <li>Line charts show trends over time</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Common Issues</h2>
+        
+        <h3>Q: Why are some metrics zero for my staff?</h3>
+        <p>A: This means no data was found for that staff ID in that month for that metric.</p>
+
+        <h3>Q: Why is my CME PG data count low?</h3>
+        <p>A: CME PG applies strict filters. Records must meet ALL three conditions:</p>
+        <ul>
+            <li>Staff Team Country = "China" (exact match)</li>
+            <li>Domestic Contribution = 100 (exact match)</li>
+            <li>Deal Category_Alt = "Won" (exact match)</li>
+        </ul>
+
+        <h3>Q: Where is all my data? I only see 20 rows.</h3>
+        <p>A: For performance, only 20 rows display on screen. Use the export function to get all data.</p>
+    </div>
+
+
+</body>
+</html>
