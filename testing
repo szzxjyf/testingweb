@@ -1,58 +1,36 @@
-下面是在**不改结构（标题 / Problem Statement / Solution / Impact 及条目数量不变）**前提下，对 wording 做的更顺、更“推文可读”、也更避免绝对化表述的一版：
+日常主题（Knowledge Series）
 
----
+Excel Mapper 专题：开通流程、日常使用指引、常见问题（FAQ）及支持联系人（Contacts）
 
-## 企业客户服务新体验：通过微信服务支持财资网相关问题的在线客服，**即时响应、快速转接**，高效沟通闭环
+回单专题（Advice/Receipt）：一站式汇总，覆盖各渠道回单格式、申请/下载路径、补发流程及支持联系人（Contacts）
 
-## Problem Statement
+资本金入账及后续使用专题：入账流程要点、常见场景与后续使用注意事项
 
-* **旧服务衔接断层：** 汇丰财资网原有 Livechat（在线人工客服）功能已于去年停止服务，财资网客户缺少对应的线上人工支持，可用的咨询入口减少。
-* **复杂业务链路不清：** 部分复杂业务（如财资网、询证函等）流程较长、环节多，导致沟通成本高、效率偏低；非专业客户也更难准确描述需求，易产生信息断点。
-* **人工成本较高：** 现有 Chatbot 主要覆盖部分常见问题，近年新增服务相关内容尚未完全纳入；当机器人无法解答时，企业客户仍需转向线下/其他渠道，耗时耗力。
+MT940 / CAMT 系列专题：核心概念、主要差异与常见使用场景（面向前线快速理解）
 
-## Solution
+ECDS 月度 FAQ 更新：当月高频问题与关键提示更新
 
-* **核心升级：** 汇丰中国企业服务号 / 汇丰大湾区企业服务小程序上线 **Livechat + Chatbot 升级版**。客户在服务号/小程序发起咨询后，如 Chatbot 未能解决需求，可点击“一键转人工”进入 Livechat（在线人工客服）。财资网相关问题可在线完成沟通与处理，减少线下往返。
-* **Chatbot 同步升级：** 全新 Chatbot 以 AI 能力为核心，结合自然语言处理与机器学习，提升对常见问题的自动解答能力；新增“相似问 + 关键词自动匹配”，提升答案命中与一致性。覆盖范围进一步扩大（预计提升约 **30%**），累计沉淀 **700+** 条常见问答，并补充财资网、询证函、银行资讯信息等内容，覆盖 GPS、GTS、Onboarding 等多个领域的常见需求。
-* **动态菜单引导客户提问：** Chatbot 升级加入动态菜单，通过层层引导的选项帮助客户快速定位问题场景与所需信息；客户无需反复组织文字，按菜单选择即可更精准地匹配答案与路径。
-* **全流程线上化，一站式闭环服务：** 客户进入服务号/小程序 → 发起问题 → Chatbot 优先解答（常见问题可直接解决）；如需人工支持，点击或输入“人工”即可接入 Livechat，与专属客服在线沟通并推动处理闭环。
+热点主题（Hot Topics）
+出海相关（Go Global）
 
-## Impact
+网银“全球避坑指南”：重点覆盖身份验证（ID&V）等高频卡点与注意事项
 
-* **响应效率提升：** 加快企业客户咨询的整体响应与处理节奏，减少重复沟通与来回确认，帮助前线团队释放更多精力聚焦复杂业务。
-* **体验全面优化：** 增加 Livechat（在线人工客服）入口，减少线下流程与多渠道跳转带来的割裂感，让咨询更便捷、更连贯。
-* **智能服务升级：** Chatbot 覆盖场景更广、回答更智能，降低沟通成本，提高日常咨询的自助解决率与整体效率。
+如何查询海外收付款状态：基于 Qbot Payment Status 的查询路径与常见状态解读
 
----
+与 MNC Handbook 联动：将重点条目与实操指引对齐，提升可查可用性
 
+与 Product 团队合作（Co-create with Product）
 
----
+付款 Cut-off Time 汇总：含过点处理要点（如过点刷等）与常见误区提示
 
-## A New Service Experience for Corporate Clients: WeChat-based online support for HSBCnet-related enquiries — **faster responses, smooth escalation, and end-to-end resolution**
+节假日安排专题：收付款处理、账单/入账显示口径与计息相关注意事项
 
-## Problem Statement
+Cash Pool 高层对比（Awareness 级）：帮助 RM 快速理解“是什么 / 适用场景 / 大方向差异”
 
-* **Service transition gap:** The Livechat (online agent support) on HSBCnet was discontinued last year. As a result, HSBCnet clients no longer have a dedicated online channel for agent support, and available enquiry entry points have been reduced.
-* **Complex journey, lower efficiency:** For more complex services (e.g., HSBCnet and Bank Confirmation), longer and multi-step processes can lead to higher communication effort and lower efficiency. Non-specialist users may also find it difficult to describe their needs accurately, which can create information gaps.
-* **High reliance on manual support:** The current chatbot mainly covers a subset of FAQs, while some newly introduced services in recent years are not yet fully included. When the chatbot cannot resolve an enquiry, corporate clients often need to switch to offline or alternative channels, which takes additional time and effort.
+与 Payment 团队合作（Co-create with Payment）
 
-## Solution
+每月一例：One Payment Case, One Learning：精选真实案例（匿名化），提炼关键经验与风险点
 
-* **Core enhancement:** An upgraded **Livechat + Chatbot** capability is now available via **HSBC China Corporate WeChat Official Account / GBA Corporate Service Mini Program**. Clients can start an enquiry in WeChat first; if the chatbot cannot meet the need, they can tap **“Transfer to agent”** to connect to Livechat (online agent support). HSBCnet-related issues can be discussed and handled online, reducing offline follow-ups.
-* **Chatbot upgrade in parallel:** The new chatbot is powered by AI, leveraging natural language processing and machine learning to improve automated responses for common enquiries. A new **“similar question + keyword matching”** feature helps improve answer relevance and consistency. Coverage is further expanded (estimated **+30%**), with **700+** FAQs consolidated, and additional content added for HSBCnet, Bank Confirmation, and bank information, spanning common topics across **GPS, GTS, Onboarding**, and more.
-* **Dynamic menu to guide enquiries:** The upgraded chatbot introduces a dynamic menu with step-by-step options to help clients quickly identify the right topic and information. Clients can follow the menu instead of drafting detailed messages, enabling more precise issue routing and responses.
-* **End-to-end online journey, one-stop closed loop:** Client enters the Official Account/Mini Program → raises an enquiry → chatbot responds automatically (resolving common issues directly). If agent support is required, the client can tap or type **“agent”** to connect to Livechat and communicate with a dedicated service representative to drive resolution through to closure.
+与 FI CS 同事合作（Co-create with FI CS）
 
-## Impact
-
-* **Improved responsiveness:** Faster overall response and handling for corporate enquiries, with fewer back-and-forth clarifications—helping frontline teams focus more capacity on complex cases.
-* **Better end-to-end experience:** A dedicated Livechat (online agent support) entry point reduces friction from offline processes and multi-channel switching, making the experience more convenient and seamless.
-* **Smarter service capability:** Broader chatbot coverage and more intelligent responses help reduce communication cost, increase self-service resolution for day-to-day enquiries, and improve overall efficiency.
-
-Hi all — I’m thinking we could add a few demo screenshots / a short GIF to better illustrate the functionality and changes, especially for the Live Chat part.
-
-Also, would it make sense to replace the wording “关停” with “停止服务”? It feels a bit less negative while keeping the meaning.
-
-@Susan — would you mind sharing any feedback?
-
-If helpful, I suggest we set up a quick meeting to align on the above.
+两头在外付款追踪专题：跨境链路下的追踪思路与操作要点
