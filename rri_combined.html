@@ -458,7 +458,7 @@
 <body>
     <div class="container">
         <h1>AMI Performance Tracking Tool</h1>
-        <div class="subtitle">Upload three CSV files, the system will automatically process and generate comprehensive
+        <div class="subtitle">Upload four CSV files, the system will automatically process and generate comprehensive
             statistical reports by staff and month</div>
 
         <div class="upload-section">
@@ -492,6 +492,16 @@
                         <input type="file" id="dealFile" accept=".csv">
                     </div>
                     <div class="file-status" id="dealStatus">Not uploaded</div>
+                </div>
+
+                <div class="upload-card">
+                    <h3>File 4: NPS Report</h3>
+                    <p>Statistics for NPS Sending Count by Staff ID and Month</p>
+                    <div class="file-input-wrapper">
+                        <label class="file-input-label" for="npsFile">Select NPS Report CSV File</label>
+                        <input type="file" id="npsFile" accept=".csv">
+                    </div>
+                    <div class="file-status" id="npsStatus">Not uploaded</div>
                 </div>
             </div>
 
@@ -538,6 +548,7 @@
                                 <th class="number-right">Service Review</th>
                                 <th class="number-right">Deal Count</th>
                                 <th class="number-right">EBV Total</th>
+                                <th class="number-right">NPS Count</th>
                             </tr>
                         </thead>
                         <tbody id="resultsBody"> </tbody>
@@ -562,6 +573,7 @@
         let testimonialFileData = null;
         let meetingFileData = null;
         let dealFileData = null;
+        let npsFileData = null;
         let processedData = [];
         const MAX_DISPLAY_ROWS = 20;
 
@@ -596,9 +608,19 @@
             }
         });
 
+        document.getElementById('npsFile').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                npsFileData = file;
+                document.getElementById('npsStatus').textContent = `Selected: ${file.name}`;
+                document.getElementById('npsStatus').classList.add('uploaded');
+                checkAllFilesUploaded();
+            }
+        });
+
         function checkAllFilesUploaded() {
             const processBtn = document.getElementById('processBtn');
-            if (testimonialFileData && meetingFileData && dealFileData) {
+            if (testimonialFileData && meetingFileData && dealFileData && npsFileData) {
                 processBtn.disabled = false;
             }
         }
@@ -720,13 +742,14 @@
             addLog('=== Start Processing ===', 'info');
 
             try {
-                // Process three files
+                // Process four files
                 const testimonialData = await processTestimonialFile(testimonialFileData);
                 const meetingData = await processMeetingFile(meetingFileData);
                 const dealData = await processDealFile(dealFileData);
+                const npsData = await processNpsFile(npsFileData);
 
                 // Merge data
-                await mergeAllData(testimonialData, meetingData, dealData);
+                await mergeAllData(testimonialData, meetingData, dealData, npsData);
 
             } catch (error) {
                 addLog(`Error: ${error.message}`, 'warning');
@@ -916,7 +939,63 @@
             return data;
         }
 
-        async function mergeAllData(testimonialData, meetingData, dealData) {
+        async function processNpsFile(file) {
+            addLog('--- Processing NPS Report File ---', 'info');
+            const text = await readFileAsText(file);
+            const lines = text.split('\n').filter(line => line.trim());
+
+            addLog(`NPS Report: Read ${lines.length} lines`, 'info');
+
+            const headers = parseCSVLine(lines[0]);
+            const staffIdIndex = headers.indexOf('Staff ID');
+            const npsSendingDateIndex = headers.indexOf('NPS Sending Date');
+
+            if (staffIdIndex === -1 || npsSendingDateIndex === -1) {
+                throw new Error('NPS Report file missing required columns (Staff ID, NPS Sending Date)');
+            }
+
+            // Parse NPS Sending Date format like "01/13/2026" (MM/DD/YYYY) into "YYYYMM"
+            function parseNpsSendingDate(dateStr) {
+                if (!dateStr) return '';
+                const str = String(dateStr).trim();
+                const parts = str.split('/');
+                if (parts.length >= 3) {
+                    const month = parts[0].padStart(2, '0');
+                    const year = parts[2];
+                    return year + month;
+                }
+                return '';
+            }
+
+            const data = {};
+            let processedRows = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i].trim());
+                if (values.length <= Math.max(staffIdIndex, npsSendingDateIndex)) continue;
+
+                const staffId = normalizeStaffId(values[staffIdIndex]);
+                const yearMonth = parseNpsSendingDate(values[npsSendingDateIndex]);
+
+                if (staffId && yearMonth) {
+                    const key = `${staffId}_${yearMonth}`;
+                    if (!data[key]) {
+                        data[key] = { staffId, monthId: yearMonth, npsCount: 0 };
+                    }
+                    data[key].npsCount++;
+
+                    processedRows++;
+                    if (processedRows % 100 === 0) {
+                        addLog(`NPS Report: Processed ${processedRows} records`, 'info');
+                    }
+                }
+            }
+
+            addLog(`NPS Report: Completed, ${processedRows} valid records`, 'success');
+            return data;
+        }
+
+        async function mergeAllData(testimonialData, meetingData, dealData, npsData) {
             addLog('--- Merging Data ---', 'info');
 
             const merged = {};
@@ -931,7 +1010,8 @@
                     clientMeeting: 0,
                     serviceReview: 0,
                     dealCount: 0,
-                    ebvTotal: 0
+                    ebvTotal: 0,
+                    npsCount: 0
                 };
             });
 
@@ -946,7 +1026,8 @@
                         clientMeeting: 0,
                         serviceReview: 0,
                         dealCount: 0,
-                        ebvTotal: 0
+                        ebvTotal: 0,
+                        npsCount: 0
                     };
                 }
                 merged[key].clientMeeting = item.clientMeeting || 0;
@@ -964,11 +1045,30 @@
                         clientMeeting: 0,
                         serviceReview: 0,
                         dealCount: 0,
-                        ebvTotal: 0
+                        ebvTotal: 0,
+                        npsCount: 0
                     };
                 }
                 merged[key].dealCount = item.dealCount || 0;
                 merged[key].ebvTotal = item.ebvTotal || 0;
+            });
+
+            // 合并NPS数据
+            Object.values(npsData).forEach(item => {
+                const key = `${item.staffId}_${item.monthId}`;
+                if (!merged[key]) {
+                    merged[key] = {
+                        staffId: item.staffId,
+                        monthId: item.monthId,
+                        testimonial: 0,
+                        clientMeeting: 0,
+                        serviceReview: 0,
+                        dealCount: 0,
+                        ebvTotal: 0,
+                        npsCount: 0
+                    };
+                }
+                merged[key].npsCount = item.npsCount || 0;
             });
 
             processedData = Object.values(merged);
@@ -1009,6 +1109,7 @@
             const totalServiceReview = processedData.reduce((sum, item) => sum + item.serviceReview, 0);
             const totalDeals = processedData.reduce((sum, item) => sum + item.dealCount, 0);
             const totalEbv = processedData.reduce((sum, item) => sum + item.ebvTotal, 0);
+            const totalNps = processedData.reduce((sum, item) => sum + item.npsCount, 0);
 
             statsSummary.innerHTML = `
                 <div class="stat-card">
@@ -1031,6 +1132,10 @@
                     <div class="stat-value">${totalEbv.toFixed(2)}</div>
                     <div class="stat-label">EBV Total</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalNps}</div>
+                    <div class="stat-label">NPS Count</div>
+                </div>
             `;
 
             const tbody = document.getElementById('resultsBody');
@@ -1050,6 +1155,7 @@
                     <td class="number-right">${item.serviceReview}</td>
                     <td class="number-right">${item.dealCount}</td>
                     <td class="number-right">${item.ebvTotal.toFixed(2)}</td>
+                    <td class="number-right">${item.npsCount}</td>
                 `;
                 fragment.appendChild(row);
             });
@@ -1070,7 +1176,8 @@
                 { id: 'clientMeeting', label: 'Client Meeting', key: 'clientMeeting' },
                 { id: 'serviceReview', label: 'Service Review', key: 'serviceReview' },
                 { id: 'dealCount', label: 'Deal Count', key: 'dealCount' },
-                { id: 'ebvTotal', label: 'EBV Total', key: 'ebvTotal' }
+                { id: 'ebvTotal', label: 'EBV Total', key: 'ebvTotal' },
+                { id: 'npsCount', label: 'NPS Count', key: 'npsCount' }
             ];
 
             chartTabs.innerHTML = '';
@@ -1153,7 +1260,8 @@
                 'clientMeeting': 'Client Meeting Trend',
                 'serviceReview': 'Service Review Trend',
                 'dealCount': 'Deal Count Trend',
-                'ebvTotal': 'EBV Total Trend'
+                'ebvTotal': 'EBV Total Trend',
+                'npsCount': 'NPS Count Trend'
             };
             ctx.fillText(chartLabels[chartType] || 'Data Trend', width / 2, 20);
 
@@ -1313,10 +1421,10 @@
                 return;
             }
 
-            let csv = 'Staff ID,Month ID,Testimonial/Compliment,Client Meeting (Attendee),Service Review (Creator),Deal Count,EBV Total (USD000)\n';
+            let csv = 'Staff ID,Month ID,Testimonial/Compliment,Client Meeting (Attendee),Service Review (Creator),Deal Count,EBV Total (USD000),NPS Count\n';
 
             filteredData.forEach(item => {
-                csv += `${item.staffId},${item.monthId},${item.testimonial},${item.clientMeeting},${item.serviceReview},${item.dealCount},${item.ebvTotal.toFixed(2)}\n`;
+                csv += `${item.staffId},${item.monthId},${item.testimonial},${item.clientMeeting},${item.serviceReview},${item.dealCount},${item.ebvTotal.toFixed(2)},${item.npsCount}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
