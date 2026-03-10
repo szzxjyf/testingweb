@@ -1,259 +1,67 @@
-可以。我建议你把问题分成两类来准备：
+NPS is also an important task for the CS team. As part of this process, we need to send survey links to the relevant clients so that they can rate our service and provide feedback.
 
-一类是 **Townhall 用的**，要更高层、更开放，体现你有全局视角；
-另一类是 **CS team meeting 用的**，要更贴近执行、流程、客户体验和团队协作。
+From the GPS CS perspective, the overall process works like this.
 
-因为是 **新 head**，而且是 **新加坡背景**，问题最好满足这几个特点：
+First, we obtain the raw data to determine which clients the survey should be sent to.
 
-* **先欢迎，再请教**
-* **既和 CS 有关，又不要太窄**
-* **让对方有空间发挥，不像“质问”**
-* **适度带出你们团队的价值和挑战**
+After we have identified the clients, we provide this information to the PCM MI team. They mainly support us in two aspects. The first is generating the encrypted email, and the second is providing the NPS survey link.
 
-下面我帮你按场景整理。
+In the previous workflow, once the survey link was ready, it would be passed to the vendor. The vendor would then send the emails through ConvertLab. After the emails were sent, the vendor would provide us with a report showing which clients opened the email and which did not.
 
----
+If we look closely at this workflow, the main task performed by the vendor is essentially sending emails through the ConvertLab platform. Although they also provide a report afterwards, the importance of this report is actually quite limited. What really matters to us is how to make the email sending step more efficient and more automated.
 
-# 一、Townhall 可以问的问题
+When we analyzed this process, we identified three possible options, and we explored each of them.
 
-这类适合更“战略一点”。
+The first option was to keep the current process and continue using the vendor through ConvertLab. However, the main concern here is the cost. As we all know, the cost is around 10,000 RMB per month.
 
-## 1. 对 CS 角色定位的看法
+Because of this, this is not the option we prefer.
 
-**中文思路：**
-想了解他眼里 CS 在 GPS 里的定位，是 support role，还是更前台、更有增长价值的角色。
+We also explored whether it would be possible for us to use ConvertLab directly. However, after some research, we found that the feasibility is quite low. There are several reasons for this.
 
-**英文：**
-**As you step into this role, how do you see Client Service evolving within GPS — as a support function, or as a more strategic partner in driving client experience and growth?**
+First, ConvertLab is a professional marketing automation platform, and it is relatively complex to use.
 
-**为什么好：**
-这个问题很稳，既贴合 CS，又显得你在思考团队未来定位。
+Second, the license fee is not paid directly by us to the platform provider. Instead, we pay the vendor, and the vendor pays the software company.
 
----
+Third, based on our discussions with the Marketing team, it is also unlikely that this license would be allocated directly to us.
 
-## 2. 新 head 最想优先了解的 CS 痛点
+Therefore, this option is not very realistic for our team.
 
-**英文：**
-**From your first impressions, what are the top areas in Client Service that you would want to understand or improve first?**
+The second option we explored was Mail Merge, which is a built-in feature in Microsoft Office.
 
-**为什么好：**
-适合新 head，容易回答，也能引出他真正关注点。
+The basic idea is to prepare a Word template and an Excel file containing the recipient information and the content that needs to be filled in. Then the Word template can be connected to Outlook through Mail Merge. Finally, the system can generate emails in bulk and send them automatically.
 
----
+However, we eventually decided not to adopt this solution either, mainly because of two major limitations.
 
-## 3. 新加坡经验能否带来启发
+The first limitation is that we cannot send emails from the designated shared mailbox.
 
-**英文：**
-**Given your experience in Singapore, are there any practices or ways of working that you think could be valuable for our Client Service team here?**
+The second limitation is that the generation process is essentially a black box. Once the process starts, it runs from beginning to end and sends all emails automatically. There is no opportunity to pause the process and conduct another check before the emails are sent.
 
-**为什么好：**
-点到他的新加坡背景，但不刻意；也显得你愿意学习区域最佳实践。
+Because of these two issues, we decided not to proceed with the Mail Merge solution.
 
----
+Given these constraints, our remaining options were quite limited. Therefore, we decided to develop a VBA tool to support this operational task.
 
-## 4. 如何平衡效率与客户体验
+It is important to clarify that this tool does not directly send the emails. Instead, the tool only generates email drafts.
 
-**英文：**
-**In GPS, we are always balancing efficiency, control, and client experience. From your perspective, where should Client Service place the most emphasis going forward?**
+Once the drafts are created, manual checking is still required. Someone will review the emails and then send them manually. Because of this, the operational risk is relatively low.
 
-**为什么好：**
-很 management 风格，听起来成熟。
+The workflow of this tool is quite straightforward.
 
----
+First, we prepare a Word template. In this template, we can freely design the email format and content based on our needs.
 
-## 5. 对数字化 / AI / 自动化的期待
+Second, we define placeholders in the template. These placeholders will later be replaced with recipient information from Excel, as well as the corresponding NPS survey link.
 
-**英文：**
-**How do you see digitalisation and AI reshaping the way Client Service supports clients and the wider GPS business over the next few years?**
+Third, we prepare an Excel file that contains the recipient information and the survey links.
 
-**为什么好：**
-很适合你。你本来就有创新项目背景，这类问题会显得你很对路。
+Based on this setup, the tool provides three different ways to generate email drafts.
 
----
+The first option is “All”. When this button is clicked, the tool will generate drafts for all emails at once.
 
-## 6. 对跨团队协作的期待
+The second option is “Single”. In this mode, the tool will generate only one specific email draft, depending on the selected record.
 
-**英文：**
-**What would good collaboration look like, in your view, between Client Service, Sales, Product and Operations, so that we can deliver a more joined-up client experience?**
+The third option is “Range”. In this case, the tool will generate drafts for a selected range of records, for example from A to B.
 
-**为什么好：**
-这题非常适合 townhall，站位高，而且不会太敏感。
+So overall, we have three different modes to trigger the draft generation.
 
----
+This is the overall solution we developed to improve the NPS email sending process.
 
-# 二、CS team meeting 可以问的问题
-
-这类要更接地气，围绕团队、流程、客户、优先级。
-
-## 7. 对 CS 成功标准的定义
-
-**英文：**
-**From your perspective, what does a high-performing Client Service team look like — and what outcomes would matter most to you?**
-
-**为什么好：**
-可以引出 KPI、客户反馈、效率、商业影响等。
-
----
-
-## 8. 希望 CS 团队被如何感知
-
-**英文：**
-**How would you like our internal stakeholders and clients to describe the Client Service team a year from now?**
-
-**为什么好：**
-这个问题很有画面感，也比较“高级”。
-
----
-
-## 9. 对复杂客户问题处理模式的期待
-
-**英文：**
-**For complex or recurring client issues, would you prefer Client Service to focus more on immediate resolution, or to play a bigger role in identifying root causes and driving longer-term fixes?**
-
-**为什么好：**
-这题很 CS，也能顺势引到流程优化、知识沉淀、automation。
-
----
-
-## 10. 如何看待 CS 的主动性
-
-**英文：**
-**How do you see the balance between reactive service and proactive client engagement for Client Service?**
-
-**为什么好：**
-简洁、有深度，而且和你平时做客户洞察、主动发现机会的思路很契合。
-
----
-
-## 11. 对团队创新的支持方式
-
-**英文：**
-**Many service improvements come from colleagues who are closest to clients and processes. How do you like teams to bring forward ideas for improvement or innovation?**
-
-**为什么好：**
-这题其实是在帮你自己铺路，方便未来提项目。
-
----
-
-## 12. 新 leader 前 90 天希望团队怎么支持
-
-**英文：**
-**As you settle into the role, what would be most helpful from the Client Service team in your first few months?**
-
-**为什么好：**
-很礼貌，也非常适合新老板上任初期。
-
----
-
-# 三、如果你想显得更成熟一点，可以问这几类“高质量问题”
-
-## A. 客户价值导向
-
-**英文：**
-**What do you think clients value most from Client Service today, and where do you think expectations are rising fastest?**
-
-适合体现你不是只看内部流程，而是看客户。
-
----
-
-## B. 区域视角
-
-**英文：**
-**Are there any regional client service trends or expectations that you think China teams should pay closer attention to?**
-
-这个也很适合对新加坡 background 的 head。
-
----
-
-## C. 人才与能力建设
-
-**英文：**
-**What capabilities do you think will become more important for Client Service colleagues in the next two to three years?**
-
-这个问题能引出 digital, commercial mindset, stakeholder management, problem solving 等。
-
----
-
-# 四、我最推荐你在两个场合分别问什么
-
-## Townhall 最推荐 3 个
-
-### 1
-
-**As you step into this role, how do you see Client Service evolving within GPS — as a support function, or as a more strategic partner in driving client experience and growth?**
-
-### 2
-
-**Given your experience in Singapore, are there any practices or ways of working that you think could be valuable for our Client Service team here?**
-
-### 3
-
-**How do you see digitalisation and AI reshaping the way Client Service supports clients and the wider GPS business over the next few years?**
-
-这三题的特点是：
-有高度、有 CS 关联、也比较容易给新 head 发挥空间。
-
----
-
-## CS team meeting 最推荐 3 个
-
-### 1
-
-**From your perspective, what does a high-performing Client Service team look like — and what outcomes would matter most to you?**
-
-### 2
-
-**How do you see the balance between reactive service and proactive client engagement for Client Service?**
-
-### 3
-
-**Many service improvements come from colleagues who are closest to clients and processes. How do you like teams to bring forward ideas for improvement or innovation?**
-
-这三题更落地，也更容易自然接到你们团队的工作。
-
----
-
-# 五、如果你想要更“会问”的感觉，可以这样包装开头
-
-你问之前可以加一句：
-
-**Thanks for joining us, and welcome on board. I’d love to get your perspective on…**
-
-或者更自然一点：
-
-**It’s great to have you with us. I was curious to hear your view on…**
-
----
-
-# 六、尽量避免一上来问的几类问题
-
-新 head 刚来，不建议第一轮就问太“硬”的：
-
-* 组织架构会不会调整
-* headcount 会不会增减
-* KPI 会不会更严
-* 为什么新加坡和中国做法不同
-* 直接抱怨某流程/某团队
-
-这些不是不能问，而是 **第一轮不适合你来问**。
-你更适合问那种 **既专业又建设性** 的问题。
-
----
-
-# 七、如果你想显得更像你本人，我最推荐你问这两句
-
-因为这两句最符合你现在的风格：既懂业务，也懂创新。
-
-### Townhall
-
-**How do you see digitalisation and AI reshaping the way Client Service supports clients and the wider GPS business over the next few years?**
-
-### CS team meeting
-
-**Many service improvements come from colleagues who are closest to clients and processes. How do you like teams to bring forward ideas for improvement or innovation?**
-
----
-
-如果你愿意，我下一步可以直接帮你做一版：
-**“更自然、更像中国同事在会上会问出来的英文版本”**，让你讲起来不那么书面。
-
+That is all for my sharing, and I would be happy to take any questions or suggestions from the team.
