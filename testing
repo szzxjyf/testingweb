@@ -1,67 +1,30 @@
-NPS is also an important task for the CS team. As part of this process, we need to send survey links to the relevant clients so that they can rate our service and provide feedback.
+Simpler NPS, Smarter Delivery
 
-From the GPS CS perspective, the overall process works like this.
+Background
+NPS surveys are a critical tool for measuring client satisfaction and identifying opportunities for service improvement. However, in the China market, Qualtrics cannot be used to send surveys directly. As a result, a process that should be completed seamlessly by the system has become highly manual and operationally complex.
+Pain Points
+* Survey links must first be retrieved manually from Qualtrics, instead of being generated and sent through an automated workflow.
+* The survey list then requires manual checking against NPS sending rules, such as ensuring that only one survey is sent within the same client group.
+* The distribution step is the most cumbersome and disproportionate part of the process. GPS  initiates around 300 survey emails each month, while the external vendor’s role is limited to sending a standard template email. For such a basic activity, the current setup costs approximately USD 35,000 per year.
+Impact of the current process
+* Under the current approach, GPS, including both Client Service and Implementation, requires approximately 0.55 FTE to support the end-to-end survey sending process.
+* In addition, the current setup incurs an external vendor cost of around USD 35,000 per year.
+* More importantly, similar survey sending needs also exist across other teams in China.
+* If scaled across China teams with similar needs, the total inefficiency could rise to approximately 2 FTE and USD 90,000 annually, for a process that should otherwise be simple, standardised, and low-touch.
 
-First, we obtain the raw data to determine which clients the survey should be sent to.
 
-After we have identified the clients, we provide this information to the PCM MI team. They mainly support us in two aspects. The first is generating the encrypted email, and the second is providing the NPS survey link.
+Describe your simplification idea
+The idea is to bring the NPS email sending process in-house through a lightweight automation solution, removing unnecessary reliance on the external vendor for a task that can be handled internally in a more direct, efficient, and scalable way. This would not only simplify the process but also create an opportunity to save up to USD 90,000 per year when scaled across teams with similar needs in China.
+Specifically, the solution would be a lightweight internal tool that allows users to upload the target survey client list and complete the key steps automatically:
+* Automatically check sending rules The tool would validate whether each client is eligible to receive the survey, based on defined NPS rules, such as duplication controls and group-level sending restrictions.
+* Automatically call the Qualtrics API The tool would connect to Qualtrics API to generate encrypted emails and create the corresponding survey links automatically, removing the need for manual extraction.
+* Automatically send emails using a standard template Once validated, the tool would send the survey email directly to clients using a predefined template and a designated shared mailbox, eliminating the need for external vendor support.
+By combining rule checking, link generation, and email sending into one streamlined workflow, the idea removes unnecessary manual effort, shortens turnaround time, improves control, and reduces both FTE consumption and vendor cost.
 
-In the previous workflow, once the survey link was ready, it would be passed to the vendor. The vendor would then send the emails through ConvertLab. After the emails were sent, the vendor would provide us with a report showing which clients opened the email and which did not.
+Compared with today’s practice, this idea is different in three key ways: it is leaner, simpler, and more efficient.
+* It significantly reduces FTE and cost. Today’s process relies on manual checks, manual coordination, and external vendor support for routine email distribution. The proposed solution automates the core steps end to end, reducing manual effort and creating a clear opportunity to save both internal capacity and external cost. For China teams with similar needs, the total benefit could scale to around 2 FTE and USD 90,000 per year.
+* It makes the process much simpler. What is currently a fragmented workflow involving multiple manual steps and handoffs would become one streamlined process in a single lightweight tool. Rule checking, Qualtrics link generation, and email sending would no longer sit across separate parties or disconnected steps.
+* It creates a flatter and more efficient operating model. Today, the process depends on several layers of coordination, including business teams, manual validation, and third-party vendor execution. Under the new approach, users can upload the target client list and complete the process through an internal automated workflow. This reduces dependency, shortens turnaround time, and improves execution efficiency.
+* It is smarter than current practice. Instead of using human effort to perform repetitive and rules-based tasks, the solution embeds these checks directly into the process. This improves consistency, reduces operational risk, and allows teams to focus more on value-added work rather than administrative handling.
+Overall, the difference is that today’s model is manual, fragmented, and vendor-dependent, while the proposed model is automated, streamlined, and internally controlled.
 
-If we look closely at this workflow, the main task performed by the vendor is essentially sending emails through the ConvertLab platform. Although they also provide a report afterwards, the importance of this report is actually quite limited. What really matters to us is how to make the email sending step more efficient and more automated.
-
-When we analyzed this process, we identified three possible options, and we explored each of them.
-
-The first option was to keep the current process and continue using the vendor through ConvertLab. However, the main concern here is the cost. As we all know, the cost is around 10,000 RMB per month.
-
-Because of this, this is not the option we prefer.
-
-We also explored whether it would be possible for us to use ConvertLab directly. However, after some research, we found that the feasibility is quite low. There are several reasons for this.
-
-First, ConvertLab is a professional marketing automation platform, and it is relatively complex to use.
-
-Second, the license fee is not paid directly by us to the platform provider. Instead, we pay the vendor, and the vendor pays the software company.
-
-Third, based on our discussions with the Marketing team, it is also unlikely that this license would be allocated directly to us.
-
-Therefore, this option is not very realistic for our team.
-
-The second option we explored was Mail Merge, which is a built-in feature in Microsoft Office.
-
-The basic idea is to prepare a Word template and an Excel file containing the recipient information and the content that needs to be filled in. Then the Word template can be connected to Outlook through Mail Merge. Finally, the system can generate emails in bulk and send them automatically.
-
-However, we eventually decided not to adopt this solution either, mainly because of two major limitations.
-
-The first limitation is that we cannot send emails from the designated shared mailbox.
-
-The second limitation is that the generation process is essentially a black box. Once the process starts, it runs from beginning to end and sends all emails automatically. There is no opportunity to pause the process and conduct another check before the emails are sent.
-
-Because of these two issues, we decided not to proceed with the Mail Merge solution.
-
-Given these constraints, our remaining options were quite limited. Therefore, we decided to develop a VBA tool to support this operational task.
-
-It is important to clarify that this tool does not directly send the emails. Instead, the tool only generates email drafts.
-
-Once the drafts are created, manual checking is still required. Someone will review the emails and then send them manually. Because of this, the operational risk is relatively low.
-
-The workflow of this tool is quite straightforward.
-
-First, we prepare a Word template. In this template, we can freely design the email format and content based on our needs.
-
-Second, we define placeholders in the template. These placeholders will later be replaced with recipient information from Excel, as well as the corresponding NPS survey link.
-
-Third, we prepare an Excel file that contains the recipient information and the survey links.
-
-Based on this setup, the tool provides three different ways to generate email drafts.
-
-The first option is “All”. When this button is clicked, the tool will generate drafts for all emails at once.
-
-The second option is “Single”. In this mode, the tool will generate only one specific email draft, depending on the selected record.
-
-The third option is “Range”. In this case, the tool will generate drafts for a selected range of records, for example from A to B.
-
-So overall, we have three different modes to trigger the draft generation.
-
-This is the overall solution we developed to improve the NPS email sending process.
-
-That is all for my sharing, and I would be happy to take any questions or suggestions from the team.
