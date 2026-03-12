@@ -1,30 +1,5 @@
-Simpler NPS, Smarter Delivery
+"As discussed yesterday, regarding point 1 that the customer raised:
 
-Background
-NPS surveys are a critical tool for measuring client satisfaction and identifying opportunities for service improvement. However, in the China market, Qualtrics cannot be used to send surveys directly. As a result, a process that should be completed seamlessly by the system has become highly manual and operationally complex.
-Pain Points
-* Survey links must first be retrieved manually from Qualtrics, instead of being generated and sent through an automated workflow.
-* The survey list then requires manual checking against NPS sending rules, such as ensuring that only one survey is sent within the same client group.
-* The distribution step is the most cumbersome and disproportionate part of the process. GPS  initiates around 300 survey emails each month, while the external vendor’s role is limited to sending a standard template email. For such a basic activity, the current setup costs approximately USD 35,000 per year.
-Impact of the current process
-* Under the current approach, GPS, including both Client Service and Implementation, requires approximately 0.55 FTE to support the end-to-end survey sending process.
-* In addition, the current setup incurs an external vendor cost of around USD 35,000 per year.
-* More importantly, similar survey sending needs also exist across other teams in China.
-* If scaled across China teams with similar needs, the total inefficiency could rise to approximately 2 FTE and USD 90,000 annually, for a process that should otherwise be simple, standardised, and low-touch.
+Per my investigation with the vendor, our ECDS inquiry system indeed has a '票面下载' (Bill Face Download) function. When this button is clicked, it allows for the download of selected Bills of Exchange (BADs). However, we've found that only signed BADs allow for the download of both the '票据正面' (front of the bill) and '票据背面' (back of the bill). For unsigned BADs, only the '票据正面' can be downloaded.
 
-
-Describe your simplification idea
-The idea is to bring the NPS email sending process in-house through a lightweight automation solution, removing unnecessary reliance on the external vendor for a task that can be handled internally in a more direct, efficient, and scalable way. This would not only simplify the process but also create an opportunity to save up to USD 90,000 per year when scaled across teams with similar needs in China.
-Specifically, the solution would be a lightweight internal tool that allows users to upload the target survey client list and complete the key steps automatically:
-* Automatically check sending rules The tool would validate whether each client is eligible to receive the survey, based on defined NPS rules, such as duplication controls and group-level sending restrictions.
-* Automatically call the Qualtrics API The tool would connect to Qualtrics API to generate encrypted emails and create the corresponding survey links automatically, removing the need for manual extraction.
-* Automatically send emails using a standard template Once validated, the tool would send the survey email directly to clients using a predefined template and a designated shared mailbox, eliminating the need for external vendor support.
-By combining rule checking, link generation, and email sending into one streamlined workflow, the idea removes unnecessary manual effort, shortens turnaround time, improves control, and reduces both FTE consumption and vendor cost.
-
-Compared with today’s practice, this idea is different in three key ways: it is leaner, simpler, and more efficient.
-* It significantly reduces FTE and cost. Today’s process relies on manual checks, manual coordination, and external vendor support for routine email distribution. The proposed solution automates the core steps end to end, reducing manual effort and creating a clear opportunity to save both internal capacity and external cost. For China teams with similar needs, the total benefit could scale to around 2 FTE and USD 90,000 per year.
-* It makes the process much simpler. What is currently a fragmented workflow involving multiple manual steps and handoffs would become one streamlined process in a single lightweight tool. Rule checking, Qualtrics link generation, and email sending would no longer sit across separate parties or disconnected steps.
-* It creates a flatter and more efficient operating model. Today, the process depends on several layers of coordination, including business teams, manual validation, and third-party vendor execution. Under the new approach, users can upload the target client list and complete the process through an internal automated workflow. This reduces dependency, shortens turnaround time, and improves execution efficiency.
-* It is smarter than current practice. Instead of using human effort to perform repetitive and rules-based tasks, the solution embeds these checks directly into the process. This improves consistency, reduces operational risk, and allows teams to focus more on value-added work rather than administrative handling.
-Overall, the difference is that today’s model is manual, fragmented, and vendor-dependent, while the proposed model is automated, streamlined, and internally controlled.
-
+This difference in logic when clicking the same button is quite inappropriate and could lead to confusion."
