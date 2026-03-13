@@ -1,5 +1,25 @@
-"As discussed yesterday, regarding point 1 that the customer raised:
+<div style="font-family:Segoe UI, PingFang SC, Microsoft YaHei, Arial, sans-serif; line-height:1.7; color:#333; font-size:14px;">
 
-Per my investigation with the vendor, our ECDS inquiry system indeed has a '票面下载' (Bill Face Download) function. When this button is clicked, it allows for the download of selected Bills of Exchange (BADs). However, we've found that only signed BADs allow for the download of both the '票据正面' (front of the bill) and '票据背面' (back of the bill). For unsigned BADs, only the '票据正面' can be downloaded.
+<p>
+客户如果在审批过程中，已正确安装 USB 控件及相关插件，并排除了证书软件冲突的问题，但仍然出现报错，建议进一步检查 <b>UKey 管理工具中的证书显示情况</b>。
+</p>
 
-This difference in logic when clicking the same button is quite inappropriate and could lead to confusion."
+<p>
+操作时，请引导客户打开 <b>UKey 管理工具</b>，并点击 <b>Refresh</b> 进行刷新，观察证书是否能够<b>持续稳定显示</b>。
+</p>
+
+<p>
+如果点击 <b>Refresh</b> 后证书消失，通常可能由以下原因导致：
+</p>
+
+<p>
+<b>1. USB 接口问题</b><br>
+建议更换 USB 接口并重新插拔，直至证书能够正确且稳定显示，并在多次刷新后仍保持正常。
+</p>
+
+<p>
+<b>2. 拓展坞冲突</b><br>
+部分客户使用 <b>Dell WD25</b> 拓展坞时可能出现此问题。即使 UKey 未连接在该拓展坞上，只要电脑连接了该拓展坞，也可能导致证书在刷新后消失。
+</p>
+
+</div>
