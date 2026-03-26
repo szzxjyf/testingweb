@@ -1,17 +1,15 @@
 import pandas as pd
 
-# 假设你的 dataframe 叫 df
+# 1. 定义需要检查的列和关键词
 cols_to_check = ['DFAC2N', 'PO@BNM', 'PO@PNM']
+keywords = '总司|分司'  # 这样写可以同时涵盖 总公司/总司/分公司/分司
 
-# 定义关键词，用 | (或) 符号连接
-# '总公司|总司|分司|分公司'
-keywords = '总公司|总司|分司|分公司'
+# 2. 条件一：三列中任意一列包含关键词
+mask_keywords = df[cols_to_check].apply(lambda x: x.str.contains(keywords, na=False)).any(axis=1)
 
-# 核心过滤逻辑
-# 1. 选中指定的列
-# 2. 对每一行应用 contains 检查
-# 3. .any(axis=1) 表示只要其中一列命中即为 True
-mask = df[cols_to_check].apply(lambda x: x.str.contains(keywords, na=False)).any(axis=1)
+# 3. 条件二：'DFAC2N' 和 'PO@BNM' 的前4个字符相同
+# 注意：这里会自动处理，如果长度不足4位则对比全部字符
+mask_same_prefix = df['DFAC2N'].str[:4] == df['PO@BNM'].str[:4]
 
-# 获取结果
-result_df = df[mask]
+# 4. 组合两个条件 (使用 & 表示“且”)
+result_df = df[mask_keywords & mask_same_prefix]
