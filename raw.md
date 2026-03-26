@@ -1,15 +1,10 @@
-import pandas as pd
+Following discussions with Jerry, we extracted data from the past six months and prepared the pipeline as outlined below. The analysis is divided into two parts:
 
-# 1. 定义需要检查的列和关键词
-cols_to_check = ['DFAC2N', 'PO@BNM', 'PO@PNM']
-keywords = '总司|分司'  # 这样写可以同时涵盖 总公司/总司/分公司/分司
+In-house same-name transfers
+Head office / branch transactions (for reference only)
 
-# 2. 条件一：三列中任意一列包含关键词
-mask_keywords = df[cols_to_check].apply(lambda x: x.str.contains(keywords, na=False)).any(axis=1)
+As the system does not provide a direct way to distinguish head office and branch relationships, the following proxy logic has been applied for reference purposes:
 
-# 3. 条件二：'DFAC2N' 和 'PO@BNM' 的前4个字符相同
-# 注意：这里会自动处理，如果长度不足4位则对比全部字符
-mask_same_prefix = df['DFAC2N'].str[:4] == df['PO@BNM'].str[:4]
-
-# 4. 组合两个条件 (使用 & 表示“且”)
-result_df = df[mask_keywords & mask_same_prefix]
+Extract all in-house transfers
+Filter transactions where either the payer or beneficiary name contains keywords such as “Head Office,” “Branch,” or similar indicators
+Further refine by selecting transactions where the first four characters of the payer and beneficiary names are identical
