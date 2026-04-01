@@ -1,10 +1,13 @@
-Following discussions with Jerry, we extracted data from the past six months and prepared the pipeline as outlined below. The analysis is divided into two parts:
+from openpyxl import load_workbook
 
-In-house same-name transfers
-Head office / branch transactions (for reference only)
+file_path = "input.xlsx"
 
-As the system does not provide a direct way to distinguish head office and branch relationships, the following proxy logic has been applied for reference purposes:
+wb = load_workbook(file_path, read_only=True, data_only=True)
+ws = wb.active  # 如果不是第一个sheet，后面我再给你写指定sheet的版本
 
-Extract all in-house transfers
-Filter transactions where either the payer or beneficiary name contains keywords such as “Head Office,” “Branch,” or similar indicators
-Further refine by selecting transactions where the first four characters of the payer and beneficiary names are identical
+for i, row in enumerate(ws.iter_rows(values_only=True), start=1):
+    print(i, row)   # row 是一个 tuple
+    if i >= 5:
+        break
+
+wb.close()
