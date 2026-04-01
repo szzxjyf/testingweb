@@ -1,13 +1,26 @@
 from openpyxl import load_workbook
+import csv
 
-file_path = "input.xlsx"
+file_path = r"C:\Users\...\your_file.xlsx"
+output_file = r"C:\Users\...\sheet0_output.csv"
 
 wb = load_workbook(file_path, read_only=True, data_only=True)
-ws = wb.active  # 如果不是第一个sheet，后面我再给你写指定sheet的版本
+ws = wb["sheet0"]   # 👈 只处理 sheet0
 
-for i, row in enumerate(ws.iter_rows(values_only=True), start=1):
-    print(i, row)   # row 是一个 tuple
-    if i >= 5:
-        break
+with open(output_file, "w", newline="", encoding="utf-8-sig") as f:
+    writer = csv.writer(f)
+
+    rows = ws.iter_rows(values_only=True)
+
+    # 表头
+    header = next(rows)
+    writer.writerow(header)
+
+    for i, row in enumerate(rows, start=1):
+        writer.writerow(row)
+
+        if i % 10000 == 0:
+            print(f"{i} rows processed")
 
 wb.close()
+print("done")
