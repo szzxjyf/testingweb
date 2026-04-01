@@ -1,18 +1,9 @@
 from openpyxl import load_workbook
 
-file_path = r"C:\Users\...\your_file.xlsx"
+# read_only=True 是关键，它不会把整个文件加载进内存
+wb = load_workbook("your_file.xlsx", read_only=True)
+sheet = wb.worksheets[0] # 获取第一个 sheet
 
-wb = load_workbook(file_path, read_only=True, data_only=True)
-
-# 获取第2个sheet名称
-sheet_name = wb.sheetnames[1]
-ws = wb[sheet_name]
-
-print(f"Sheet name: {sheet_name}\n")
-
-for i, row in enumerate(ws.iter_rows(values_only=True), start=1):
+for row in sheet.iter_rows(values_only=True):
+    # 在这里逐行处理数据，例如存入数据库或进行计算
     print(row)
-    if i >= 10:
-        break
-
-wb.close()
