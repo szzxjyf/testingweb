@@ -1,20 +1,85 @@
-import pandas as pd
+from pathlib import Path
+import csv
+from openpyxl import load_workbook
 
-file_path = "your_file.xlsx"
+def process_one_xlsx_file(file_path: str, output_dir: str):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-# 读取整个工作簿里的所有 sheet，返回 dict：{sheet_name: DataFrame}
-all_sheets = pd.read_excel(file_path, sheet_name=None)
+    month_str = extract_month_from_filename(file_path.name)
+    output_file = output_dir / f"{month_str}_abnormal_from_xlsx.csv"
 
-# 合并所有 sheet
-merged_df = pd.concat(all_sheets.values(), ignore_index=True)
+    wb = load_workbook(file_path, read_only=True, data_only=True)
 
-# 如果想保留来源 sheet 名
-# merged_df = pd.concat(
-#     [df.assign(source_sheet=sheet_name) for sheet_name, df in all_sheets.items()],
-#     ignore_index=True
-# )
+    header_written = False
+    total_rows = 0
+    matched_rows = 0
 
-# 导出
-merged_df.to_excel("merged_output.xlsx", index=False)
-# 或者导出成 csv，更轻一些
-# merged_df.to_csv("merged_output.csv", index=False, encoding="utf-8-sig")
+    with open(output_file, "w", newline="", encoding="utf-8-sig") as f_out:
+        writer = None
+
+        for ws in wb.worksheets:
+            rows = ws.iter_rows(values_only=True)
+
+            try:
+                headers = next(rows)
+            except StopIteration:
+                continue
+
+            headers = [str(h).strip() if h is not None else "" for h in headers]
+            header_index = {h: i for i, h in enumerate(headers)}
+
+            item_col = COLUMN_MAP["item"]
+            type_col = COLUMN_MAP["type"]
+            pair_col = COLUMN_MAP["pair"]
+            amount_col = COLUMN_MAP["amount"]
+
+            if item_col not in header_index or type_col not in header_index or amount_col not in header_index:
+                print(f"[WARNING] {file_path.name} - sheet {ws.title} 缺少必要字段，跳过")
+                continue
+
+            base_output_headers = headers + ["__month", "__sheet", "__rule_group", "__rule_desc"]
+
+            if not header_written:
+                writer = csv.writer(f_out)
+                writer.writerow(base_output_headers)
+                header_written = True
+
+            for row in rows:
+                total_rows += 1
+                row = list(row)
+
+                item_val = row[header_index[item_col]] if item_col in header_index else None
+                type_val = row[header_index[type_col]] if type_col in header_index else None
+                amount_val = row[header_index[amount_col]] if amount_col in header_index else None
+
+                if pair_col in header_index:
+                    pair_val = row[header_index[pair_col]]
+                    pair_val = str(pair_val).strip() if pair_val is not None else None
+                else:
+                    pair_val = build_pair(item_val, type_val)
+
+                amount_num = normalize_amount(amount_val)
+
+                matched, rule_group, rule_desc = judge_row(pair_val, amount_num)
+                if matched:
+                    matched_rows += 1
+                    writer.writerow(row + [month_str, ws.title, rule_group, rule_desc])
+
+    wb.close()
+    print(f"[DONE] {file_path.name}: total_rows={total_rows}, matched_rows={matched_rows}, output={output_file}")
+
+
+def process_xlsx_folder(input_dir: str, output_dir: str):
+    input_dir = Path(input_dir)
+    files = sorted(input_dir.glob("*.xlsx"))
+    for file in files:
+        process_one_xlsx_file(str(file), output_dir)
+
+
+if __name__ == "__main__":
+    process_xlsx_folder(
+        input_dir="data/xlsx",
+        output_dir="data/output"
+    )
