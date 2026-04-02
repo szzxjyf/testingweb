@@ -3,29 +3,20 @@ import csv
 import re
 from openpyxl import load_workbook
 
-# =========================================================
-# 1) 你要先改这里：字段名映射
-#    左边不要动，右边改成你Excel里的真实列名
-# =========================================================
+# ========= 1) 改成你Excel里的真实列名 =========
 COLUMN_MAP = {
     "item": "IE_Item",
     "type": "IE_Type",
-    "pair": "IE_Pair",     # 如果Excel里没有这列，程序会自动用 item + "_" + type 拼
+    "pair": "IE_Pair",     # 如果没有这列，会自动用 item + "_" + type 拼
     "amount": "Amount",
 }
 
-# =========================================================
-# 2) 可选：只处理指定 sheet
-#    - None: 处理文件内所有 sheet
-#    - {"Sheet1", "Sheet2"}: 只处理这两个
-# =========================================================
+# ========= 2) 是否只处理指定sheet =========
 TARGET_SHEETS = None
+# 例如：
 # TARGET_SHEETS = {"Sheet1", "Sheet2"}
 
-# =========================================================
-# 3) 规则配置
-#    你后面只需要维护这里
-# =========================================================
+# ========= 3) 规则 =========
 LCY_RULES = {
     "CMR_EFT": 200,
     "CMR_APO": 200,
@@ -60,17 +51,8 @@ AC_ALL_DATA_PAIRS = {
     "CMR_PY2",
 }
 
-# =========================================================
-# 工具函数
-# =========================================================
+
 def extract_month_from_filename(file_name: str) -> str:
-    """
-    支持:
-    2023-01.xlsx
-    202301.xlsx
-    Tariff_2024_08.xlsx
-    返回 YYYY-MM
-    """
     patterns = [
         r"(20\d{2})[-_](0[1-9]|1[0-2])",
         r"(20\d{2})(0[1-9]|1[0-2])",
@@ -83,14 +65,6 @@ def extract_month_from_filename(file_name: str) -> str:
 
 
 def normalize_amount(value):
-    """
-    金额转 float，兼容：
-    - 数值型
-    - 文本型
-    - 千分位逗号
-    - 括号负数，如 (1,234.56)
-    - 币种符号，如 CNY / RMB / ¥ / $
-    """
     if value is None:
         return None
 
@@ -130,10 +104,6 @@ def build_pair(item, ie_type):
 
 
 def judge_row(pair: str, amount: float):
-    """
-    返回：
-    matched, rule_group, rule_desc
-    """
     if not pair:
         return False, None, None
 
@@ -156,9 +126,6 @@ def judge_row(pair: str, amount: float):
     return False, None, None
 
 
-# =========================================================
-# 主处理逻辑
-# =========================================================
 def process_one_xlsx_file(file_path: str, output_dir: str):
     file_path = Path(file_path)
     output_dir = Path(output_dir)
@@ -238,26 +205,6 @@ def process_one_xlsx_file(file_path: str, output_dir: str):
 
     wb.close()
     print(f"[DONE] {file_path.name}")
-    print(f"       total_rows   = {total_rows}")
-    print(f"       matched_rows = {matched_rows}")
-    print(f"       output       = {output_file}")
-    print("-" * 60)
-
-
-def process_xlsx_folder(input_dir: str, output_dir: str):
-    input_dir = Path(input_dir)
-    files = sorted(input_dir.glob("*.xlsx"))
-
-    if not files:
-        print(f"No xlsx files found in: {input_dir}")
-        return
-
-    for file in files:
-        process_one_xlsx_file(str(file), output_dir)
-
-
-if __name__ == "__main__":
-    process_xlsx_folder(
-        input_dir="data/xlsx",
-        output_dir="data/output"
-    )
+    print(f"total_rows   = {total_rows}")
+    print(f"matched_rows = {matched_rows}")
+    print(f"output       = {output_file}")
