@@ -1,3 +1,293 @@
+那就很清楚了。
+
+你现在的表只有两列是核心：
+
+* **损益科目代码**
+* **人民币等值金额**
+
+这意味着你这版代码里，**不需要 `ie_item` 和 `ie_type` 了**，也**不需要再拼 `pair`**。
+程序应该直接用：
+
+* `损益科目代码` 作为规则匹配字段
+* `人民币等值金额` 作为金额字段
+
+所以，不是只改 `COLUMN_MAP`，而是建议你把逻辑**简化成只依赖这两列**。
+
+---
+
+## 你现在应该这样改
+
+### 1）`COLUMN_MAP` 改成这样
+
+```python
+COLUMN_MAP = {
+    "pair": "损益科目代码",
+    "amount": "人民币等值金额",
+}
+```
+
+注意，这里已经**不需要** `item` 和 `type` 了。
+
+---
+
+## 2）把 notebook 里的函数换成这版
+
+直接新开一个 cell，把下面整段覆盖掉之前那版：
+
+```python
+from pathlib import Path
+import csv
+import re
+from openpyxl import load_workbook
+
+# ========= 1) 只保留你真正需要的列 =========
+COLUMN_MAP = {
+    "pair": "损益科目代码",
+    "amount": "人民币等值金额",
+}
+
+# ========= 2) 是否只处理指定sheet =========
+TARGET_SHEETS = None
+# 例如：
+# TARGET_SHEETS = {"Sheet1", "Sheet2"}
+
+# ========= 3) 规则 =========
+LCY_RULES = {
+    "CMR_EFT": 200,
+    "CMR_APO": 200,
+    "CMR_RM1": 200,
+}
+
+FCY_RULES = {
+    "CMR_TT": 1000,
+    "SND_TT": 200,
+    "CBL_TT": 140,
+    "CMR_TTI": 55,
+    "CMR_DMX": 500000,
+}
+
+FCY_ALL_DATA_PAIRS = {
+    "CMR_DDI",
+    "CMR_BCC",
+    "CIE_TT",
+}
+
+AC_ALL_DATA_PAIRS = {
+    "CMR_GEN",
+    "SVC_CUI",
+    "SVC_SSV",
+    "SVC_SS3",
+    "SVC_RSC",
+    "CMR_CUI",
+    "CMR_SSV",
+    "CMR_SS3",
+    "CMR_ADT",
+    "CMR_AD1",
+    "CMR_PY2",
+}
+
+
+def extract_month_from_filename(file_name: str) -> str:
+    patterns = [
+        r"(20\d{2})[-_](0[1-9]|1[0-2])",
+        r"(20\d{2})(0[1-9]|1[0-2])",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, file_name)
+        if m:
+            return f"{m.group(1)}-{m.group(2)}"
+    return "UNKNOWN_MONTH"
+
+
+def clean_text(value):
+    if value is None:
+        return None
+    s = str(value).strip().upper()
+    s = s.replace(" ", "")
+    s = s.replace("-", "_")
+    s = s.replace("/", "_")
+    return s if s else None
+
+
+def normalize_amount(value):
+    if value is None:
+        return None
+
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    s = str(value).strip()
+    if s == "":
+        return None
+
+    s = s.replace("\u00A0", "").replace(" ", "")
+
+    is_negative_by_bracket = s.startswith("(") and s.endswith(")")
+    if is_negative_by_bracket:
+        s = s[1:-1]
+
+    s = re.sub(r"(?i)cny|rmb|usd|hkd|¥|\$", "", s)
+    s = s.replace(",", "")
+
+    try:
+        num = float(s)
+        if is_negative_by_bracket:
+            num = -num
+        return num
+    except ValueError:
+        return None
+
+
+def judge_row(pair: str, amount: float):
+    if not pair:
+        return False, None, None
+
+    pair = clean_text(pair)
+
+    if pair in LCY_RULES:
+        threshold = LCY_RULES[pair]
+        if amount is not None and (amount < 0 or amount > threshold):
+            return True, "LCY", f"amount < 0 or amount > {threshold}"
+
+    if pair in FCY_RULES:
+        threshold = FCY_RULES[pair]
+        if amount is not None and (amount < 0 or amount > threshold):
+            return True, "FCY", f"amount < 0 or amount > {threshold}"
+
+    if pair in FCY_ALL_DATA_PAIRS:
+        return True, "FCY_ALL", "keep all rows for this pair"
+
+    if pair in AC_ALL_DATA_PAIRS:
+        return True, "AC_ALL", "keep all rows for this pair"
+
+    return False, None, None
+
+
+def process_one_xlsx_file(file_path: str, output_dir: str):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    month_str = extract_month_from_filename(file_path.name)
+    output_file = output_dir / f"{month_str}_abnormal_from_xlsx.csv"
+
+    wb = load_workbook(file_path, read_only=True, data_only=True)
+
+    total_rows = 0
+    matched_rows = 0
+    header_written = False
+
+    with open(output_file, "w", newline="", encoding="utf-8-sig") as f_out:
+        writer = None
+
+        for ws in wb.worksheets:
+            if TARGET_SHEETS is not None and ws.title not in TARGET_SHEETS:
+                continue
+
+            print(f"Processing file={file_path.name}, sheet={ws.title}")
+
+            rows = ws.iter_rows(values_only=True)
+
+            try:
+                headers = next(rows)
+            except StopIteration:
+                print(f"  Sheet {ws.title} is empty, skipped.")
+                continue
+
+            headers = [str(h).strip() if h is not None else "" for h in headers]
+            header_index = {h: i for i, h in enumerate(headers)}
+
+            pair_col = COLUMN_MAP["pair"]
+            amount_col = COLUMN_MAP["amount"]
+
+            required_cols = {pair_col, amount_col}
+            if not required_cols.issubset(set(header_index.keys())):
+                print(f"  Missing required columns in sheet={ws.title}, skipped.")
+                print(f"  Required: {required_cols}")
+                print(f"  Actual  : {list(header_index.keys())}")
+                continue
+
+            output_headers = headers + ["__month", "__sheet", "__rule_group", "__rule_desc"]
+
+            if not header_written:
+                writer = csv.writer(f_out)
+                writer.writerow(output_headers)
+                header_written = True
+
+            for row in rows:
+                total_rows += 1
+                row = list(row)
+
+                pair_val = row[header_index[pair_col]]
+                amount_val = row[header_index[amount_col]]
+
+                pair_val = clean_text(pair_val)
+                amount_num = normalize_amount(amount_val)
+
+                matched, rule_group, rule_desc = judge_row(pair_val, amount_num)
+
+                if matched:
+                    matched_rows += 1
+                    writer.writerow(row + [month_str, ws.title, rule_group, rule_desc])
+
+    wb.close()
+    print(f"[DONE] {file_path.name}")
+    print(f"total_rows   = {total_rows}")
+    print(f"matched_rows = {matched_rows}")
+    print(f"output       = {output_file}")
+```
+
+---
+
+## 3）这样运行单个文件
+
+```python
+file_path = r"/Users/yourname/Desktop/2024-01.xlsx"
+output_dir = r"/Users/yourname/Desktop/output"
+
+process_one_xlsx_file(file_path, output_dir)
+```
+
+---
+
+## 4）先建议你做一个检查
+
+先别急着全量跑，先确认一下 `损益科目代码` 这一列里的值，是否真的是这种格式：
+
+* `CMR_EFT`
+* `CMR_TT`
+* `SND_TT`
+
+你可以先跑这个：
+
+```python
+from openpyxl import load_workbook
+
+file_path = r"/Users/yourname/Desktop/2024-01.xlsx"
+
+wb = load_workbook(file_path, read_only=True, data_only=True)
+
+for ws in wb.worksheets:
+    print(f"\n===== {ws.title} =====")
+    rows = ws.iter_rows(values_only=True)
+    headers = next(rows)
+    print("headers:", headers)
+
+    for i, row in enumerate(rows):
+        print(row)
+        if i >= 4:
+            break
+
+wb.close()
+```
+
+---
+
+## 5）如果还是空结果，再跑这个
+
+这个能快速看出是不是规则根本没命中：
+
+```python
 from openpyxl import load_workbook
 
 file_path = r"/Users/yourname/Desktop/2024-01.xlsx"
@@ -33,3 +323,37 @@ for ws in wb.worksheets:
             break
 
 wb.close()
+```
+
+---
+
+## 你现在的关键判断标准
+
+如果 `损益科目代码` 这一列里的值本身就是规则值，那这版就能直接用。
+
+如果这一列里其实是别的编码，比如：
+
+* `100201`
+* `A003`
+* `TT001`
+
+那就还要再加一层**编码映射**，把它们先映射成：
+
+* `CMR_EFT`
+* `CMR_TT`
+
+之后再判断。
+
+---
+
+## 现在这版，相比之前，你需要改的地方只有两类
+
+第一类是**删掉**对 `IE_Item / IE_Type` 的依赖。
+第二类是**只保留**：
+
+* `损益科目代码`
+* `人民币等值金额`
+
+这才符合你现在的真实数据结构。
+
+把你 `损益科目代码` 前几行样例值贴给我，我可以直接帮你判断这版是不是已经够了。
