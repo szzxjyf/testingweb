@@ -246,3 +246,77 @@ abnormal_df[[PAIR_COL, AMOUNT_COL, "__pair_clean", "__amount_num", "__rule_group
 ```
 
 如果你愿意，我下一步可以直接帮你再补一段：**从 `merged_df` 继续做年度汇总**。
+
+
+
+PAIR_COL = "损益科目代码"
+AMOUNT_COL = "人民币等值金额"
+
+LCY_RULES = {
+    "CMR_EFT": 200,
+    "CMR_APO": 200,
+    "CMR_RM1": 200,
+}
+
+FCY_RULES = {
+    "CMR_TT": 1000,
+    "SND_TT": 200,
+    "CBL_TT": 140,
+    "CMR_TTI": 55,
+    "CMR_DMX": 500000,
+}
+
+FCY_ALL_DATA_PAIRS = {
+    "CMR_DDI",
+    "CMR_BCC",
+    "CIE_TT",
+}
+
+AC_ALL_DATA_PAIRS = {
+    "CMR_GEN",
+    "SVC_CUI",
+    "SVC_SSV",
+    "SVC_SS3",
+    "SVC_RSC",
+    "CMR_CUI",
+    "CMR_SSV",
+    "CMR_SS3",
+    "CMR_ADT",
+    "CMR_AD1",
+    "CMR_PY2",
+}
+
+df = merged_df.copy()
+
+df["__matched"] = False
+df["__rule_group"] = None
+
+# 1) 全量保留
+mask_fcy_all = df[PAIR_COL].isin(FCY_ALL_DATA_PAIRS)
+df.loc[mask_fcy_all, "__matched"] = True
+df.loc[mask_fcy_all, "__rule_group"] = "FCY_ALL"
+
+mask_ac_all = df[PAIR_COL].isin(AC_ALL_DATA_PAIRS)
+df.loc[mask_ac_all, "__matched"] = True
+df.loc[mask_ac_all, "__rule_group"] = "AC_ALL"
+
+# 2) LCY：金额 < 0 或 > threshold
+for pair, threshold in LCY_RULES.items():
+    mask = (df[PAIR_COL] == pair) & (
+        (df[AMOUNT_COL] < 0) | (df[AMOUNT_COL] > threshold)
+    )
+    df.loc[mask, "__matched"] = True
+    df.loc[mask, "__rule_group"] = "LCY"
+
+# 3) FCY：金额 < 0 或 > threshold
+for pair, threshold in FCY_RULES.items():
+    mask = (df[PAIR_COL] == pair) & (
+        (df[AMOUNT_COL] < 0) | (df[AMOUNT_COL] > threshold)
+    )
+    df.loc[mask, "__matched"] = True
+    df.loc[mask, "__rule_group"] = "FCY"
+
+# 最终明细结果
+abnormal_df = df[df["__matched"]].copy()
+
+abnormal_df
