@@ -1,279 +1,35 @@
-对，**“秒出”本身就说明了一个很关键的点**：
-
-`load_workbook(..., read_only=True)` **不是一上来把整个 Excel 全部读进内存**，而是**懒加载 / 流式读取**。
-也就是说：
-
-* `wb = load_workbook(...)` 很快，**正常**
-* 真正开始“读数据”，是在你执行：
-
-  * `for ws in wb.worksheets`
-  * `for row in rows`
-
-如果现在还是**几乎瞬间结束**，那通常不是“读得太快”，而是**根本没有真正遍历到数据**，最常见是：
-
-1. `TARGET_SHEETS` 把 sheet 全过滤掉了
-2. 表头不匹配，所有 sheet 都被 `continue` 跳过了
-3. 你只运行了“定义函数”的 cell，没有真正调用处理函数
-4. 文件里只有表头，没有数据行
-5. 路径指向的不是你以为的那个文件
-
-先不要改大代码，直接在 notebook 跑下面这个**排查 cell**。
-
----
-
-## 先确认文件、sheet、表头、前几行到底有没有读到
-
-```python
-from pathlib import Path
 from openpyxl import load_workbook
 
-file_path = Path(r"/Users/yourname/Desktop/2024-01.xlsx")   # 改成你的真实路径
-
-print("exists:", file_path.exists())
-print("size(MB):", round(file_path.stat().st_size / 1024 / 1024, 2))
+file_path = r"/Users/yourname/Desktop/2024-01.xlsx"
 
 wb = load_workbook(file_path, read_only=True, data_only=True)
 
-print("sheetnames:", wb.sheetnames)
-
 for ws in wb.worksheets:
-    print(f"\n===== sheet: {ws.title} =====")
+    print(f"\n===== {ws.title} =====")
     rows = ws.iter_rows(values_only=True)
+    headers = next(rows)
+    headers = [str(h).strip() if h is not None else "" for h in headers]
+    header_index = {h: i for i, h in enumerate(headers)}
 
-    try:
-        headers = next(rows)
-        print("headers:", headers)
-    except StopIteration:
-        print("empty sheet")
-        continue
+    pair_col = COLUMN_MAP["pair"]
+    amount_col = COLUMN_MAP["amount"]
 
     for i, row in enumerate(rows):
-        print("sample row:", row)
-        if i >= 2:
+        row = list(row)
+        pair_val = clean_text(row[header_index[pair_col]])
+        amount_val = row[header_index[amount_col]]
+        amount_num = normalize_amount(amount_val)
+        matched, rule_group, rule_desc = judge_row(pair_val, amount_num)
+
+        print({
+            "pair": pair_val,
+            "amount_raw": amount_val,
+            "amount_num": amount_num,
+            "matched": matched,
+            "rule_group": rule_group
+        })
+
+        if i >= 19:
             break
 
 wb.close()
-```
-
-### 你要看这几个结果
-
-* `exists` 是否是 `True`
-* `size(MB)` 是否合理
-* `sheetnames` 是否是你预期的 sheet
-* `headers` 是否真的是你写在 `COLUMN_MAP` 里的列名
-* `sample row` 是否真的有数据
-
----
-
-## 再确认是不是所有 sheet 都被跳过了
-
-你把处理函数先改成这个“带打印”的版本，再跑一次：
-
-```python
-from pathlib import Path
-import csv
-from openpyxl import load_workbook
-
-def process_one_xlsx_file_debug(file_path: str, output_dir: str):
-    file_path = Path(file_path)
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    print("processing:", file_path)
-    print("TARGET_SHEETS =", TARGET_SHEETS)
-    print("COLUMN_MAP =", COLUMN_MAP)
-
-    wb = load_workbook(file_path, read_only=True, data_only=True)
-
-    total_rows = 0
-    matched_rows = 0
-
-    for ws in wb.worksheets:
-        print(f"\n--- checking sheet: {ws.title} ---")
-
-        if TARGET_SHEETS is not None and ws.title not in TARGET_SHEETS:
-            print("skipped by TARGET_SHEETS")
-            continue
-
-        rows = ws.iter_rows(values_only=True)
-
-        try:
-            headers = next(rows)
-        except StopIteration:
-            print("empty sheet")
-            continue
-
-        headers = [str(h).strip() if h is not None else "" for h in headers]
-        header_index = {h: i for i, h in enumerate(headers)}
-
-        print("headers:", headers)
-
-        item_col = COLUMN_MAP["item"]
-        type_col = COLUMN_MAP["type"]
-        pair_col = COLUMN_MAP["pair"]
-        amount_col = COLUMN_MAP["amount"]
-
-        required_cols = {item_col, type_col, amount_col}
-        print("required_cols:", required_cols)
-
-        if not required_cols.issubset(set(header_index.keys())):
-            print("missing required columns, skipped")
-            continue
-
-        sheet_rows = 0
-        sheet_matched = 0
-
-        for i, row in enumerate(rows):
-            row = list(row)
-            sheet_rows += 1
-            total_rows += 1
-
-            item_val = row[header_index[item_col]]
-            type_val = row[header_index[type_col]]
-            amount_val = row[header_index[amount_col]]
-
-            if pair_col in header_index:
-                pair_val = row[header_index[pair_col]]
-                pair_val = str(pair_val).strip() if pair_val is not None else None
-                if pair_val == "":
-                    pair_val = build_pair(item_val, type_val)
-            else:
-                pair_val = build_pair(item_val, type_val)
-
-            amount_num = normalize_amount(amount_val)
-            matched, rule_group, rule_desc = judge_row(pair_val, amount_num)
-
-            if i < 3:
-                print({
-                    "item": item_val,
-                    "type": type_val,
-                    "pair": pair_val,
-                    "amount_raw": amount_val,
-                    "amount_num": amount_num,
-                    "matched": matched
-                })
-
-            if matched:
-                sheet_matched += 1
-                matched_rows += 1
-
-        print(f"sheet_rows={sheet_rows}, sheet_matched={sheet_matched}")
-
-    wb.close()
-    print(f"\nFINAL total_rows={total_rows}, matched_rows={matched_rows}")
-```
-
-运行：
-
-```python
-process_one_xlsx_file_debug(
-    r"/Users/yourname/Desktop/2024-01.xlsx",
-    r"/Users/yourname/Desktop/output"
-)
-```
-
----
-
-## 你现在这个现象，我最怀疑的是这 3 个
-
-### 1. 你没有真正调用函数
-
-在 notebook 里，很多时候只是运行了“定义函数”的 cell。
-这不会报错，但也不会处理文件。
-
-你必须真的执行这一句：
-
-```python
-process_one_xlsx_file(
-    r"/Users/yourname/Desktop/2024-01.xlsx",
-    r"/Users/yourname/Desktop/output"
-)
-```
-
----
-
-### 2. 表头不一致，导致所有 sheet 被跳过
-
-比如你代码里写的是：
-
-```python
-COLUMN_MAP = {
-    "item": "IE_Item",
-    "type": "IE_Type",
-    "pair": "IE_Pair",
-    "amount": "Amount",
-}
-```
-
-但实际 Excel 可能是：
-
-* `IE Item`
-* `IE Type`
-* `Amount(CNY)`
-
-这样就会**秒结束**，因为每个 sheet 都走了：
-
-```python
-continue
-```
-
----
-
-### 3. `TARGET_SHEETS` 限错了
-
-如果你写了：
-
-```python
-TARGET_SHEETS = {"Sheet1", "Sheet2"}
-```
-
-但实际 sheet 名叫：
-
-* `2024 Jan`
-* `detail`
-
-那也会直接全部跳过。
-
----
-
-## 再提醒一个关键点
-
-你现在这套：
-
-```python
-load_workbook(..., read_only=True)
-```
-
-本来就是**流式读**，所以**“没有卡住”不等于没读**。
-真正要看的是：
-
-* 有没有打印出 sheet
-* 有没有打印出 headers
-* 有没有打印出 sample row
-* `sheet_rows` 是不是大于 0
-
-如果 `sheet_rows = 0` 或者 `missing required columns, skipped`，问题就定位到了。
-
----
-
-把上面两个 cell 的输出贴给我，尤其是：
-
-* `sheetnames`
-* `headers`
-* `sheet_rows`
-* `missing required columns` 有没有出现
-
-我就能直接告诉你是哪一步出了问题。
-
-required_cols = {amount_col}
-
-if pair_col in header_index:
-    required_cols.add(pair_col)
-else:
-    required_cols.update({item_col, type_col})
-
-if not required_cols.issubset(set(header_index.keys())):
-    print(f"  Missing required columns in sheet={ws.title}, skipped.")
-    print(f"  Required: {required_cols}")
-    print(f"  Actual  : {list(header_index.keys())}")
-    continue
