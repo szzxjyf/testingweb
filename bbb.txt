@@ -1,30 +1,248 @@
+可以，直接基于 **`merged_df` 已经准备好** 来写后面的逻辑。
+
+下面这版默认你至少有这两列：
+
+* `损益科目代码`
+* `人民币等值金额`
+
+如果你还有月份列，也可以一起汇总；没有也没关系。
+
+---
+
+## 先放规则和参数
+
+```python
 import pandas as pd
-import time
+import numpy as np
 
-file_path = "your_file.xlsx"
+PAIR_COL = "损益科目代码"
+AMOUNT_COL = "人民币等值金额"
 
-start_time = time.time()
+# 如果 merged_df 里已经有月份列，就填真实列名；没有就设为 None
+MONTH_COL = None
+# 例如：
+# MONTH_COL = "月份"
 
-xls = pd.ExcelFile(file_path)
-total_sheets = len(xls.sheet_names)
+LCY_RULES = {
+    "CMR_EFT": 200,
+    "CMR_APO": 200,
+    "CMR_RM1": 200,
+}
 
-df_list = []
+FCY_RULES = {
+    "CMR_TT": 1000,
+    "SND_TT": 200,
+    "CBL_TT": 140,
+    "CMR_TTI": 55,
+    "CMR_DMX": 500000,
+}
 
-for i, sheet in enumerate(xls.sheet_names, 1):
-    t0 = time.time()
+FCY_ALL_DATA_PAIRS = {
+    "CMR_DDI",
+    "CMR_BCC",
+    "CIE_TT",
+}
+
+AC_ALL_DATA_PAIRS = {
+    "CMR_GEN",
+    "SVC_CUI",
+    "SVC_SSV",
+    "SVC_SS3",
+    "SVC_RSC",
+    "CMR_CUI",
+    "CMR_SSV",
+    "CMR_SS3",
+    "CMR_ADT",
+    "CMR_AD1",
+    "CMR_PY2",
+}
+```
+
+---
+
+## 清洗函数
+
+```python
+def clean_pair_series(series: pd.Series) -> pd.Series:
+    s = series.astype("string").str.strip().str.upper()
+    s = s.str.replace(" ", "", regex=False)
+    s = s.str.replace("-", "_", regex=False)
+    s = s.str.replace("/", "_", regex=False)
+    s = s.replace("", pd.NA)
+    return s
+
+
+def normalize_amount_series(series: pd.Series) -> pd.Series:
+    s = series.astype("string").str.strip()
     
-    print(f"▶️ 正在处理 sheet {i}/{total_sheets}: {sheet}")
+    # 处理空值
+    s = s.replace({"": pd.NA, "NAN": pd.NA, "NONE": pd.NA, "<NA>": pd.NA})
     
-    df = pd.read_excel(xls, sheet_name=sheet, dtype=str)
-    df_list.append(df)
+    # 处理括号负数，例如 (1,234.56)
+    neg_mask = s.str.startswith("(") & s.str.endswith(")")
+    s = s.str.replace(r"^\((.*)\)$", r"\1", regex=True)
     
-    print(f"   完成，用时 {round(time.time() - t0, 2)} 秒")
+    # 去掉币种和符号
+    s = s.str.replace("\u00A0", "", regex=False)
+    s = s.str.replace(" ", "", regex=False)
+    s = s.str.replace(",", "", regex=False)
+    s = s.str.replace(r"(?i)cny|rmb|usd|hkd|¥|\$", "", regex=True)
+    
+    num = pd.to_numeric(s, errors="coerce")
+    num = num.where(~neg_mask, -num)
+    return num
+```
 
-# 合并
-print("▶️ 开始合并所有sheet...")
-merged_df = pd.concat(df_list, ignore_index=True)
+---
 
-print(f"✅ 全部完成，总耗时 {round(time.time() - start_time, 2)} 秒")
-print(f"最终行数: {len(merged_df)}")
+## 主逻辑：直接得到结果 DataFrame
 
-merged_df.head()
+```python
+df = merged_df.copy()
+
+# 列名去空格，防止表头有隐藏空格
+df.columns = [str(c).strip() for c in df.columns]
+
+required_cols = {PAIR_COL, AMOUNT_COL}
+missing_cols = required_cols - set(df.columns)
+if missing_cols:
+    raise KeyError(f"merged_df 缺少必要列: {missing_cols}")
+
+# 1) 清洗字段
+df["__pair_clean"] = clean_pair_series(df[PAIR_COL])
+df["__amount_num"] = normalize_amount_series(df[AMOUNT_COL])
+
+# 2) 先初始化结果列
+df["__matched"] = False
+df["__rule_group"] = pd.NA
+df["__rule_desc"] = pd.NA
+
+# 3) 命中“全量保留”规则
+mask_fcy_all = df["__pair_clean"].isin(FCY_ALL_DATA_PAIRS)
+df.loc[mask_fcy_all, "__matched"] = True
+df.loc[mask_fcy_all, "__rule_group"] = "FCY_ALL"
+df.loc[mask_fcy_all, "__rule_desc"] = "keep all rows for this pair"
+
+mask_ac_all = df["__pair_clean"].isin(AC_ALL_DATA_PAIRS)
+df.loc[mask_ac_all, "__matched"] = True
+df.loc[mask_ac_all, "__rule_group"] = "AC_ALL"
+df.loc[mask_ac_all, "__rule_desc"] = "keep all rows for this pair"
+
+# 4) 命中 LCY 阈值规则
+lcy_threshold_map = df["__pair_clean"].map(LCY_RULES)
+mask_lcy = (
+    lcy_threshold_map.notna() &
+    df["__amount_num"].notna() &
+    ((df["__amount_num"] < 0) | (df["__amount_num"] > lcy_threshold_map))
+)
+df.loc[mask_lcy, "__matched"] = True
+df.loc[mask_lcy, "__rule_group"] = "LCY"
+df.loc[mask_lcy, "__rule_desc"] = "amount < 0 or amount > threshold"
+
+# 5) 命中 FCY 阈值规则
+fcy_threshold_map = df["__pair_clean"].map(FCY_RULES)
+mask_fcy = (
+    fcy_threshold_map.notna() &
+    df["__amount_num"].notna() &
+    ((df["__amount_num"] < 0) | (df["__amount_num"] > fcy_threshold_map))
+)
+df.loc[mask_fcy, "__matched"] = True
+df.loc[mask_fcy, "__rule_group"] = "FCY"
+df.loc[mask_fcy, "__rule_desc"] = "amount < 0 or amount > threshold"
+
+# 6) 异常明细结果
+abnormal_df = df[df["__matched"]].copy()
+
+print("总行数:", len(df))
+print("命中行数:", len(abnormal_df))
+```
+
+---
+
+## 看结果明细
+
+```python
+abnormal_df.head(20)
+```
+
+如果你想重点看关键字段：
+
+```python
+cols_to_view = [PAIR_COL, AMOUNT_COL, "__pair_clean", "__amount_num", "__rule_group", "__rule_desc"]
+if MONTH_COL and MONTH_COL in abnormal_df.columns:
+    cols_to_view = [MONTH_COL] + cols_to_view
+
+abnormal_df[cols_to_view].head(50)
+```
+
+---
+
+## 汇总结果
+
+### 没有月份列：整体汇总
+
+```python
+summary_df = (
+    abnormal_df
+    .groupby(["__rule_group", "__pair_clean"], dropna=False)
+    .agg(
+        row_count=("__pair_clean", "size"),
+        amount_sum=("__amount_num", "sum"),
+        amount_min=("__amount_num", "min"),
+        amount_max=("__amount_num", "max"),
+    )
+    .reset_index()
+    .sort_values(["__rule_group", "__pair_clean"])
+)
+
+summary_df
+```
+
+### 有月份列：按月汇总
+
+如果 `merged_df` 里本来就有月份列，比如 `月份`，先把上面参数改成：
+
+```python
+MONTH_COL = "月份"
+```
+
+然后跑这个：
+
+```python
+if MONTH_COL and MONTH_COL in abnormal_df.columns:
+    monthly_summary_df = (
+        abnormal_df
+        .groupby([MONTH_COL, "__rule_group", "__pair_clean"], dropna=False)
+        .agg(
+            row_count=("__pair_clean", "size"),
+            amount_sum=("__amount_num", "sum"),
+            amount_min=("__amount_num", "min"),
+            amount_max=("__amount_num", "max"),
+        )
+        .reset_index()
+        .sort_values([MONTH_COL, "__rule_group", "__pair_clean"])
+    )
+    
+    monthly_summary_df
+```
+
+---
+
+## 你最后会得到这几个结果对象
+
+* `df`：原始数据 + 清洗字段 + 命中结果
+* `abnormal_df`：只保留命中的明细
+* `summary_df`：整体汇总
+* `monthly_summary_df`：按月汇总（前提是你有月份列）
+
+---
+
+## 最实用的检查
+
+先跑这句，看看是不是已经命中到你预期的数据：
+
+```python
+abnormal_df[[PAIR_COL, AMOUNT_COL, "__pair_clean", "__amount_num", "__rule_group"]].head(50)
+```
+
+如果你愿意，我下一步可以直接帮你再补一段：**从 `merged_df` 继续做年度汇总**。
