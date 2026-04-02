@@ -1,210 +1,266 @@
+对，**“秒出”本身就说明了一个很关键的点**：
+
+`load_workbook(..., read_only=True)` **不是一上来把整个 Excel 全部读进内存**，而是**懒加载 / 流式读取**。
+也就是说：
+
+* `wb = load_workbook(...)` 很快，**正常**
+* 真正开始“读数据”，是在你执行：
+
+  * `for ws in wb.worksheets`
+  * `for row in rows`
+
+如果现在还是**几乎瞬间结束**，那通常不是“读得太快”，而是**根本没有真正遍历到数据**，最常见是：
+
+1. `TARGET_SHEETS` 把 sheet 全过滤掉了
+2. 表头不匹配，所有 sheet 都被 `continue` 跳过了
+3. 你只运行了“定义函数”的 cell，没有真正调用处理函数
+4. 文件里只有表头，没有数据行
+5. 路径指向的不是你以为的那个文件
+
+先不要改大代码，直接在 notebook 跑下面这个**排查 cell**。
+
+---
+
+## 先确认文件、sheet、表头、前几行到底有没有读到
+
+```python
 from pathlib import Path
-import csv
-import re
 from openpyxl import load_workbook
 
-# ========= 1) 改成你Excel里的真实列名 =========
-COLUMN_MAP = {
-    "item": "IE_Item",
-    "type": "IE_Type",
-    "pair": "IE_Pair",     # 如果没有这列，会自动用 item + "_" + type 拼
-    "amount": "Amount",
-}
+file_path = Path(r"/Users/yourname/Desktop/2024-01.xlsx")   # 改成你的真实路径
 
-# ========= 2) 是否只处理指定sheet =========
-TARGET_SHEETS = None
-# 例如：
-# TARGET_SHEETS = {"Sheet1", "Sheet2"}
+print("exists:", file_path.exists())
+print("size(MB):", round(file_path.stat().st_size / 1024 / 1024, 2))
 
-# ========= 3) 规则 =========
-LCY_RULES = {
-    "CMR_EFT": 200,
-    "CMR_APO": 200,
-    "CMR_RM1": 200,
-}
+wb = load_workbook(file_path, read_only=True, data_only=True)
 
-FCY_RULES = {
-    "CMR_TT": 1000,
-    "SND_TT": 200,
-    "CBL_TT": 140,
-    "CMR_TTI": 55,
-    "CMR_DMX": 500000,
-}
+print("sheetnames:", wb.sheetnames)
 
-FCY_ALL_DATA_PAIRS = {
-    "CMR_DDI",
-    "CMR_BCC",
-    "CIE_TT",
-}
-
-AC_ALL_DATA_PAIRS = {
-    "CMR_GEN",
-    "SVC_CUI",
-    "SVC_SSV",
-    "SVC_SS3",
-    "SVC_RSC",
-    "CMR_CUI",
-    "CMR_SSV",
-    "CMR_SS3",
-    "CMR_ADT",
-    "CMR_AD1",
-    "CMR_PY2",
-}
-
-
-def extract_month_from_filename(file_name: str) -> str:
-    patterns = [
-        r"(20\d{2})[-_](0[1-9]|1[0-2])",
-        r"(20\d{2})(0[1-9]|1[0-2])",
-    ]
-    for pattern in patterns:
-        m = re.search(pattern, file_name)
-        if m:
-            return f"{m.group(1)}-{m.group(2)}"
-    return "UNKNOWN_MONTH"
-
-
-def normalize_amount(value):
-    if value is None:
-        return None
-
-    if isinstance(value, (int, float)):
-        return float(value)
-
-    s = str(value).strip()
-    if s == "":
-        return None
-
-    s = s.replace("\u00A0", "").replace(" ", "")
-
-    is_negative_by_bracket = s.startswith("(") and s.endswith(")")
-    if is_negative_by_bracket:
-        s = s[1:-1]
-
-    s = re.sub(r"(?i)cny|rmb|usd|hkd|¥|\$", "", s)
-    s = s.replace(",", "")
+for ws in wb.worksheets:
+    print(f"\n===== sheet: {ws.title} =====")
+    rows = ws.iter_rows(values_only=True)
 
     try:
-        num = float(s)
-        if is_negative_by_bracket:
-            num = -num
-        return num
-    except ValueError:
-        return None
+        headers = next(rows)
+        print("headers:", headers)
+    except StopIteration:
+        print("empty sheet")
+        continue
 
+    for i, row in enumerate(rows):
+        print("sample row:", row)
+        if i >= 2:
+            break
 
-def build_pair(item, ie_type):
-    if item is None or ie_type is None:
-        return None
-    item_str = str(item).strip()
-    type_str = str(ie_type).strip()
-    if item_str == "" or type_str == "":
-        return None
-    return f"{item_str}_{type_str}"
+wb.close()
+```
 
+### 你要看这几个结果
 
-def judge_row(pair: str, amount: float):
-    if not pair:
-        return False, None, None
+* `exists` 是否是 `True`
+* `size(MB)` 是否合理
+* `sheetnames` 是否是你预期的 sheet
+* `headers` 是否真的是你写在 `COLUMN_MAP` 里的列名
+* `sample row` 是否真的有数据
 
-    if pair in LCY_RULES:
-        threshold = LCY_RULES[pair]
-        if amount is not None and (amount < 0 or amount > threshold):
-            return True, "LCY", f"amount < 0 or amount > {threshold}"
+---
 
-    if pair in FCY_RULES:
-        threshold = FCY_RULES[pair]
-        if amount is not None and (amount < 0 or amount > threshold):
-            return True, "FCY", f"amount < 0 or amount > {threshold}"
+## 再确认是不是所有 sheet 都被跳过了
 
-    if pair in FCY_ALL_DATA_PAIRS:
-        return True, "FCY_ALL", "keep all rows for this IE_Pair"
+你把处理函数先改成这个“带打印”的版本，再跑一次：
 
-    if pair in AC_ALL_DATA_PAIRS:
-        return True, "AC_ALL", "keep all rows for this IE_Pair"
+```python
+from pathlib import Path
+import csv
+from openpyxl import load_workbook
 
-    return False, None, None
-
-
-def process_one_xlsx_file(file_path: str, output_dir: str):
+def process_one_xlsx_file_debug(file_path: str, output_dir: str):
     file_path = Path(file_path)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    month_str = extract_month_from_filename(file_path.name)
-    output_file = output_dir / f"{month_str}_abnormal_from_xlsx.csv"
+    print("processing:", file_path)
+    print("TARGET_SHEETS =", TARGET_SHEETS)
+    print("COLUMN_MAP =", COLUMN_MAP)
 
     wb = load_workbook(file_path, read_only=True, data_only=True)
 
     total_rows = 0
     matched_rows = 0
-    header_written = False
 
-    with open(output_file, "w", newline="", encoding="utf-8-sig") as f_out:
-        writer = None
+    for ws in wb.worksheets:
+        print(f"\n--- checking sheet: {ws.title} ---")
 
-        for ws in wb.worksheets:
-            if TARGET_SHEETS is not None and ws.title not in TARGET_SHEETS:
-                continue
+        if TARGET_SHEETS is not None and ws.title not in TARGET_SHEETS:
+            print("skipped by TARGET_SHEETS")
+            continue
 
-            print(f"Processing file={file_path.name}, sheet={ws.title}")
+        rows = ws.iter_rows(values_only=True)
 
-            rows = ws.iter_rows(values_only=True)
+        try:
+            headers = next(rows)
+        except StopIteration:
+            print("empty sheet")
+            continue
 
-            try:
-                headers = next(rows)
-            except StopIteration:
-                print(f"  Sheet {ws.title} is empty, skipped.")
-                continue
+        headers = [str(h).strip() if h is not None else "" for h in headers]
+        header_index = {h: i for i, h in enumerate(headers)}
 
-            headers = [str(h).strip() if h is not None else "" for h in headers]
-            header_index = {h: i for i, h in enumerate(headers)}
+        print("headers:", headers)
 
-            item_col = COLUMN_MAP["item"]
-            type_col = COLUMN_MAP["type"]
-            pair_col = COLUMN_MAP["pair"]
-            amount_col = COLUMN_MAP["amount"]
+        item_col = COLUMN_MAP["item"]
+        type_col = COLUMN_MAP["type"]
+        pair_col = COLUMN_MAP["pair"]
+        amount_col = COLUMN_MAP["amount"]
 
-            required_cols = {item_col, type_col, amount_col}
-            if not required_cols.issubset(set(header_index.keys())):
-                print(f"  Missing required columns in sheet={ws.title}, skipped.")
-                print(f"  Required: {required_cols}")
-                print(f"  Actual  : {list(header_index.keys())}")
-                continue
+        required_cols = {item_col, type_col, amount_col}
+        print("required_cols:", required_cols)
 
-            output_headers = headers + ["__month", "__sheet", "__rule_group", "__rule_desc"]
+        if not required_cols.issubset(set(header_index.keys())):
+            print("missing required columns, skipped")
+            continue
 
-            if not header_written:
-                writer = csv.writer(f_out)
-                writer.writerow(output_headers)
-                header_written = True
+        sheet_rows = 0
+        sheet_matched = 0
 
-            for row in rows:
-                total_rows += 1
-                row = list(row)
+        for i, row in enumerate(rows):
+            row = list(row)
+            sheet_rows += 1
+            total_rows += 1
 
-                item_val = row[header_index[item_col]]
-                type_val = row[header_index[type_col]]
-                amount_val = row[header_index[amount_col]]
+            item_val = row[header_index[item_col]]
+            type_val = row[header_index[type_col]]
+            amount_val = row[header_index[amount_col]]
 
-                if pair_col in header_index:
-                    pair_val = row[header_index[pair_col]]
-                    pair_val = str(pair_val).strip() if pair_val is not None else None
-                    if pair_val == "":
-                        pair_val = build_pair(item_val, type_val)
-                else:
+            if pair_col in header_index:
+                pair_val = row[header_index[pair_col]]
+                pair_val = str(pair_val).strip() if pair_val is not None else None
+                if pair_val == "":
                     pair_val = build_pair(item_val, type_val)
+            else:
+                pair_val = build_pair(item_val, type_val)
 
-                amount_num = normalize_amount(amount_val)
+            amount_num = normalize_amount(amount_val)
+            matched, rule_group, rule_desc = judge_row(pair_val, amount_num)
 
-                matched, rule_group, rule_desc = judge_row(pair_val, amount_num)
+            if i < 3:
+                print({
+                    "item": item_val,
+                    "type": type_val,
+                    "pair": pair_val,
+                    "amount_raw": amount_val,
+                    "amount_num": amount_num,
+                    "matched": matched
+                })
 
-                if matched:
-                    matched_rows += 1
-                    writer.writerow(row + [month_str, ws.title, rule_group, rule_desc])
+            if matched:
+                sheet_matched += 1
+                matched_rows += 1
+
+        print(f"sheet_rows={sheet_rows}, sheet_matched={sheet_matched}")
 
     wb.close()
-    print(f"[DONE] {file_path.name}")
-    print(f"total_rows   = {total_rows}")
-    print(f"matched_rows = {matched_rows}")
-    print(f"output       = {output_file}")
+    print(f"\nFINAL total_rows={total_rows}, matched_rows={matched_rows}")
+```
+
+运行：
+
+```python
+process_one_xlsx_file_debug(
+    r"/Users/yourname/Desktop/2024-01.xlsx",
+    r"/Users/yourname/Desktop/output"
+)
+```
+
+---
+
+## 你现在这个现象，我最怀疑的是这 3 个
+
+### 1. 你没有真正调用函数
+
+在 notebook 里，很多时候只是运行了“定义函数”的 cell。
+这不会报错，但也不会处理文件。
+
+你必须真的执行这一句：
+
+```python
+process_one_xlsx_file(
+    r"/Users/yourname/Desktop/2024-01.xlsx",
+    r"/Users/yourname/Desktop/output"
+)
+```
+
+---
+
+### 2. 表头不一致，导致所有 sheet 被跳过
+
+比如你代码里写的是：
+
+```python
+COLUMN_MAP = {
+    "item": "IE_Item",
+    "type": "IE_Type",
+    "pair": "IE_Pair",
+    "amount": "Amount",
+}
+```
+
+但实际 Excel 可能是：
+
+* `IE Item`
+* `IE Type`
+* `Amount(CNY)`
+
+这样就会**秒结束**，因为每个 sheet 都走了：
+
+```python
+continue
+```
+
+---
+
+### 3. `TARGET_SHEETS` 限错了
+
+如果你写了：
+
+```python
+TARGET_SHEETS = {"Sheet1", "Sheet2"}
+```
+
+但实际 sheet 名叫：
+
+* `2024 Jan`
+* `detail`
+
+那也会直接全部跳过。
+
+---
+
+## 再提醒一个关键点
+
+你现在这套：
+
+```python
+load_workbook(..., read_only=True)
+```
+
+本来就是**流式读**，所以**“没有卡住”不等于没读**。
+真正要看的是：
+
+* 有没有打印出 sheet
+* 有没有打印出 headers
+* 有没有打印出 sample row
+* `sheet_rows` 是不是大于 0
+
+如果 `sheet_rows = 0` 或者 `missing required columns, skipped`，问题就定位到了。
+
+---
+
+把上面两个 cell 的输出贴给我，尤其是：
+
+* `sheetnames`
+* `headers`
+* `sheet_rows`
+* `missing required columns` 有没有出现
+
+我就能直接告诉你是哪一步出了问题。
