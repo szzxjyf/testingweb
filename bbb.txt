@@ -1,20 +1,18 @@
-很好，这其实是你这个场景的**最优解** 👍
-👉 **处理一个文件 → 导出 → 释放内存 → 下一个文件**
-
-这样可以把内存压力降到最低，而且逻辑也最干净。
-
----
-
-# ✅ 推荐最终版本（最稳、最省内存）
-
-```python
 import pandas as pd
 import gc
 from pathlib import Path
 
+# =========================
+# 列名
+# =========================
 PAIR_COL = "损益科目代码"
 AMOUNT_COL = "人民币等值金额"
+OWNER_COL = "OWNER"
+LINE_COL = "客户所属条线"
 
+# =========================
+# 规则
+# =========================
 LCY_RULES = {
     "CMR_EFT": 200,
     "CMR_APO": 200,
@@ -49,157 +47,144 @@ AC_ALL_DATA_PAIRS = {
     "CMR_PY2",
 }
 
+OTHERS_EXCLUDE_PAIRS = {
+    "CMB_NC1",
+    "CMB_NCC",
+}
 
-def process_and_export(file_path, output_dir):
-    print(f"Processing: {Path(file_path).name}")
+VALID_OWNER_VALUES = {"GLCM", "GPS"}
+VALID_LINE_VALUES = {"CMB", "CIBM"}
 
-    # 1️⃣ 读 + 合并
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """
+    标准化文本列：
+    - 保留 NaN
+    - 去首尾空格
+    - 转大写
+    """
+    return s.str.strip().str.upper()
+
+
+def process_one_file(file_path, output_dir):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Processing: {file_path.name}")
+
+    # =========================
+    # 1) 读取整个文件所有 sheet 并合并
+    # =========================
     all_sheets = pd.read_excel(file_path, sheet_name=None)
     merged_df = pd.concat(all_sheets.values(), ignore_index=True)
 
-    # 2️⃣ 标准化
+    # =========================
+    # 2) 复制并标准化辅助列
+    # =========================
     df = merged_df.copy()
-    df[PAIR_COL] = df[PAIR_COL].astype(str).str.strip().str.upper()
 
-    # 规则标准化
+    df["_pair"] = normalize_text_series(df[PAIR_COL])
+    df["_owner"] = normalize_text_series(df[OWNER_COL])
+    df["_line"] = normalize_text_series(df[LINE_COL])
+
+    # 规则也统一标准化
     lcy_rules = {str(k).strip().upper(): v for k, v in LCY_RULES.items()}
     fcy_rules = {str(k).strip().upper(): v for k, v in FCY_RULES.items()}
     fcy_all_pairs = {str(x).strip().upper() for x in FCY_ALL_DATA_PAIRS}
     ac_all_pairs = {str(x).strip().upper() for x in AC_ALL_DATA_PAIRS}
+    others_exclude_pairs = {str(x).strip().upper() for x in OTHERS_EXCLUDE_PAIRS}
 
+    # =========================
+    # 3) 初始化标记列
+    # =========================
     df["__matched"] = False
     df["__rule_group"] = None
 
-    # 3️⃣ 规则匹配
-    mask_fcy_all = df[PAIR_COL].isin(fcy_all_pairs)
+    # =========================
+    # 4) 原规则：只针对 OWNER = GLCM / GPS
+    # =========================
+    owner_mask = df["_owner"].isin(VALID_OWNER_VALUES)
+
+    # 4.1 FCY_ALL
+    mask_fcy_all = owner_mask & df["_pair"].isin(fcy_all_pairs)
     df.loc[mask_fcy_all, "__matched"] = True
     df.loc[mask_fcy_all, "__rule_group"] = "FCY_ALL"
 
-    mask_ac_all = df[PAIR_COL].isin(ac_all_pairs)
+    # 4.2 AC_ALL
+    mask_ac_all = owner_mask & df["_pair"].isin(ac_all_pairs)
     df.loc[mask_ac_all, "__matched"] = True
     df.loc[mask_ac_all, "__rule_group"] = "AC_ALL"
 
+    # 4.3 LCY：金额 < 0 或 > threshold
     for pair, threshold in lcy_rules.items():
-        mask = (df[PAIR_COL] == pair) & (
+        mask = owner_mask & (df["_pair"] == pair) & (
             (df[AMOUNT_COL] < 0) | (df[AMOUNT_COL] > threshold)
         )
         df.loc[mask, "__matched"] = True
         df.loc[mask, "__rule_group"] = "LCY"
 
+    # 4.4 FCY：金额 < 0 或 > threshold
     for pair, threshold in fcy_rules.items():
-        mask = (df[PAIR_COL] == pair) & (
+        mask = owner_mask & (df["_pair"] == pair) & (
             (df[AMOUNT_COL] < 0) | (df[AMOUNT_COL] > threshold)
         )
         df.loc[mask, "__matched"] = True
         df.loc[mask, "__rule_group"] = "FCY"
 
+    # =========================
+    # 5) OTHERS 规则
+    # OWNER为空 + 客户所属条线=CMB/CIBM + 损益科目代码 != CMB_NC1/CMB_NCC
+    # =========================
+    owner_blank_mask = df[OWNER_COL].isna() | (df["_owner"] == "")
+    line_mask = df["_line"].isin(VALID_LINE_VALUES)
+    pair_exclude_mask = ~df["_pair"].isin(others_exclude_pairs)
+
+    mask_others = owner_blank_mask & line_mask & pair_exclude_mask
+    df.loc[mask_others, "__matched"] = True
+    df.loc[mask_others, "__rule_group"] = "OTHERS"
+
+    # =========================
+    # 6) 输出结果
+    # =========================
     abnormal_df = df[df["__matched"]].copy()
 
-    # 4️⃣ 导出（推荐 CSV，比 Excel 省内存 + 更快）
-    output_path = Path(output_dir) / f"{Path(file_path).stem}_abnormal.csv"
+    # 如不想导出辅助列，可删除
+    drop_cols = ["_pair", "_owner", "_line"]
+    abnormal_df = abnormal_df.drop(columns=drop_cols, errors="ignore")
+
+    output_path = output_dir / f"{file_path.stem}_abnormal.csv"
     abnormal_df.to_csv(output_path, index=False, encoding="utf-8-sig")
 
     print(f"Saved: {output_path}")
+    print(f"Matched rows: {len(abnormal_df):,}")
 
-    # 5️⃣ 🔥 关键：彻底释放
+    # =========================
+    # 7) 释放内存
+    # =========================
     del all_sheets
     del merged_df
     del df
     del abnormal_df
     gc.collect()
-```
 
----
 
-# ✅ 批量处理（你的20个文件）
-
-```python
+# =========================
+# 批量处理多个文件
+# =========================
 file_list = [
-    "/path/file1.xlsx",
-    "/path/file2.xlsx",
-    "/path/file3.xlsx",
+    # r"/path/to/file1.xlsx",
+    # r"/path/to/file2.xlsx",
+    # r"/path/to/file3.xlsx",
 ]
 
-output_dir = "/path/output"
+output_dir = r"./output"
 
 for i, file_path in enumerate(file_list, 1):
     print(f"\n[{i}/{len(file_list)}]")
-    process_and_export(file_path, output_dir)
-```
-
----
-
-# 🚀 这个方案的优势（非常适合你）
-
-### ✅ 内存稳定
-
-* 永远只处理 1 个文件
-* 不累积结果
-* 不保留 merged_df
-
----
-
-### ✅ 不会爆内存
-
-即使：
-
-* 20 个文件
-* 每个展开 4GB
-
-👉 依然只占一个文件的内存峰值
-
----
-
-### ✅ 速度可接受
-
-你用的是：
-
-```python
-sheet_name=None + concat
-```
-
-👉 这是 **读取最快的一种方式之一**
-
----
-
-# ⚠️ 小优化建议（很实用）
-
-## 1️⃣ 如果 abnormal 很少（推荐）
-
-可以把导出改成：
-
-```python
-if not abnormal_df.empty:
-    abnormal_df.to_csv(...)
-```
-
----
-
-## 2️⃣ 如果你一定要 Excel（不推荐但可以）
-
-```python
-abnormal_df.to_excel(output_path.replace(".csv", ".xlsx"), index=False)
-```
-
-👉 但：
-
-* 更慢
-* 更吃内存
-
----
-
-# 🧠 一句话总结
-
-> 你现在这个方案已经是**工业级最优解之一**：
-
-👉 **单文件处理 → 立刻导出 → 立刻释放 → 下一个文件**
-
----
-
-如果你下一步想再提升一档（性能/内存）：
-
-我可以帮你做一个：
-
-👉 **不生成 merged_df，直接按 sheet 流式筛选（内存再降一半）**
-
-不过你现在这个版本，其实已经够用了 👍
+    try:
+        process_one_file(file_path, output_dir)
+    except Exception as e:
+        print(f"Failed: {file_path}")
+        print(f"Error: {e}")
+        gc.collect()
