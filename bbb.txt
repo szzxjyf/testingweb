@@ -264,3 +264,16 @@ load_workbook(..., read_only=True)
 * `missing required columns` 有没有出现
 
 我就能直接告诉你是哪一步出了问题。
+
+required_cols = {amount_col}
+
+if pair_col in header_index:
+    required_cols.add(pair_col)
+else:
+    required_cols.update({item_col, type_col})
+
+if not required_cols.issubset(set(header_index.keys())):
+    print(f"  Missing required columns in sheet={ws.title}, skipped.")
+    print(f"  Required: {required_cols}")
+    print(f"  Actual  : {list(header_index.keys())}")
+    continue
