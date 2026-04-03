@@ -1,0 +1,333 @@
+可以，下面给你一版**按你最新 CSV 字段映射改好的完整代码**。
+
+这版已经按你的新口径调整：
+
+* `损益科目代码` → 由 **`Ie_item` + "_" + `ie_type`** 拼出来
+* `人民币等值金额` → `trans_amt_cny`
+* `OWNER` → `charge_department`
+* `客户所属条线` → `cust_group`
+
+同时保留你之前要的逻辑：
+
+1. 原规则只针对 `OWNER = GLCM / GPS`
+2. `Ie_item` / `ie_type` / `charge_department` / `cust_group` 匹配时都**忽略大小写、忽略首尾空格**
+3. 新增 `OTHERS` 规则：
+
+   * `OWNER` 为空
+   * `客户所属条线` = `CMB` 或 `CIBM`
+   * 拼出来的损益科目代码 ≠ `CMB_NC1` / `CMB_NCC`
+4. 每次处理一个 CSV 文件
+5. 处理完直接导出，不保留，不合并
+
+---
+
+## 完整代码
+
+```python
+import pandas as pd
+import gc
+from pathlib import Path
+
+# =========================
+# 源字段名（CSV里真实存在的列）
+# =========================
+IE_ITEM_COL = "Ie_item"
+IE_TYPE_COL = "ie_type"
+AMOUNT_COL = "trans_amt_cny"
+OWNER_COL = "charge_department"
+LINE_COL = "cust_group"
+
+# =========================
+# 规则
+# =========================
+LCY_RULES = {
+    "CMR_EFT": 200,
+    "CMR_APO": 200,
+    "CMR_RM1": 200,
+}
+
+FCY_RULES = {
+    "CMR_TT": 1000,
+    "SND_TT": 200,
+    "CBL_TT": 140,
+    "CMR_TTI": 55,
+    "CMR_DMX": 500000,
+}
+
+FCY_ALL_DATA_PAIRS = {
+    "CMR_DDI",
+    "CMR_BCC",
+    "CIE_TT",
+}
+
+AC_ALL_DATA_PAIRS = {
+    "CMR_GEN",
+    "SVC_CUI",
+    "SVC_SSV",
+    "SVC_SS3",
+    "SVC_RSC",
+    "CMR_CUI",
+    "CMR_SSV",
+    "CMR_SS3",
+    "CMR_ADT",
+    "CMR_AD1",
+    "CMR_PY2",
+}
+
+OTHERS_EXCLUDE_PAIRS = {
+    "CMB_NC1",
+    "CMB_NCC",
+}
+
+VALID_OWNER_VALUES = {"GLCM", "GPS"}
+VALID_LINE_VALUES = {"CMB", "CIBM"}
+
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """
+    标准化文本列：
+    - 保留 NaN
+    - 去首尾空格
+    - 转大写
+    """
+    return s.astype("string").str.strip().str.upper()
+
+
+def process_one_csv(file_path, output_dir, encoding="utf-8-sig"):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Processing: {file_path.name}")
+
+    # =========================
+    # 1) 读取 CSV
+    # =========================
+    df = pd.read_csv(file_path, encoding=encoding, low_memory=False)
+
+    # =========================
+    # 2) 标准化辅助列
+    # =========================
+    df["_ie_item"] = normalize_text_series(df[IE_ITEM_COL])
+    df["_ie_type"] = normalize_text_series(df[IE_TYPE_COL])
+    df["_owner"] = normalize_text_series(df[OWNER_COL])
+    df["_line"] = normalize_text_series(df[LINE_COL])
+
+    # 拼接“损益科目代码” = Ie_item + "_" + ie_type
+    # 只要任意一边为空，结果就会是 <NA>
+    df["_pair"] = df["_ie_item"] + "_" + df["_ie_type"]
+
+    # =========================
+    # 3) 金额列转数值
+    # 如金额里有千分位逗号，也一并处理
+    # =========================
+    df[AMOUNT_COL] = pd.to_numeric(
+        df[AMOUNT_COL].astype("string").str.replace(",", "", regex=False),
+        errors="coerce"
+    )
+
+    # =========================
+    # 4) 规则标准化
+    # =========================
+    lcy_rules = {str(k).strip().upper(): v for k, v in LCY_RULES.items()}
+    fcy_rules = {str(k).strip().upper(): v for k, v in FCY_RULES.items()}
+    fcy_all_pairs = {str(x).strip().upper() for x in FCY_ALL_DATA_PAIRS}
+    ac_all_pairs = {str(x).strip().upper() for x in AC_ALL_DATA_PAIRS}
+    others_exclude_pairs = {str(x).strip().upper() for x in OTHERS_EXCLUDE_PAIRS}
+
+    # =========================
+    # 5) 初始化标记列
+    # =========================
+    df["__matched"] = False
+    df["__rule_group"] = None
+
+    # =========================
+    # 6) 原规则：只针对 OWNER = GLCM / GPS
+    # =========================
+    owner_mask = df["_owner"].isin(VALID_OWNER_VALUES)
+
+    # 6.1 FCY_ALL
+    mask_fcy_all = owner_mask & df["_pair"].isin(fcy_all_pairs)
+    df.loc[mask_fcy_all, "__matched"] = True
+    df.loc[mask_fcy_all, "__rule_group"] = "FCY_ALL"
+
+    # 6.2 AC_ALL
+    mask_ac_all = owner_mask & df["_pair"].isin(ac_all_pairs)
+    df.loc[mask_ac_all, "__matched"] = True
+    df.loc[mask_ac_all, "__rule_group"] = "AC_ALL"
+
+    # 6.3 LCY：金额 < 0 或 > threshold
+    for pair, threshold in lcy_rules.items():
+        mask = owner_mask & (df["_pair"] == pair) & (
+            (df[AMOUNT_COL] < 0) | (df[AMOUNT_COL] > threshold)
+        )
+        df.loc[mask, "__matched"] = True
+        df.loc[mask, "__rule_group"] = "LCY"
+
+    # 6.4 FCY：金额 < 0 或 > threshold
+    for pair, threshold in fcy_rules.items():
+        mask = owner_mask & (df["_pair"] == pair) & (
+            (df[AMOUNT_COL] < 0) | (df[AMOUNT_COL] > threshold)
+        )
+        df.loc[mask, "__matched"] = True
+        df.loc[mask, "__rule_group"] = "FCY"
+
+    # =========================
+    # 7) OTHERS 规则
+    # OWNER为空 + cust_group=CMB/CIBM + pair != CMB_NC1/CMB_NCC
+    # =========================
+    owner_blank_mask = df[OWNER_COL].isna() | (df["_owner"] == "")
+    line_mask = df["_line"].isin(VALID_LINE_VALUES)
+    pair_exclude_mask = ~df["_pair"].isin(others_exclude_pairs)
+
+    mask_others = owner_blank_mask & line_mask & pair_exclude_mask
+    df.loc[mask_others, "__matched"] = True
+    df.loc[mask_others, "__rule_group"] = "OTHERS"
+
+    # =========================
+    # 8) 结果
+    # =========================
+    abnormal_df = df[df["__matched"]].copy()
+
+    # 如不想导出辅助列，可删除
+    abnormal_df = abnormal_df.drop(
+        columns=["_ie_item", "_ie_type", "_owner", "_line", "_pair"],
+        errors="ignore"
+    )
+
+    # =========================
+    # 9) 导出
+    # =========================
+    output_path = output_dir / f"{file_path.stem}_abnormal.csv"
+    abnormal_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+
+    print(f"Saved: {output_path}")
+    print(f"Matched rows: {len(abnormal_df):,}")
+
+    # =========================
+    # 10) 释放内存
+    # =========================
+    del df
+    del abnormal_df
+    gc.collect()
+
+
+# =========================
+# 批量处理多个 CSV 文件
+# =========================
+file_list = [
+    # r"/path/to/file1.csv",
+    # r"/path/to/file2.csv",
+    # r"/path/to/file3.csv",
+]
+
+output_dir = r"./output"
+
+for i, file_path in enumerate(file_list, 1):
+    print(f"\n[{i}/{len(file_list)}]")
+    try:
+        process_one_csv(file_path, output_dir, encoding="utf-8-sig")
+    except Exception as e:
+        print(f"Failed: {file_path}")
+        print(f"Error: {e}")
+        gc.collect()
+```
+
+---
+
+## 这版的关键变化
+
+你之前逻辑里用的是：
+
+* `损益科目代码`
+* `人民币等值金额`
+* `OWNER`
+* `客户所属条线`
+
+现在已经改成真实源字段：
+
+* `Ie_item`
+* `ie_type`
+* `trans_amt_cny`
+* `charge_department`
+* `cust_group`
+
+并且这句就是新的“损益科目代码”生成方式：
+
+```python
+df["_pair"] = df["_ie_item"] + "_" + df["_ie_type"]
+```
+
+---
+
+## 你只需要改的地方
+
+### 文件路径
+
+```python
+file_list = [
+    r"/Users/xxx/Desktop/a.csv",
+    r"/Users/xxx/Desktop/b.csv",
+]
+```
+
+### 输出目录
+
+```python
+output_dir = r"./output"
+```
+
+---
+
+## 如果你想把拼出来的损益科目代码也保留在导出结果里
+
+现在我默认删掉了辅助列 `_pair`。
+如果你想在结果里看到它，可以把这段：
+
+```python
+abnormal_df = abnormal_df.drop(
+    columns=["_ie_item", "_ie_type", "_owner", "_line", "_pair"],
+    errors="ignore"
+)
+```
+
+改成：
+
+```python
+abnormal_df["损益科目代码"] = abnormal_df["_pair"]
+
+abnormal_df = abnormal_df.drop(
+    columns=["_ie_item", "_ie_type", "_owner", "_line", "_pair"],
+    errors="ignore"
+)
+```
+
+这样导出的结果里就会多一列真正可看的 `损益科目代码`。
+
+---
+
+## 我建议你直接用这个版本再加上这一段
+
+也就是把结果里保留拼好的科目代码，更方便检查：
+
+把代码第 8 步改成下面这样：
+
+```python
+# =========================
+# 8) 结果
+# =========================
+abnormal_df = df[df["__matched"]].copy()
+
+# 保留一个可读的“损益科目代码”列
+abnormal_df["损益科目代码"] = abnormal_df["_pair"]
+
+# 删除辅助列
+abnormal_df = abnormal_df.drop(
+    columns=["_ie_item", "_ie_type", "_owner", "_line", "_pair"],
+    errors="ignore"
+)
+```
+
+---
+
+如果你要，我下一条可以直接给你一版**最终定稿版**：把“损益科目代码”保留在输出里，并且自动尝试 `utf-8-sig` 和 `gb18030` 两种编码读取。
