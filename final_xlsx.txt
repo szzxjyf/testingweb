@@ -1,64 +1,19 @@
-对，这样理解就对了。
+可以，直接把这个条件加到**最开始缩小数据源**那里就行。
 
-你这一步的意思是：
+假设列名是：
 
-> 对于 **OWNER 为空白** 且已经通过前面“缩小数据源”筛选留下来的数据，
-> **只看损益科目代码是否在规则集合里**：
->
-> * 如果 `pair` 在 `FCY_ALL / AC_ALL / LCY / FCY` 的所有损益科目代码集合里
->   → 继续按对应规则判断
-> * 如果 `pair` **根本不在这些损益科目代码集合里**
->   → **直接归为 `OTHERS`**
->
-> **这里不需要看金额。**
+```python
+REMARK1_COL = "交易附言1"
+```
 
-也就是说，`OTHERS` 的判断只基于：
+那么新增规则就是：
 
-* `OWNER` 空白
-* 且 `pair` 不在规则 code 集合中
-
-而不是看有没有命中金额阈值。
+> **交易附言1 != "VAT Payable - Output VAT"**
+> 也同样建议做成：**忽略首尾空格**，并且精确比较。
 
 ---
 
-## 你要改的核心其实就是这句
-
-这一句：
-
-```python
-mask_others = owner_blank_mask & (~df["_pair"].isin(step3_all_pairs))
-```
-
-其实已经符合你刚刚说的逻辑了。
-
-因为 `step3_all_pairs` 是：
-
-```python
-step3_all_pairs = (
-    set(lcy_rules.keys())
-    | set(fcy_rules.keys())
-    | fcy_all_pairs
-    | ac_all_pairs
-)
-```
-
-它只是一个 **pair 名单集合**，不涉及金额。
-
-所以：
-
-```python
-~df["_pair"].isin(step3_all_pairs)
-```
-
-意思就是：
-
-> `pair` 不在这些规则代码中
-
-这和你刚刚说的完全一致。
-
----
-
-# 给你最终完整版本（按你现在最终逻辑）
+## 完整版代码（已加新条件）
 
 ```python
 import pandas as pd
@@ -72,6 +27,7 @@ PAIR_COL = "损益科目代码"
 AMOUNT_COL = "人民币等值金额"
 OWNER_COL = "OWNER"
 LINE_COL = "客户所属条线"
+REMARK1_COL = "交易附言1"
 
 # =========================
 # 规则
@@ -117,6 +73,7 @@ OTHERS_EXCLUDE_PAIRS = {
 
 VALID_OWNER_VALUES = {"GLCM", "GPS"}
 VALID_LINE_VALUES = {"CMB", "CIBM"}
+EXCLUDED_REMARK1 = "VAT PAYABLE - OUTPUT VAT"
 
 
 def normalize_text_series(s: pd.Series) -> pd.Series:
@@ -150,6 +107,7 @@ def process_one_xlsx(file_path, output_dir):
     df["_pair"] = normalize_text_series(df[PAIR_COL])
     df["_owner"] = normalize_text_series(df[OWNER_COL])
     df["_line"] = normalize_text_series(df[LINE_COL])
+    df["_remark1"] = normalize_text_series(df[REMARK1_COL])
 
     # 金额只在比较时临时转，不改原列
     amt = pd.to_numeric(df[AMOUNT_COL], errors="coerce")
@@ -176,6 +134,7 @@ def process_one_xlsx(file_path, output_dir):
     #    只保留：
     #    A. OWNER = GLCM / GPS
     #    B. OWNER为空 + LINE=CMB/CIBM + PAIR != CMB_NC1/CMB_NCC
+    #    C. 同时要求：交易附言1 != VAT Payable - Output VAT
     # =========================
     owner_valid_mask = df["_owner"].isin(VALID_OWNER_VALUES)
 
@@ -185,7 +144,10 @@ def process_one_xlsx(file_path, output_dir):
 
     owner_blank_keep_mask = owner_blank_mask & line_mask & pair_exclude_mask
 
-    source_mask = owner_valid_mask | owner_blank_keep_mask
+    # 新增条件：交易附言1 不为 VAT Payable - Output VAT
+    remark_exclude_mask = df["_remark1"] != EXCLUDED_REMARK1
+
+    source_mask = (owner_valid_mask | owner_blank_keep_mask) & remark_exclude_mask
 
     df = df[source_mask].copy()
     amt = amt[source_mask].copy()
@@ -238,11 +200,8 @@ def process_one_xlsx(file_path, output_dir):
     # =========================
     abnormal_df = df[df["__matched"]].copy()
 
-    # 如果你想保留标准化后的 pair，可取消注释
-    # abnormal_df["标准化损益科目代码"] = abnormal_df["_pair"]
-
     abnormal_df = abnormal_df.drop(
-        columns=["_pair", "_owner", "_line"],
+        columns=["_pair", "_owner", "_line", "_remark1"],
         errors="ignore"
     )
 
@@ -288,43 +247,42 @@ for i, file_path in enumerate(file_list, 1):
 
 ---
 
-## 这版最关键的一句
-
-就是这里：
+## 你这次新增的核心就是这一句
 
 ```python
-mask_others = owner_blank_mask & (~df["_pair"].isin(rule_pair_set))
+remark_exclude_mask = df["_remark1"] != EXCLUDED_REMARK1
 ```
 
-它表示：
-
-* `OWNER` 是空白
-* 且 `损益科目代码` 不在任何规则 code 里
-
-就直接归：
+再并到缩小数据源里：
 
 ```python
-"OTHERS"
+source_mask = (owner_valid_mask | owner_blank_keep_mask) & remark_exclude_mask
 ```
-
-**完全不判断金额。**
 
 ---
 
-## 你现在的整体逻辑就变成了
+## 这个写法的效果
 
-先保留：
+会先排掉所有：
 
-* `OWNER = GLCM / GPS`
-* 或 `OWNER空白` 且 `cust_group = CMB/CIBM` 且 `pair != CMB_NC1/CMB_NCC`
+```text
+交易附言1 = VAT Payable - Output VAT
+```
 
-然后对这些数据：
+的记录，然后剩下的数据再进入后面的判断。
 
-* 命中 `FCY_ALL / AC_ALL` → 直接归对应组
-* 命中 `LCY / FCY` 且金额异常 → 归 `LCY / FCY`
-* `OWNER空白` 且 `pair` 根本不在规则代码集合里 → 归 `OTHERS`
+而且我这里做了标准化：
+
+* 去首尾空格
+* 转大写
+
+所以这些都会被排除：
+
+* `VAT Payable - Output VAT`
+* `vat payable - output vat`
+* `VAT PAYABLE - OUTPUT VAT`
 
 ---
 
-如果你愿意，我下一条可以继续帮你做一版：
-把 `LCY/FCY` 的 `for loop` 去掉，改成更快的映射式写法。
+如果你要，我也可以顺手帮你再加一个更稳的版本：
+当 `交易附言1` 这列不存在时，给出明确报错提示。
