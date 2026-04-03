@@ -1,19 +1,17 @@
-可以，直接把这个条件加到**最开始缩小数据源**那里就行。
+下面给你两个**完整版本**，都改成了你希望的方向：
 
-假设列名是：
+* **尽量少用 `.fillna(False)`**
+* 主要改成：
 
-```python
-REMARK1_COL = "交易附言1"
-```
+  * `.ne(..., fill_value="")`
+  * `.fillna("").isin(...)`
+  * `~col.fillna("").isin(...)`
 
-那么新增规则就是：
-
-> **交易附言1 != "VAT Payable - Output VAT"**
-> 也同样建议做成：**忽略首尾空格**，并且精确比较。
+这样更稳，也更容易理解。
 
 ---
 
-## 完整版代码（已加新条件）
+# 1）XLSX 完整版本（无 `fillna(False)` 版）
 
 ```python
 import pandas as pd
@@ -93,17 +91,13 @@ def process_one_xlsx(file_path, output_dir):
 
     print(f"Processing: {file_path.name}")
 
-    # =========================
-    # 1) 读取整个 xlsx 所有 sheet 并合并
-    # =========================
+    # 1) 读取所有 sheet 并合并
     all_sheets = pd.read_excel(file_path, sheet_name=None)
     merged_df = pd.concat(all_sheets.values(), ignore_index=True)
 
     df = merged_df.copy()
 
-    # =========================
     # 2) 标准化辅助列
-    # =========================
     df["_pair"] = normalize_text_series(df[PAIR_COL])
     df["_owner"] = normalize_text_series(df[OWNER_COL])
     df["_line"] = normalize_text_series(df[LINE_COL])
@@ -112,16 +106,14 @@ def process_one_xlsx(file_path, output_dir):
     # 金额只在比较时临时转，不改原列
     amt = pd.to_numeric(df[AMOUNT_COL], errors="coerce")
 
-    # =========================
     # 3) 规则标准化
-    # =========================
     lcy_rules = {str(k).strip().upper(): v for k, v in LCY_RULES.items()}
     fcy_rules = {str(k).strip().upper(): v for k, v in FCY_RULES.items()}
     fcy_all_pairs = {str(x).strip().upper() for x in FCY_ALL_DATA_PAIRS}
     ac_all_pairs = {str(x).strip().upper() for x in AC_ALL_DATA_PAIRS}
     others_exclude_pairs = {str(x).strip().upper() for x in OTHERS_EXCLUDE_PAIRS}
 
-    # 所有规则涉及的 pair 代码集合（仅代码，不看金额）
+    # 所有规则涉及的 pair 代码集合（只看代码，不看金额）
     rule_pair_set = (
         set(lcy_rules.keys())
         | set(fcy_rules.keys())
@@ -129,75 +121,63 @@ def process_one_xlsx(file_path, output_dir):
         | ac_all_pairs
     )
 
-    # =========================
-    # 4) 先缩小数据源
-    #    只保留：
-    #    A. OWNER = GLCM / GPS
-    #    B. OWNER为空 + LINE=CMB/CIBM + PAIR != CMB_NC1/CMB_NCC
-    #    C. 同时要求：交易附言1 != VAT Payable - Output VAT
-    # =========================
-    owner_valid_mask = df["_owner"].isin(VALID_OWNER_VALUES)
+    # 4) 缩小数据源
+    # A. OWNER = GLCM / GPS
+    owner_valid_mask = df["_owner"].fillna("").isin(VALID_OWNER_VALUES)
 
-    owner_blank_mask = df[OWNER_COL].isna() | (df["_owner"] == "")
-    line_mask = df["_line"].isin(VALID_LINE_VALUES)
-    pair_exclude_mask = ~df["_pair"].isin(others_exclude_pairs)
+    # B. OWNER为空 + LINE=CMB/CIBM + PAIR != CMB_NC1/CMB_NCC
+    owner_blank_mask = df[OWNER_COL].isna() | df["_owner"].eq("", fill_value="")
+    line_mask = df["_line"].fillna("").isin(VALID_LINE_VALUES)
+    pair_exclude_mask = ~df["_pair"].fillna("").isin(others_exclude_pairs)
 
     owner_blank_keep_mask = owner_blank_mask & line_mask & pair_exclude_mask
 
-    # 新增条件：交易附言1 不为 VAT Payable - Output VAT
-    remark_exclude_mask = df["_remark1"] != EXCLUDED_REMARK1
+    # C. 交易附言1 != VAT Payable - Output VAT
+    remark_exclude_mask = df["_remark1"].ne(EXCLUDED_REMARK1, fill_value="")
 
     source_mask = (owner_valid_mask | owner_blank_keep_mask) & remark_exclude_mask
 
     df = df[source_mask].copy()
     amt = amt[source_mask].copy()
 
-    # 重新计算 mask（因为 df 已经缩小）
-    owner_blank_mask = df[OWNER_COL].isna() | (df["_owner"] == "")
+    # 缩小后重新计算
+    owner_blank_mask = df[OWNER_COL].isna() | df["_owner"].eq("", fill_value="")
 
-    # =========================
     # 5) 初始化标记列
-    # =========================
     df["__matched"] = False
     df["__rule_group"] = None
 
-    # =========================
     # 6) 对缩小后的全部数据应用规则
-    # =========================
 
     # 6.1 FCY_ALL
-    mask_fcy_all = df["_pair"].isin(fcy_all_pairs)
+    mask_fcy_all = df["_pair"].fillna("").isin(fcy_all_pairs)
     df.loc[mask_fcy_all, "__matched"] = True
     df.loc[mask_fcy_all, "__rule_group"] = "FCY_ALL"
 
     # 6.2 AC_ALL
-    mask_ac_all = df["_pair"].isin(ac_all_pairs)
+    mask_ac_all = df["_pair"].fillna("").isin(ac_all_pairs)
     df.loc[mask_ac_all, "__matched"] = True
     df.loc[mask_ac_all, "__rule_group"] = "AC_ALL"
 
-    # 6.3 LCY：金额 < 0 或 > threshold
+    # 6.3 LCY
     for pair, threshold in lcy_rules.items():
-        mask = (df["_pair"] == pair) & ((amt < 0) | (amt > threshold))
+        mask = df["_pair"].eq(pair, fill_value="") & ((amt < 0) | (amt > threshold))
         df.loc[mask, "__matched"] = True
         df.loc[mask, "__rule_group"] = "LCY"
 
-    # 6.4 FCY：金额 < 0 或 > threshold
+    # 6.4 FCY
     for pair, threshold in fcy_rules.items():
-        mask = (df["_pair"] == pair) & ((amt < 0) | (amt > threshold))
+        mask = df["_pair"].eq(pair, fill_value="") & ((amt < 0) | (amt > threshold))
         df.loc[mask, "__matched"] = True
         df.loc[mask, "__rule_group"] = "FCY"
 
-    # =========================
     # 7) OWNER为空白，且 pair 不在规则代码集合里 -> OTHERS
     #    这里只看 pair，不看金额
-    # =========================
-    mask_others = owner_blank_mask & (~df["_pair"].isin(rule_pair_set))
+    mask_others = owner_blank_mask & (~df["_pair"].fillna("").isin(rule_pair_set))
     df.loc[mask_others, "__matched"] = True
     df.loc[mask_others, "__rule_group"] = "OTHERS"
 
-    # =========================
     # 8) 结果
-    # =========================
     abnormal_df = df[df["__matched"]].copy()
 
     abnormal_df = abnormal_df.drop(
@@ -205,18 +185,14 @@ def process_one_xlsx(file_path, output_dir):
         errors="ignore"
     )
 
-    # =========================
     # 9) 导出
-    # =========================
     output_path = output_dir / f"{file_path.stem}_abnormal.csv"
     abnormal_df.to_csv(output_path, index=False, encoding="utf-8-sig")
 
     print(f"Saved: {output_path}")
     print(f"Matched rows: {len(abnormal_df):,}")
 
-    # =========================
     # 10) 释放内存
-    # =========================
     del all_sheets
     del merged_df
     del df
@@ -247,42 +223,259 @@ for i, file_path in enumerate(file_list, 1):
 
 ---
 
-## 你这次新增的核心就是这一句
+# 2）CSV 完整版本（无 `fillna(False)` 版）
 
 ```python
-remark_exclude_mask = df["_remark1"] != EXCLUDED_REMARK1
-```
+import pandas as pd
+import gc
+from pathlib import Path
 
-再并到缩小数据源里：
+# =========================
+# CSV源字段名
+# =========================
+IE_ITEM_COL = "Ie_item"
+IE_TYPE_COL = "ie_type"
+AMOUNT_COL = "trans_amt_cny"
+OWNER_COL = "charge_department"
+LINE_COL = "cust_group"
+REMARK1_COL = "trans_remark1"
 
-```python
-source_mask = (owner_valid_mask | owner_blank_keep_mask) & remark_exclude_mask
+# =========================
+# 规则
+# =========================
+LCY_RULES = {
+    "CMR_EFT": 200,
+    "CMR_APO": 200,
+    "CMR_RM1": 200,
+}
+
+FCY_RULES = {
+    "CMR_TT": 1000,
+    "SND_TT": 200,
+    "CBL_TT": 140,
+    "CMR_TTI": 55,
+    "CMR_DMX": 500000,
+}
+
+FCY_ALL_DATA_PAIRS = {
+    "CMR_DDI",
+    "CMR_BCC",
+    "CIE_TT",
+}
+
+AC_ALL_DATA_PAIRS = {
+    "CMR_GEN",
+    "SVC_CUI",
+    "SVC_SSV",
+    "SVC_SS3",
+    "SVC_RSC",
+    "CMR_CUI",
+    "CMR_SSV",
+    "CMR_SS3",
+    "CMR_ADT",
+    "CMR_AD1",
+    "CMR_PY2",
+}
+
+OTHERS_EXCLUDE_PAIRS = {
+    "CMB_NC1",
+    "CMB_NCC",
+}
+
+VALID_OWNER_VALUES = {"GLCM", "GPS"}
+VALID_LINE_VALUES = {"CMB", "CIBM"}
+EXCLUDED_REMARK1 = "VAT PAYABLE - OUTPUT VAT"
+
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """
+    标准化文本列：
+    - 保留缺失值
+    - 去首尾空格
+    - 转大写
+    """
+    return s.astype("string").str.strip().str.upper()
+
+
+def read_csv_auto_encoding(file_path):
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            print(f"Trying encoding: {enc}")
+            return pd.read_csv(file_path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"Cannot decode CSV: {file_path}")
+
+
+def process_one_csv(file_path, output_dir):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Processing: {file_path.name}")
+
+    # 1) 读取 CSV
+    df, used_encoding = read_csv_auto_encoding(file_path)
+    print(f"Used encoding: {used_encoding}")
+
+    # 2) 标准化辅助列
+    df["_ie_item"] = normalize_text_series(df[IE_ITEM_COL])
+    df["_ie_type"] = normalize_text_series(df[IE_TYPE_COL])
+    df["_owner"] = normalize_text_series(df[OWNER_COL])
+    df["_line"] = normalize_text_series(df[LINE_COL])
+    df["_remark1"] = normalize_text_series(df[REMARK1_COL])
+
+    # 拼接 pair = Ie_item + "_" + ie_type
+    df["_pair"] = df["_ie_item"] + "_" + df["_ie_type"]
+
+    # 金额只在比较时临时转，不改原列
+    amt = pd.to_numeric(df[AMOUNT_COL], errors="coerce")
+
+    # 3) 规则标准化
+    lcy_rules = {str(k).strip().upper(): v for k, v in LCY_RULES.items()}
+    fcy_rules = {str(k).strip().upper(): v for k, v in FCY_RULES.items()}
+    fcy_all_pairs = {str(x).strip().upper() for x in FCY_ALL_DATA_PAIRS}
+    ac_all_pairs = {str(x).strip().upper() for x in AC_ALL_DATA_PAIRS}
+    others_exclude_pairs = {str(x).strip().upper() for x in OTHERS_EXCLUDE_PAIRS}
+
+    # 所有规则涉及的 pair 代码集合（只看代码，不看金额）
+    rule_pair_set = (
+        set(lcy_rules.keys())
+        | set(fcy_rules.keys())
+        | fcy_all_pairs
+        | ac_all_pairs
+    )
+
+    # 4) 缩小数据源
+    # A. OWNER = GLCM / GPS
+    owner_valid_mask = df["_owner"].fillna("").isin(VALID_OWNER_VALUES)
+
+    # B. OWNER为空 + LINE=CMB/CIBM + PAIR != CMB_NC1/CMB_NCC
+    owner_blank_mask = df[OWNER_COL].isna() | df["_owner"].eq("", fill_value="")
+    line_mask = df["_line"].fillna("").isin(VALID_LINE_VALUES)
+    pair_exclude_mask = ~df["_pair"].fillna("").isin(others_exclude_pairs)
+
+    owner_blank_keep_mask = owner_blank_mask & line_mask & pair_exclude_mask
+
+    # C. trans_remark1 != VAT Payable - Output VAT
+    remark_exclude_mask = df["_remark1"].ne(EXCLUDED_REMARK1, fill_value="")
+
+    source_mask = (owner_valid_mask | owner_blank_keep_mask) & remark_exclude_mask
+
+    df = df[source_mask].copy()
+    amt = amt[source_mask].copy()
+
+    # 缩小后重新计算
+    owner_blank_mask = df[OWNER_COL].isna() | df["_owner"].eq("", fill_value="")
+
+    # 5) 初始化标记列
+    df["__matched"] = False
+    df["__rule_group"] = None
+
+    # 6) 对缩小后的全部数据应用规则
+
+    # 6.1 FCY_ALL
+    mask_fcy_all = df["_pair"].fillna("").isin(fcy_all_pairs)
+    df.loc[mask_fcy_all, "__matched"] = True
+    df.loc[mask_fcy_all, "__rule_group"] = "FCY_ALL"
+
+    # 6.2 AC_ALL
+    mask_ac_all = df["_pair"].fillna("").isin(ac_all_pairs)
+    df.loc[mask_ac_all, "__matched"] = True
+    df.loc[mask_ac_all, "__rule_group"] = "AC_ALL"
+
+    # 6.3 LCY
+    for pair, threshold in lcy_rules.items():
+        mask = df["_pair"].eq(pair, fill_value="") & ((amt < 0) | (amt > threshold))
+        df.loc[mask, "__matched"] = True
+        df.loc[mask, "__rule_group"] = "LCY"
+
+    # 6.4 FCY
+    for pair, threshold in fcy_rules.items():
+        mask = df["_pair"].eq(pair, fill_value="") & ((amt < 0) | (amt > threshold))
+        df.loc[mask, "__matched"] = True
+        df.loc[mask, "__rule_group"] = "FCY"
+
+    # 7) OWNER为空白，且 pair 不在规则代码集合里 -> OTHERS
+    mask_others = owner_blank_mask & (~df["_pair"].fillna("").isin(rule_pair_set))
+    df.loc[mask_others, "__matched"] = True
+    df.loc[mask_others, "__rule_group"] = "OTHERS"
+
+    # 8) 结果
+    abnormal_df = df[df["__matched"]].copy()
+
+    # 保留一个可读的损益科目代码列
+    abnormal_df["损益科目代码"] = abnormal_df["_pair"]
+
+    abnormal_df = abnormal_df.drop(
+        columns=["_ie_item", "_ie_type", "_owner", "_line", "_remark1", "_pair"],
+        errors="ignore"
+    )
+
+    # 9) 导出
+    output_path = output_dir / f"{file_path.stem}_abnormal.csv"
+    abnormal_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+
+    print(f"Saved: {output_path}")
+    print(f"Matched rows: {len(abnormal_df):,}")
+
+    # 10) 释放内存
+    del df
+    del abnormal_df
+    del amt
+    gc.collect()
+
+
+# =========================
+# 批量处理多个 CSV 文件
+# =========================
+file_list = [
+    # r"/path/to/file1.csv",
+    # r"/path/to/file2.csv",
+]
+
+output_dir = r"./output"
+
+for i, file_path in enumerate(file_list, 1):
+    print(f"\n[{i}/{len(file_list)}]")
+    try:
+        process_one_csv(file_path, output_dir)
+    except Exception as e:
+        print(f"Failed: {file_path}")
+        print(f"Error: {e}")
+        gc.collect()
 ```
 
 ---
 
-## 这个写法的效果
+## 这版相对于上一版的主要变化
 
-会先排掉所有：
+把原来的这类写法：
 
-```text
-交易附言1 = VAT Payable - Output VAT
+```python
+mask = (...).fillna(False)
 ```
 
-的记录，然后剩下的数据再进入后面的判断。
+尽量换成了：
 
-而且我这里做了标准化：
-
-* 去首尾空格
-* 转大写
-
-所以这些都会被排除：
-
-* `VAT Payable - Output VAT`
-* `vat payable - output vat`
-* `VAT PAYABLE - OUTPUT VAT`
+```python
+col.ne(value, fill_value="")
+col.eq(value, fill_value="")
+col.fillna("").isin(values)
+~col.fillna("").isin(values)
+```
 
 ---
 
-如果你要，我也可以顺手帮你再加一个更稳的版本：
-当 `交易附言1` 这列不存在时，给出明确报错提示。
+## 这样做的好处
+
+逻辑更直接：
+
+* **不等于**：`ne(..., fill_value="")`
+* **等于**：`eq(..., fill_value="")`
+* **包含**：`fillna("").isin(...)`
+* **不包含**：`~fillna("").isin(...)`
+
+这样 mask 天然就是布尔值，更不容易出 `NA` 问题。
+
+如果你愿意，我下一条可以再帮你把这两个版本都改成**函数式配置版**，把字段名和规则放在最上面统一配置，后面代码几乎共用。
