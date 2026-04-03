@@ -1,0 +1,330 @@
+对，这样理解就对了。
+
+你这一步的意思是：
+
+> 对于 **OWNER 为空白** 且已经通过前面“缩小数据源”筛选留下来的数据，
+> **只看损益科目代码是否在规则集合里**：
+>
+> * 如果 `pair` 在 `FCY_ALL / AC_ALL / LCY / FCY` 的所有损益科目代码集合里
+>   → 继续按对应规则判断
+> * 如果 `pair` **根本不在这些损益科目代码集合里**
+>   → **直接归为 `OTHERS`**
+>
+> **这里不需要看金额。**
+
+也就是说，`OTHERS` 的判断只基于：
+
+* `OWNER` 空白
+* 且 `pair` 不在规则 code 集合中
+
+而不是看有没有命中金额阈值。
+
+---
+
+## 你要改的核心其实就是这句
+
+这一句：
+
+```python
+mask_others = owner_blank_mask & (~df["_pair"].isin(step3_all_pairs))
+```
+
+其实已经符合你刚刚说的逻辑了。
+
+因为 `step3_all_pairs` 是：
+
+```python
+step3_all_pairs = (
+    set(lcy_rules.keys())
+    | set(fcy_rules.keys())
+    | fcy_all_pairs
+    | ac_all_pairs
+)
+```
+
+它只是一个 **pair 名单集合**，不涉及金额。
+
+所以：
+
+```python
+~df["_pair"].isin(step3_all_pairs)
+```
+
+意思就是：
+
+> `pair` 不在这些规则代码中
+
+这和你刚刚说的完全一致。
+
+---
+
+# 给你最终完整版本（按你现在最终逻辑）
+
+```python
+import pandas as pd
+import gc
+from pathlib import Path
+
+# =========================
+# 列名
+# =========================
+PAIR_COL = "损益科目代码"
+AMOUNT_COL = "人民币等值金额"
+OWNER_COL = "OWNER"
+LINE_COL = "客户所属条线"
+
+# =========================
+# 规则
+# =========================
+LCY_RULES = {
+    "CMR_EFT": 200,
+    "CMR_APO": 200,
+    "CMR_RM1": 200,
+}
+
+FCY_RULES = {
+    "CMR_TT": 1000,
+    "SND_TT": 200,
+    "CBL_TT": 140,
+    "CMR_TTI": 55,
+    "CMR_DMX": 500000,
+}
+
+FCY_ALL_DATA_PAIRS = {
+    "CMR_DDI",
+    "CMR_BCC",
+    "CIE_TT",
+}
+
+AC_ALL_DATA_PAIRS = {
+    "CMR_GEN",
+    "SVC_CUI",
+    "SVC_SSV",
+    "SVC_SS3",
+    "SVC_RSC",
+    "CMR_CUI",
+    "CMR_SSV",
+    "CMR_SS3",
+    "CMR_ADT",
+    "CMR_AD1",
+    "CMR_PY2",
+}
+
+OTHERS_EXCLUDE_PAIRS = {
+    "CMB_NC1",
+    "CMB_NCC",
+}
+
+VALID_OWNER_VALUES = {"GLCM", "GPS"}
+VALID_LINE_VALUES = {"CMB", "CIBM"}
+
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """
+    标准化文本列：
+    - 保留缺失值
+    - 去首尾空格
+    - 转大写
+    """
+    return s.astype("string").str.strip().str.upper()
+
+
+def process_one_xlsx(file_path, output_dir):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Processing: {file_path.name}")
+
+    # =========================
+    # 1) 读取整个 xlsx 所有 sheet 并合并
+    # =========================
+    all_sheets = pd.read_excel(file_path, sheet_name=None)
+    merged_df = pd.concat(all_sheets.values(), ignore_index=True)
+
+    df = merged_df.copy()
+
+    # =========================
+    # 2) 标准化辅助列
+    # =========================
+    df["_pair"] = normalize_text_series(df[PAIR_COL])
+    df["_owner"] = normalize_text_series(df[OWNER_COL])
+    df["_line"] = normalize_text_series(df[LINE_COL])
+
+    # 金额只在比较时临时转，不改原列
+    amt = pd.to_numeric(df[AMOUNT_COL], errors="coerce")
+
+    # =========================
+    # 3) 规则标准化
+    # =========================
+    lcy_rules = {str(k).strip().upper(): v for k, v in LCY_RULES.items()}
+    fcy_rules = {str(k).strip().upper(): v for k, v in FCY_RULES.items()}
+    fcy_all_pairs = {str(x).strip().upper() for x in FCY_ALL_DATA_PAIRS}
+    ac_all_pairs = {str(x).strip().upper() for x in AC_ALL_DATA_PAIRS}
+    others_exclude_pairs = {str(x).strip().upper() for x in OTHERS_EXCLUDE_PAIRS}
+
+    # 所有规则涉及的 pair 代码集合（仅代码，不看金额）
+    rule_pair_set = (
+        set(lcy_rules.keys())
+        | set(fcy_rules.keys())
+        | fcy_all_pairs
+        | ac_all_pairs
+    )
+
+    # =========================
+    # 4) 先缩小数据源
+    #    只保留：
+    #    A. OWNER = GLCM / GPS
+    #    B. OWNER为空 + LINE=CMB/CIBM + PAIR != CMB_NC1/CMB_NCC
+    # =========================
+    owner_valid_mask = df["_owner"].isin(VALID_OWNER_VALUES)
+
+    owner_blank_mask = df[OWNER_COL].isna() | (df["_owner"] == "")
+    line_mask = df["_line"].isin(VALID_LINE_VALUES)
+    pair_exclude_mask = ~df["_pair"].isin(others_exclude_pairs)
+
+    owner_blank_keep_mask = owner_blank_mask & line_mask & pair_exclude_mask
+
+    source_mask = owner_valid_mask | owner_blank_keep_mask
+
+    df = df[source_mask].copy()
+    amt = amt[source_mask].copy()
+
+    # 重新计算 mask（因为 df 已经缩小）
+    owner_blank_mask = df[OWNER_COL].isna() | (df["_owner"] == "")
+
+    # =========================
+    # 5) 初始化标记列
+    # =========================
+    df["__matched"] = False
+    df["__rule_group"] = None
+
+    # =========================
+    # 6) 对缩小后的全部数据应用规则
+    # =========================
+
+    # 6.1 FCY_ALL
+    mask_fcy_all = df["_pair"].isin(fcy_all_pairs)
+    df.loc[mask_fcy_all, "__matched"] = True
+    df.loc[mask_fcy_all, "__rule_group"] = "FCY_ALL"
+
+    # 6.2 AC_ALL
+    mask_ac_all = df["_pair"].isin(ac_all_pairs)
+    df.loc[mask_ac_all, "__matched"] = True
+    df.loc[mask_ac_all, "__rule_group"] = "AC_ALL"
+
+    # 6.3 LCY：金额 < 0 或 > threshold
+    for pair, threshold in lcy_rules.items():
+        mask = (df["_pair"] == pair) & ((amt < 0) | (amt > threshold))
+        df.loc[mask, "__matched"] = True
+        df.loc[mask, "__rule_group"] = "LCY"
+
+    # 6.4 FCY：金额 < 0 或 > threshold
+    for pair, threshold in fcy_rules.items():
+        mask = (df["_pair"] == pair) & ((amt < 0) | (amt > threshold))
+        df.loc[mask, "__matched"] = True
+        df.loc[mask, "__rule_group"] = "FCY"
+
+    # =========================
+    # 7) OWNER为空白，且 pair 不在规则代码集合里 -> OTHERS
+    #    这里只看 pair，不看金额
+    # =========================
+    mask_others = owner_blank_mask & (~df["_pair"].isin(rule_pair_set))
+    df.loc[mask_others, "__matched"] = True
+    df.loc[mask_others, "__rule_group"] = "OTHERS"
+
+    # =========================
+    # 8) 结果
+    # =========================
+    abnormal_df = df[df["__matched"]].copy()
+
+    # 如果你想保留标准化后的 pair，可取消注释
+    # abnormal_df["标准化损益科目代码"] = abnormal_df["_pair"]
+
+    abnormal_df = abnormal_df.drop(
+        columns=["_pair", "_owner", "_line"],
+        errors="ignore"
+    )
+
+    # =========================
+    # 9) 导出
+    # =========================
+    output_path = output_dir / f"{file_path.stem}_abnormal.csv"
+    abnormal_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+
+    print(f"Saved: {output_path}")
+    print(f"Matched rows: {len(abnormal_df):,}")
+
+    # =========================
+    # 10) 释放内存
+    # =========================
+    del all_sheets
+    del merged_df
+    del df
+    del abnormal_df
+    del amt
+    gc.collect()
+
+
+# =========================
+# 批量处理多个 xlsx 文件
+# =========================
+file_list = [
+    # r"/path/to/file1.xlsx",
+    # r"/path/to/file2.xlsx",
+]
+
+output_dir = r"./output"
+
+for i, file_path in enumerate(file_list, 1):
+    print(f"\n[{i}/{len(file_list)}]")
+    try:
+        process_one_xlsx(file_path, output_dir)
+    except Exception as e:
+        print(f"Failed: {file_path}")
+        print(f"Error: {e}")
+        gc.collect()
+```
+
+---
+
+## 这版最关键的一句
+
+就是这里：
+
+```python
+mask_others = owner_blank_mask & (~df["_pair"].isin(rule_pair_set))
+```
+
+它表示：
+
+* `OWNER` 是空白
+* 且 `损益科目代码` 不在任何规则 code 里
+
+就直接归：
+
+```python
+"OTHERS"
+```
+
+**完全不判断金额。**
+
+---
+
+## 你现在的整体逻辑就变成了
+
+先保留：
+
+* `OWNER = GLCM / GPS`
+* 或 `OWNER空白` 且 `cust_group = CMB/CIBM` 且 `pair != CMB_NC1/CMB_NCC`
+
+然后对这些数据：
+
+* 命中 `FCY_ALL / AC_ALL` → 直接归对应组
+* 命中 `LCY / FCY` 且金额异常 → 归 `LCY / FCY`
+* `OWNER空白` 且 `pair` 根本不在规则代码集合里 → 归 `OTHERS`
+
+---
+
+如果你愿意，我下一条可以继续帮你做一版：
+把 `LCY/FCY` 的 `for loop` 去掉，改成更快的映射式写法。
