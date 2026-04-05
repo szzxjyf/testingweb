@@ -1,0 +1,189 @@
+import pandas as pd
+from pathlib import Path
+
+# =========================
+# 统一列名：中文(英文)
+# =========================
+
+# CSV 英文列名 -> 统一列名
+CSV_RENAME = {
+    "cust_no":              "客户代码(cust_no)",
+    "cust_name_en":         "客户英文名(cust_name_en)",
+    "cust_name_cn":         "客户中文名(cust_name_cn)",
+    "cust_family":          "客户类型(cust_family)",
+    "trans_remark1":        "交易附言1(trans_remark1)",
+    "trans_remark2":        "交易附言2(trans_remark2)",
+    "trans_remark3":        "交易附言3(trans_remark3)",
+    "trans_remark4":        "交易附言4(trans_remark4)",
+    "data_dt":              "入账日期(data_dt)",
+    "ccy_code":             "交易币种(ccy_code)",
+    "trans_amt":            "交易金额(trans_amt)",
+    "trans_amt_cny":        "人民币等值金额(trans_amt_cny)",
+    "cust_group":           "客户所属业务条线(cust_group)",
+    "trans_date":           "交易日期(trans_date)",
+    "asso_acct_no":         "关联账户账号(asso_acct_no)",
+    "tariff_type":          "收费项目(tariff_type)",
+    "charge_department":    "OWNER(charge_department)",
+    "vat_related":          "VAT_RELATED(vat_related)",
+    "non_tariff":           "NON_TARIFF(non_tariff)",
+    "trans_month":          "月份(trans_month)",
+    "gmis_code":            "GMIS(gmis_code)",
+    "损益科目代码":          "损益科目代码(ie_item+ie_type拼接)",
+}
+
+# XLSX 中文列名 -> 统一列名（加上对应的英文）
+XLSX_RENAME = {
+    "客户代码":         "客户代码(cust_no)",
+    "客户英文名":       "客户英文名(cust_name_en)",
+    "客户中文名":       "客户中文名(cust_name_cn)",
+    "客户类型":         "客户类型(cust_family)",
+    "交易附言1":        "交易附言1(trans_remark1)",
+    "交易附言2":        "交易附言2(trans_remark2)",
+    "交易附言3":        "交易附言3(trans_remark3)",
+    "交易附言4":        "交易附言4(trans_remark4)",
+    "入账日期":         "入账日期(data_dt)",
+    "交易币种":         "交易币种(ccy_code)",
+    "交易金额":         "交易金额(trans_amt)",
+    "人民币等值金额":   "人民币等值金额(trans_amt_cny)",
+    "客户所属业务条线": "客户所属业务条线(cust_group)",
+    "交易日期":         "交易日期(trans_date)",
+    "关联账户账号":     "关联账户账号(asso_acct_no)",
+    "收费项目":         "收费项目(tariff_type)",
+    "OWNER":           "OWNER(charge_department)",
+    "VAT_RELATED":     "VAT_RELATED(vat_related)",
+    "NON_TARIFF":      "NON_TARIFF(non_tariff)",
+    "月份":             "月份(trans_month)",
+    "GMIS":            "GMIS(gmis_code)",
+    "损益科目代码":    "损益科目代码(ie_item+ie_type拼接)",
+}
+
+
+def combine_xlsx_and_csv(xlsx_merged_path, csv_merged_path, output_path):
+    """
+    将 XLSX 版和 CSV 版的合并文件，统一列名后合并为一个最终文件。
+    - 共有字段：以中文列名为准
+    - 各自独有的字段：原样保留
+    """
+    xlsx_merged_path = Path(xlsx_merged_path)
+    csv_merged_path = Path(csv_merged_path)
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # 1) 读取两个合并文件
+    print("📖 读取 XLSX 版合并文件...")
+    df_xlsx = pd.read_csv(xlsx_merged_path, encoding="utf-8-sig", low_memory=False)
+    print(f"   行数: {len(df_xlsx):,}，列数: {len(df_xlsx.columns)}")
+
+    print("📖 读取 CSV 版合并文件...")
+    df_csv = pd.read_csv(csv_merged_path, encoding="utf-8-sig", low_memory=False)
+    print(f"   行数: {len(df_csv):,}，列数: {len(df_csv.columns)}")
+
+    # 2) 给两个数据源打上来源标签
+    df_xlsx["__data_source"] = "XLSX"
+    df_csv["__data_source"] = "CSV"
+
+    # 3) 两边都重命名为统一的 "中文(英文)" 格式
+    xlsx_actual = {k: v for k, v in XLSX_RENAME.items() if k in df_xlsx.columns}
+    csv_actual = {k: v for k, v in CSV_RENAME.items() if k in df_csv.columns}
+
+    df_xlsx = df_xlsx.rename(columns=xlsx_actual)
+    df_csv = df_csv.rename(columns=csv_actual)
+
+    print(f"\n🔄 XLSX 版重命名了 {len(xlsx_actual)} 个字段")
+    print(f"🔄 CSV 版重命名了 {len(csv_actual)} 个字段")
+
+    # 4) 合并（共有列自动对齐，独有列各自保留，缺失的填 NaN）
+    combined = pd.concat([df_xlsx, df_csv], ignore_index=True)
+
+    # 5) 导出
+    combined.to_csv(output_path, index=False, encoding="utf-8-sig")
+
+    print(f"\n✅ 最终合并完成 -> {output_path}")
+    print(f"   XLSX 版行数: {len(df_xlsx):,}")
+    print(f"   CSV 版行数:  {len(df_csv):,}")
+    print(f"   合并总行数:  {len(combined):,}")
+    print(f"   总列数:      {len(combined.columns)}")
+
+
+# =========================
+# 配置区：请修改为你的实际路径
+# =========================
+xlsx_merged_path = r"./xlsx_output/merged_all.csv"
+csv_merged_path = r"./csv_output/merged_all.csv"
+output_path = r"./final_combined.csv"
+
+
+if __name__ == "__main__":
+    combine_xlsx_and_csv(xlsx_merged_path, csv_merged_path, output_path)
+    print("\n🎉 全部完成！")
+
+
+
+
+
+import pandas as pd
+from pathlib import Path
+
+# =========================
+# 配置区
+# =========================
+# 合并后的最终文件路径
+input_path = r"./final_combined.csv"
+
+# 输出文件夹
+output_dir = r"./split_output"
+
+# 规则分组映射：将 __rule_group 的值归入 3 个大类
+# FCY 包含 FCY 和 FCY_ALL
+# LCY 包含 LCY
+# AC  包含 AC_ALL
+GROUP_MAPPING = {
+    "FCY":     "FCY",
+    "FCY_ALL": "FCY",
+    "LCY":     "LCY",
+    "AC_ALL":  "AC",
+    "OTHERS":  "OTHERS",  # 不属于以上三类的单独输出
+}
+
+
+def split_by_rule_group(input_path, output_dir):
+    input_path = Path(input_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"📖 读取文件: {input_path}")
+    df = pd.read_csv(input_path, encoding="utf-8-sig", low_memory=False)
+    print(f"   总行数: {len(df):,}")
+
+    # 根据映射表生成大类标签
+    df["__group_category"] = df["__rule_group"].map(GROUP_MAPPING)
+
+    # 检查是否有未映射的分组
+    unmapped = df[df["__group_category"].isna() & df["__rule_group"].notna()]["__rule_group"].unique()
+    if len(unmapped) > 0:
+        print(f"⚠️  以下 rule_group 未在映射中定义，将归入 OTHERS: {list(unmapped)}")
+        df.loc[df["__group_category"].isna() & df["__rule_group"].notna(), "__group_category"] = "OTHERS"
+
+    # 按大类拆分并导出
+    categories = df["__group_category"].dropna().unique()
+
+    print(f"\n📂 将拆分为以下文件:")
+    for cat in sorted(categories):
+        subset = df[df["__group_category"] == cat].copy()
+        subset = subset.drop(columns=["__group_category"], errors="ignore")
+
+        output_path = output_dir / f"{cat}.csv"
+        subset.to_csv(output_path, index=False, encoding="utf-8-sig")
+
+        print(f"   ✅ {cat}.csv -> {len(subset):,} 行")
+
+    # 检查有无 rule_group 为空的行
+    empty_group = df[df["__rule_group"].isna()]
+    if len(empty_group) > 0:
+        print(f"\n⚠️  有 {len(empty_group):,} 行 __rule_group 为空，未被拆分到任何文件中")
+
+    print(f"\n🎉 拆分完成！文件保存在: {output_dir}")
+
+
+if __name__ == "__main__":
+    split_by_rule_group(input_path, output_dir)
