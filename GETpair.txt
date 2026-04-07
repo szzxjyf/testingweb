@@ -1,0 +1,100 @@
+import pandas as pd
+import gc
+from pathlib import Path
+
+# =========================
+# 配置区
+# =========================
+
+# 数据源字段名（用于拼接 PAIR = ie_item + "_" + ie_type）
+IE_ITEM_COL = "ie_item"
+IE_TYPE_COL = "ie_type"
+
+# Mapping 表路径及列名
+MAPPING_CSV_PATH = r"./mapping.csv"
+MAPPING_PAIR_COL = "GPS_PAIR"      # 需要保留的 Pair 列
+MAPPING_PM_COL = "PM Name"         # PM 人名列
+
+# 待处理的数据文件列表（支持多个月份）
+DATA_FILES = [
+    # r"./202601.csv",
+    # r"./202602.csv",
+    # r"./202603.csv",
+]
+
+OUTPUT_DIR = r"./output"
+
+# =========================
+# 工具函数
+# =========================
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    return s.astype("string").str.strip().str.upper()
+
+def read_csv_auto(path):
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            return pd.read_csv(path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"Cannot decode: {path}")
+
+# =========================
+# 1. 读取 Mapping 表
+# =========================
+
+mapping_df, _ = read_csv_auto(MAPPING_CSV_PATH)
+
+# 构建需要保留的 Pair 集合 + PM 映射字典
+include_pairs = set()
+pm_mapping = {}
+
+for _, row in mapping_df.iterrows():
+    p = str(row.get(MAPPING_PAIR_COL, "")).strip().upper()
+    n = str(row.get(MAPPING_PM_COL, "")).strip()
+    if p and p != "NAN":
+        include_pairs.add(p)
+        if n and n != "NAN":
+            pm_mapping[p] = n
+
+print(f"Include pairs: {len(include_pairs)}")
+print(f"PM mappings:   {len(pm_mapping)}")
+
+# =========================
+# 2. 批量处理数据文件
+# =========================
+
+Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+
+for i, fp in enumerate(DATA_FILES, 1):
+    fp = Path(fp)
+    print(f"\n[{i}/{len(DATA_FILES)}] {fp.name}")
+
+    try:
+        df, enc = read_csv_auto(fp)
+        print(f"  Encoding: {enc} | Rows: {len(df):,}")
+
+        # 拼接 Pair
+        df["_pair"] = normalize_text_series(df[IE_ITEM_COL]) + "_" + normalize_text_series(df[IE_TYPE_COL])
+
+        # 只保留在 include_pairs 中的行
+        df = df[df["_pair"].isin(include_pairs)].copy()
+        print(f"  After filter: {len(df):,} rows")
+
+        # 映射 PM Name
+        df["PM Name"] = df["_pair"].map(pm_mapping)
+
+        # 清理临时列
+        df.drop(columns=["_pair"], inplace=True)
+
+        # 导出
+        out = Path(OUTPUT_DIR) / f"{fp.stem}_filtered.csv"
+        df.to_csv(out, index=False, encoding="utf-8-sig")
+        print(f"  Saved: {out} | Final rows: {len(df):,}")
+
+        del df
+        gc.collect()
+
+    except Exception as e:
+        print(f"  FAILED: {e}")
+        gc.collect()
