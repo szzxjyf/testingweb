@@ -1,0 +1,108 @@
+import pandas as pd
+import gc
+from pathlib import Path
+from collections import Counter
+
+# =========================
+# 配置区
+# =========================
+
+# 需要检查的列
+REMARK_COLS = ["trans_remark1", "trans_remark2", "trans_remark3", "trans_remark4"]
+
+# 关键词（不区分大小写，包含即匹配）
+KEYWORD = "PACKAGE"
+
+# 排除列表：命中关键词但需要排除的条目（不区分大小写，精确匹配整条 remark 值）
+# 后续需要排除时，把对应的 remark 原文填入即可
+EXCLUDE_REMARKS = {
+    # "PACKAGE FEE WAIVER",
+    # "PACKAGE REFUND",
+}
+
+# 待处理的数据文件列表（支持多个月份）
+DATA_FILES = [
+    # r"./202601.csv",
+    # r"./202602.csv",
+]
+
+OUTPUT_DIR = r"./output"
+
+# =========================
+# 工具函数
+# =========================
+
+def read_csv_auto(path):
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            return pd.read_csv(path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"Cannot decode: {path}")
+
+# =========================
+# 批量处理
+# =========================
+
+Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+exclude_upper = {s.strip().upper() for s in EXCLUDE_REMARKS if s.strip()}
+
+for i, fp in enumerate(DATA_FILES, 1):
+    fp = Path(fp)
+    print(f"\n{'='*50}")
+    print(f"[{i}/{len(DATA_FILES)}] {fp.name}")
+    print(f"{'='*50}")
+
+    try:
+        df, enc = read_csv_auto(fp)
+        print(f"  Encoding: {enc} | Rows: {len(df):,}")
+
+        # ---- 1. 关键词匹配 ----
+        mask = pd.Series(False, index=df.index)
+        for col in REMARK_COLS:
+            if col in df.columns:
+                mask = mask | df[col].astype(str).str.contains(KEYWORD, case=False, na=False)
+            else:
+                print(f"  Warning: column '{col}' not found, skipped.")
+
+        result = df[mask].copy()
+        print(f"  Keyword matched: {len(result):,} rows")
+
+        # ---- 2. 排除指定条目 ----
+        if exclude_upper:
+            exclude_mask = pd.Series(False, index=result.index)
+            for col in REMARK_COLS:
+                if col in result.columns:
+                    exclude_mask = exclude_mask | result[col].astype(str).str.strip().str.upper().isin(exclude_upper)
+            before = len(result)
+            result = result[~exclude_mask]
+            print(f"  Excluded: {before - len(result):,} rows")
+
+        # ---- 3. Hit 分析 ----
+        hit_counter = Counter()
+        for col in REMARK_COLS:
+            if col not in result.columns:
+                continue
+            hits = result[col].astype(str).str.strip()
+            hits = hits[hits.str.contains(KEYWORD, case=False, na=False)]
+            hit_counter.update(hits.str.upper().values)
+
+        print(f"\n  Hit Analysis (unique remark values containing '{KEYWORD}'):")
+        print(f"  {'Remark Value':<60} Count")
+        print(f"  {'-'*60} -----")
+        for val, cnt in hit_counter.most_common():
+            print(f"  {val:<60} {cnt:,}")
+        print(f"\n  Total unique hit values: {len(hit_counter)}")
+        print(f"  Total hit occurrences:   {sum(hit_counter.values()):,}")
+
+        # ---- 4. 导出 ----
+        out = Path(OUTPUT_DIR) / f"{fp.stem}_package.csv"
+        result.to_csv(out, index=False, encoding="utf-8-sig")
+        print(f"\n  Saved: {out} | Final rows: {len(result):,}")
+
+        del df, result, mask
+        gc.collect()
+
+    except Exception as e:
+        print(f"  FAILED: {e}")
+        gc.collect()
