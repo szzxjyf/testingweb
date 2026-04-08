@@ -10,8 +10,12 @@ from collections import Counter
 # 需要检查的列
 REMARK_COLS = ["trans_remark1", "trans_remark2", "trans_remark3", "trans_remark4"]
 
-# 关键词（不区分大小写，包含即匹配）
-KEYWORD = "PACKAGE"
+# 关键词列表（不区分大小写，包含即匹配，任意一个命中即保留）
+KEYWORDS = [
+    "PACKAGE",
+    # "BUNDLE",
+    # "COMBO",
+]
 
 # 排除列表：命中关键词但需要排除的条目（不区分大小写，精确匹配整条 remark 值）
 # 后续需要排除时，把对应的 remark 原文填入即可
@@ -47,6 +51,11 @@ def read_csv_auto(path):
 Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
 exclude_upper = {s.strip().upper() for s in EXCLUDE_REMARKS if s.strip()}
 
+# 将多个关键词拼成正则：PACKAGE|BUNDLE|COMBO
+import re
+keyword_pattern = "|".join(re.escape(k) for k in KEYWORDS)
+print(f"Keyword pattern: {keyword_pattern}")
+
 for i, fp in enumerate(DATA_FILES, 1):
     fp = Path(fp)
     print(f"\n{'='*50}")
@@ -61,7 +70,7 @@ for i, fp in enumerate(DATA_FILES, 1):
         mask = pd.Series(False, index=df.index)
         for col in REMARK_COLS:
             if col in df.columns:
-                mask = mask | df[col].astype(str).str.contains(KEYWORD, case=False, na=False)
+                mask = mask | df[col].astype(str).str.contains(keyword_pattern, case=False, na=False, regex=True)
             else:
                 print(f"  Warning: column '{col}' not found, skipped.")
 
@@ -84,10 +93,10 @@ for i, fp in enumerate(DATA_FILES, 1):
             if col not in result.columns:
                 continue
             hits = result[col].astype(str).str.strip()
-            hits = hits[hits.str.contains(KEYWORD, case=False, na=False)]
+            hits = hits[hits.str.contains(keyword_pattern, case=False, na=False, regex=True)]
             hit_counter.update(hits.str.upper().values)
 
-        print(f"\n  Hit Analysis (unique remark values containing '{KEYWORD}'):")
+        print(f"\n  Hit Analysis (remark values containing any of {KEYWORDS}):")
         print(f"  {'Remark Value':<60} Count")
         print(f"  {'-'*60} -----")
         for val, cnt in hit_counter.most_common():
