@@ -119,11 +119,11 @@ def process_tariff_modification(file_path: str, output_dir: str):
     # 金额转数值
     amt = pd.to_numeric(df[AMOUNT_COL], errors="coerce")
     
-    # 备份原始 tariff_type 值
+    # 备份原始 tariff_type 值（临时列，后续只保留被修改行的原值）
     if TARGET_COL in df.columns:
-        df["tariff_type_original"] = df[TARGET_COL].copy()
+        df["_tariff_backup"] = df[TARGET_COL].copy()
     else:
-        df["tariff_type_original"] = np.nan
+        df["_tariff_backup"] = np.nan
     
     # 2. 应用规则
     
@@ -201,8 +201,13 @@ def process_tariff_modification(file_path: str, output_dir: str):
     df.loc[df["_pair"] == "SVC_HBC", TARGET_COL] = T_SVC_HBC
     df.loc[df["_pair"] == "SVC_HBN", TARGET_COL] = T_SVC_HBN_2
 
-    # 3. 清理辅助列
-    drop_cols = ["_ie_item", "_ie_type", "_pair"] + [f"_{c}" for c in REMARK_COLS if f"_{c}" in df.columns]
+    # 3. 只对被修改的行保留原值
+    changed_mask = df[TARGET_COL].fillna("").ne(df["_tariff_backup"].fillna(""))
+    df["tariff_type_original"] = np.nan
+    df.loc[changed_mask, "tariff_type_original"] = df.loc[changed_mask, "_tariff_backup"]
+    
+    # 4. 清理辅助列
+    drop_cols = ["_ie_item", "_ie_type", "_pair", "_tariff_backup"] + [f"_{c}" for c in REMARK_COLS if f"_{c}" in df.columns]
     df = df.drop(columns=drop_cols)
     
     # 4. 保存
