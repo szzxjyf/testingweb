@@ -2,7 +2,34 @@ import pandas as pd
 import numpy as np
 import gc
 from pathlib import Path
-from common_utils import read_csv_auto_encoding, normalize_text_series, safely_save_csv
+
+
+# =========================
+# 工具函数（原 common_utils）
+# =========================
+def read_csv_auto_encoding(file_path):
+    """自动尝试多种编码读取 CSV"""
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            return pd.read_csv(file_path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"无法读取CSV: {file_path}")
+
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """标准化文本列：去空格、转大写"""
+    return s.astype("string").str.strip().str.upper()
+
+
+def safely_save_csv(df, output_dir, file_name, encoding="utf-8-sig"):
+    """确保目录存在并保存 CSV"""
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / file_name
+    df.to_csv(out_path, index=False, encoding=encoding)
+    return out_path
+
 
 # =========================
 # 配置与字段定义
