@@ -49,7 +49,8 @@ def process_export(file_path: str, output_dir: str):
 
     print(f"Reading: {file_path.name}")
     df, enc = read_csv_auto_encoding(file_path)
-    print(f"Encoding: {enc}, rows: {len(df):,}")
+    total_rows = len(df)
+    print(f"Encoding: {enc}, rows: {total_rows:,}")
 
     # 1. 保留 charge_department = GLCM
     if CHARGE_DEPT_COL in df.columns:
@@ -80,9 +81,11 @@ def process_export(file_path: str, output_dir: str):
     df = df.rename(columns=rename_map)
 
     # 5. 导出
+    remaining_rows = len(df)
     output_path = output_dir / f"{file_path.stem}_export.csv"
     df.to_csv(output_path, index=False, encoding="utf-8-sig")
-    print(f"Saved: {output_path} ({len(df):,} rows)")
+    print(f"\nSaved: {output_path}")
+    print(f"原始行数: {total_rows:,} → 剩余行数: {remaining_rows:,}（去除 {total_rows - remaining_rows:,} 行）")
 
 
 # =========================
