@@ -41,6 +41,12 @@ COLUMN_MAPPING = {
 # 需要保留的源列名列表
 SOURCE_COLS = list(COLUMN_MAPPING.keys())
 
+# tariff_type 整体替换（在筛选之前执行）
+# 格式："原始值": "替换值"
+TARIFF_TYPE_REPLACE = {
+    # "原始 tariff_type 值": "新的 tariff_type 值",
+}
+
 
 def process_export(file_path: str, output_dir: str):
     file_path = Path(file_path)
@@ -51,6 +57,11 @@ def process_export(file_path: str, output_dir: str):
     df, enc = read_csv_auto_encoding(file_path)
     total_rows = len(df)
     print(f"Encoding: {enc}, rows: {total_rows:,}")
+
+    # 0. tariff_type 整体替换（在筛选之前）
+    if TARIFF_TYPE_COL in df.columns and TARIFF_TYPE_REPLACE:
+        df[TARIFF_TYPE_COL] = df[TARIFF_TYPE_COL].replace(TARIFF_TYPE_REPLACE)
+        print(f"Applied {len(TARIFF_TYPE_REPLACE)} tariff_type replacement(s)")
 
     # 1. 保留 charge_department = GLCM
     if CHARGE_DEPT_COL in df.columns:
