@@ -147,7 +147,7 @@ def process_tariff_modification(file_path: str, output_dir: str):
     # 如果上次跑过，存在 tariff_type_original 列，
     # 把其中"增值税"的行还原回 tariff_type
     if "tariff_type_original" in df.columns:
-        vat_restore = df["tariff_type_original"].astype(str).str.contains("增值税", na=False)
+        vat_restore = df["tariff_type_original"].astype(str).str.contains("增值税", na=False).fillna(False)
         df.loc[vat_restore, TARGET_COL] = df.loc[vat_restore, "tariff_type_original"]
         # 保留上次的列，不删除
     
@@ -158,65 +158,65 @@ def process_tariff_modification(file_path: str, output_dir: str):
         df["_tariff_backup"] = np.nan
     
     # 增值税保护：这些行不做任何修改
-    vat_mask = df["_tariff_backup"].astype(str).str.contains("增值税", na=False)
+    vat_mask = df["_tariff_backup"].astype(str).str.contains("增值税", na=False).fillna(False)
     
     # 2. 应用规则
     
     # 规则 1: IEPAIR = CMR_AD1 + Narrative contains ACCOUNT / CERTIFICATE
-    mask1 = (df["_pair"] == "CMR_AD1") & contains_any(norm_remarks, [k.upper() for k in CERT_NAR])
+    mask1 = ((df["_pair"] == "CMR_AD1") & contains_any(norm_remarks, [k.upper() for k in CERT_NAR])).fillna(False)
     df.loc[mask1, TARGET_COL] = T_3_5_1_1
     
     # 规则 2: IEPAIR in GROUP + Narrative contains REPRINT / 补打 / STATEMENT CHARGE
-    mask2 = (df["_pair"].isin(GROUP_GHO_CMR)) & contains_any(norm_remarks, [k.upper() for k in REPRINT_NAR])
+    mask2 = ((df["_pair"].isin(GROUP_GHO_CMR)) & contains_any(norm_remarks, [k.upper() for k in REPRINT_NAR])).fillna(False)
     df.loc[mask2, TARGET_COL] = T_3_6_1_1
     
     # 规则 3: IEPAIR in GROUP + Narrative contains Bank Charges/Invoice No
-    mask3 = (df["_pair"].isin(GROUP_GHO_CMR)) & contains_any(norm_remarks, [k.upper() for k in BANK_CHG_NAR])
+    mask3 = ((df["_pair"].isin(GROUP_GHO_CMR)) & contains_any(norm_remarks, [k.upper() for k in BANK_CHG_NAR])).fillna(False)
     df.loc[mask3, TARGET_COL] = T_3_13_1_1
     
     # 规则 4: IEPAIR = SVC_RSC + Narrative contains 帐单/通知书服务费/STMT/ADV CHARGE FEE
-    mask4 = (df["_pair"] == "SVC_RSC") & contains_any(norm_remarks, [k.upper() for k in STMT_NAR])
+    mask4 = ((df["_pair"] == "SVC_RSC") & contains_any(norm_remarks, [k.upper() for k in STMT_NAR])).fillna(False)
     df.loc[mask4, TARGET_COL] = T_3_1_1_1
     
     # 规则 5: IEPAIR = SVC_RSC + Narrative contains ACCOUNT SERVICE FEE CMB
-    mask5 = (df["_pair"] == "SVC_RSC") & contains_any(norm_remarks, [k.upper() for k in SVC_FEE_NAR])
+    mask5 = ((df["_pair"] == "SVC_RSC") & contains_any(norm_remarks, [k.upper() for k in SVC_FEE_NAR])).fillna(False)
     df.loc[mask5, TARGET_COL] = T_1_2_1_1
     
     # 规则 6: IEPAIR = SVC_CUI + Narrative contains IVC
-    mask6 = (df["_pair"] == "SVC_CUI") & contains_any(norm_remarks, [k.upper() for k in IVC_NAR])
+    mask6 = ((df["_pair"] == "SVC_CUI") & contains_any(norm_remarks, [k.upper() for k in IVC_NAR])).fillna(False)
     df.loc[mask6, TARGET_COL] = T_3_14
     
     # 金额规则: CMR_TTI
     # A. Amount = 80
-    mask_amt_80 = (df["_pair"] == "CMR_TTI") & (np.isclose(amt, 80))
+    mask_amt_80 = ((df["_pair"] == "CMR_TTI") & (np.isclose(amt, 80))).fillna(False)
     df.loc[mask_amt_80, TARGET_COL] = T_11_3_X
     
     # B. Amount < 220, Positive, has decimal point
-    mask_amt_dec = (df["_pair"] == "CMR_TTI") & (amt > 0) & (amt < 220) & (amt % 1 != 0)
+    mask_amt_dec = ((df["_pair"] == "CMR_TTI") & (amt > 0) & (amt < 220) & (amt % 1 != 0)).fillna(False)
     df.loc[mask_amt_dec, TARGET_COL] = T_OVERSEAS
     
     # CMR_PY2 表格逻辑
     if "_trans_remark3" in df.columns:
-        m_py2_1 = (df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("ICBC H2H MONTHLY FEE")
+        m_py2_1 = ((df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("ICBC H2H MONTHLY FEE")).fillna(False)
         df.loc[m_py2_1, TARGET_COL] = T_10_12_H2H
         
-        m_py2_2 = (df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("MBS MONTHLY FEE")
+        m_py2_2 = ((df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("MBS MONTHLY FEE")).fillna(False)
         df.loc[m_py2_2, TARGET_COL] = T_10_12_MBS
         
-        m_py2_3 = (df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("证书费")
+        m_py2_3 = ((df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("证书费")).fillna(False)
         df.loc[m_py2_3, TARGET_COL] = T_10_12_CERT
         
     if "_trans_remark1" in df.columns:
-        m_py2_4 = (df["_pair"] == "CMR_PY2") & (
+        m_py2_4 = ((df["_pair"] == "CMR_PY2") & (
             df["_trans_remark1"].fillna("").str.contains("MBS 多银行平台系统设置") |
             df["_trans_remark1"].fillna("").str.contains("MBS 多银行平台系统设")
-        )
+        )).fillna(False)
         df.loc[m_py2_4, TARGET_COL] = T_10_12_CERT
         
         if "_trans_remark3" in df.columns:
-            m_py2_5 = (df["_pair"] == "CMR_PY2") & \
+            m_py2_5 = ((df["_pair"] == "CMR_PY2") & \
                       df["_trans_remark1"].fillna("").str.contains("STANDING INSTRUCTION 002") & \
-                      (df["_trans_remark3"].fillna("") == "")
+                      (df["_trans_remark3"].fillna("") == "")).fillna(False)
             df.loc[m_py2_5, TARGET_COL] = T_10_12_H2H
 
     # CMR_DM3 规则
@@ -232,19 +232,19 @@ def process_tariff_modification(file_path: str, output_dir: str):
     # CMR_API + gho_class = RCC → 10.13 移动收款服务
     if GHO_CLASS_COL in df.columns:
         df["_gho_class"] = normalize_text_series(df[GHO_CLASS_COL])
-        mask_api_rcc = (df["_pair"] == "CMR_API") & (df["_gho_class"] == "RCC")
+        mask_api_rcc = ((df["_pair"] == "CMR_API") & (df["_gho_class"] == "RCC")).fillna(False)
         df.loc[mask_api_rcc, TARGET_COL] = T_10_13
     
-    # CMR_PY2 + cust_name_cn = 有限公司
+    # CMR_PY2 + cust_name_cn = 金羚电器有限公司
     if CUST_NAME_CN_COL in df.columns:
-        mask_jinling = (df["_pair"] == "CMR_PY2") & \
-                       (df[CUST_NAME_CN_COL].astype(str).str.strip() == "有限公司")
+        mask_jinling = ((df["_pair"] == "CMR_PY2") & \
+                       (df[CUST_NAME_CN_COL].astype(str).str.strip() == "金羚电器有限公司")).fillna(False)
         df.loc[mask_jinling, TARGET_COL] = T_10_12_H2H
     
     # Cash Concentration: 按 trans_remark1 内容匹配
     if "_trans_remark1" in df.columns:
         for keyword, tariff_val in CASH_CON_MAPPING.items():
-            mask_cc = df["_trans_remark1"].fillna("").str.contains(keyword.upper(), na=False, regex=False)
+            mask_cc = df["_trans_remark1"].fillna("").str.contains(keyword.upper(), na=False, regex=False).fillna(False)
             df.loc[mask_cc, TARGET_COL] = tariff_val
     
     # tariff_type 值替换映射
@@ -255,7 +255,7 @@ def process_tariff_modification(file_path: str, output_dir: str):
     df.loc[vat_mask, TARGET_COL] = df.loc[vat_mask, "_tariff_backup"]
 
     # 3. 只对被修改的行保留原值
-    changed_mask = df[TARGET_COL].fillna("").ne(df["_tariff_backup"].fillna(""))
+    changed_mask = df[TARGET_COL].fillna("").ne(df["_tariff_backup"].fillna("")).fillna(False)
     df["tariff_type_original_2"] = np.nan
     df.loc[changed_mask, "tariff_type_original_2"] = df.loc[changed_mask, "_tariff_backup"]
     
