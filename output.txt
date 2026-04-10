@@ -1,0 +1,102 @@
+import pandas as pd
+import gc
+from pathlib import Path
+
+
+# =========================
+# 工具函数
+# =========================
+def read_csv_auto_encoding(file_path):
+    """自动尝试多种编码读取 CSV"""
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            return pd.read_csv(file_path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"无法读取CSV: {file_path}")
+
+
+# =========================
+# 配置
+# =========================
+CHARGE_DEPT_COL = "charge_department"
+TARIFF_TYPE_COL = "tariff_type"
+
+# 源列名 → 导出表头（中文+英文）
+# 按照附件顺序排列
+COLUMN_MAPPING = {
+    "cust_no":       "客户号cust_no",
+    "cust_name_en":  "客户名称（英文）cust_name_en",
+    "cust_name_cn":  "客户名称（中文）cust_name_cn",
+    "asso_acct_no":  "关联账户账号ASSO_ACCT_NO",
+    "ccy_code":      "币种ccy_code",
+    "trans_amt":     "交易金额（原始币种）trans_amt",
+    "trans_amt_cny": "交易金额（人民币）trans_amt_cny",
+    "trans_date":    "交易日期trans_date",
+    "tariff_type":   "收费项目tariff_type",
+    "work_station":  "交易编号1（work_station）",
+    "busi_no":       "交易编号2（busi_no）",
+}
+
+# 需要保留的源列名列表
+SOURCE_COLS = list(COLUMN_MAPPING.keys())
+
+
+def process_export(file_path: str, output_dir: str):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Reading: {file_path.name}")
+    df, enc = read_csv_auto_encoding(file_path)
+    print(f"Encoding: {enc}, rows: {len(df):,}")
+
+    # 1. 保留 charge_department = GLCM
+    if CHARGE_DEPT_COL in df.columns:
+        df[CHARGE_DEPT_COL] = df[CHARGE_DEPT_COL].astype(str).str.strip().str.upper()
+        df = df[df[CHARGE_DEPT_COL] == "GLCM"].copy()
+        print(f"After GLCM filter: {len(df):,} rows")
+    else:
+        print(f"WARNING: column '{CHARGE_DEPT_COL}' not found, skipping GLCM filter")
+
+    # 2. 去除 tariff_type 包含"增值税"的行
+    if TARIFF_TYPE_COL in df.columns:
+        vat_mask = df[TARIFF_TYPE_COL].astype(str).str.contains("增值税", na=False)
+        df = df[~vat_mask].copy()
+        print(f"After removing 增值税: {len(df):,} rows")
+    else:
+        print(f"WARNING: column '{TARIFF_TYPE_COL}' not found, skipping 增值税 filter")
+
+    # 3. 只保留指定列（跳过不存在的列）
+    existing_cols = [c for c in SOURCE_COLS if c in df.columns]
+    missing_cols = [c for c in SOURCE_COLS if c not in df.columns]
+    if missing_cols:
+        print(f"WARNING: missing columns: {missing_cols}")
+
+    df = df[existing_cols].copy()
+
+    # 4. 重命名列为中文+英文表头
+    rename_map = {k: v for k, v in COLUMN_MAPPING.items() if k in existing_cols}
+    df = df.rename(columns=rename_map)
+
+    # 5. 导出
+    output_path = output_dir / f"{file_path.stem}_export.csv"
+    df.to_csv(output_path, index=False, encoding="utf-8-sig")
+    print(f"Saved: {output_path} ({len(df):,} rows)")
+
+
+# =========================
+# 使用方式（直接在 Jupyter cell 中运行）
+# =========================
+input_files = [
+    # r"path/to/your/input.csv",
+]
+output_directory = "./output_export"
+
+for f in input_files:
+    try:
+        process_export(f, output_directory)
+    except Exception as e:
+        print(f"Error processing {f}: {e}")
+    finally:
+        gc.collect()
