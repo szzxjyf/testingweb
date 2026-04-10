@@ -60,8 +60,10 @@ def process_export(file_path: str, output_dir: str):
 
     # 0. tariff_type 整体替换（在筛选之前）
     if TARIFF_TYPE_COL in df.columns and TARIFF_TYPE_REPLACE:
+        before = df[TARIFF_TYPE_COL].copy()
         df[TARIFF_TYPE_COL] = df[TARIFF_TYPE_COL].replace(TARIFF_TYPE_REPLACE)
-        print(f"Applied {len(TARIFF_TYPE_REPLACE)} tariff_type replacement(s)")
+        replaced_count = (before.fillna("") != df[TARIFF_TYPE_COL].fillna("")).sum()
+        print(f"tariff_type 替换: {len(TARIFF_TYPE_REPLACE)} 条规则，实际替换 {replaced_count:,} 行")
 
     # 1. 保留 charge_department = GLCM
     if CHARGE_DEPT_COL in df.columns:
