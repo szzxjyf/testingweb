@@ -235,10 +235,10 @@ def process_tariff_modification(file_path: str, output_dir: str):
         mask_api_rcc = (df["_pair"] == "CMR_API") & (df["_gho_class"] == "RCC")
         df.loc[mask_api_rcc, TARGET_COL] = T_10_13
     
-    # CMR_PY2 + cust_name_cn = 金羚电器有限公司
+    # CMR_PY2 + cust_name_cn = 有限公司
     if CUST_NAME_CN_COL in df.columns:
         mask_jinling = (df["_pair"] == "CMR_PY2") & \
-                       (df[CUST_NAME_CN_COL].astype(str).str.strip() == "金羚电器有限公司")
+                       (df[CUST_NAME_CN_COL].astype(str).str.strip() == "有限公司")
         df.loc[mask_jinling, TARGET_COL] = T_10_12_H2H
     
     # Cash Concentration: 按 trans_remark1 内容匹配
