@@ -1,0 +1,286 @@
+import pandas as pd
+import numpy as np
+import gc
+from pathlib import Path
+
+
+# =========================
+# 工具函数（原 common_utils）
+# =========================
+def read_csv_auto_encoding(file_path):
+    """自动尝试多种编码读取 CSV"""
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            return pd.read_csv(file_path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"无法读取CSV: {file_path}")
+
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """标准化文本列：去空格、转大写"""
+    return s.astype("string").str.strip().str.upper()
+
+
+def safely_save_csv(df, output_dir, file_name, encoding="utf-8-sig"):
+    """确保目录存在并保存 CSV"""
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / file_name
+    df.to_csv(out_path, index=False, encoding=encoding)
+    return out_path
+
+
+# =========================
+# 配置与字段定义
+# =========================
+IE_ITEM_COL = "ie_item"
+IE_TYPE_COL = "ie_type"
+AMOUNT_COL = "trans_amt_cny"
+REMARK_COLS = ["trans_remark1", "trans_remark2", "trans_remark3", "trans_remark4"]
+GHO_CLASS_COL = "gho_class"
+CUST_NAME_CN_COL = "cust_name_cn"
+TARGET_COL = "tariff_type"
+
+# =========================
+# 规则常量定义
+# =========================
+
+# 1. Narrative 关键词定义 (不区分大小写，代码会自动转换)
+CERT_NAR = ["ACCOUNT", "CERTIFICATE"]
+REPRINT_NAR = ["REPRINT", "补打", "STATEMENT CHARGE"]
+BANK_CHG_NAR = ["BANK CHARGES", "INVOICE NO"]
+STMT_NAR = ["帐单", "通知书服务费", "STMT", "ADV CHARGE FEE"]
+SVC_FEE_NAR = ["ACCOUNT SERVICE FEE CMB"]
+IVC_NAR = ["IVC"]
+
+# 规则 2/3 分组
+GROUP_GHO_CMR = ["CMR_GEN", "CMR_CUI", "CMR_SSV", "CMR_SS3", "CMR_FTN"]
+
+# 目标结果
+T_3_5_1_1 = "3.5.1.1 账户结余证明书"
+T_3_6_1_1 = "3.6.1.1 提供历史结单/进账通知/扣账通知/传票/已兑现支票副本"
+T_3_13_1_1 = "3.13.1.1 综合业务扣费服务明细清单报告月费 TWIST 账单月费"
+T_3_1_1_1 = "3.1.1.1 纸质结单"
+T_1_2_1_1 = "1.2.1.1 服务费"
+T_3_14 = "3.14 海外开户见证服务费"
+T_11_3_X = "11.3.2 收/付款更正/取消/退回 11.3.3 收/付款查询"
+T_OVERSEAS = "我行向海外银行要求的 ChargeOur 汇款手续费(对公)"
+
+# CMR_PY2 相关
+T_10_12_H2H = "10.12 第三方银行账户查询和转账支付服务 10.12.2 账户查询 10.12.3 转账支付"
+T_10_12_MBS = "10.12 第三方银行账户查询和转账支付服务 10.12.8 基本月度服务费 10.12.9 跨行现金集中 增值服务费"
+T_10_12_CERT = "10.12 第三方银行账户查询和转账支付服务 10.12.7 一次性系统设置费 及数字签名证书费"
+
+# CMR_DM3 相关
+T_10_10 = "10.10.1手续费 10.10.2 逾期贷款手续费"
+
+# 直接映射规则
+T_SVC_HEX = "3.7-3.11MT940/MT950/MT942/MT900/MT910/日终对账单文件/日间对账单文件"
+T_CMR_HBN = "9.2 银企直联服务/9.3 SWIFTNet FIN 报文传输服务/9.4 SWIFTNet FileAct 文件传输服务/9.5 SWIFTNet FIN 及 FileAct 报文及文件传输服务/9.6 SAP ERP 银企互联适配器"
+T_SVC_HBC = "9.8 资金管理流程整合技术顾问服务"
+T_SVC_HBN_2 = "9.1 汇丰财资网(HSBCnet)"
+
+# CMR_API + RCC
+T_10_13 = "10.13 移动收款服务"
+
+# Cash Concentration: trans_remark1 关键词 → tariff_type 映射
+CASH_CON_MAPPING = {
+    "CASH CON MONTHLY SERVICE": "10.其他 10.6 资金集中归集(同公司内部)10.6.2 管理费",
+    "CASH CON MONTHLY": "10.其他 10.6 资金集中归集(同公司内部)10.6.2 管理费",
+    "CASH POOL ANNUAL": "10.其他 10.7 集团境内流动性管理 10.7.2 管理费",
+    "GLE INSTALLATION FEE": "10.其他 10.7 集团境内流动性管理 10.7.1 安装费",
+    "GLS ANNUAL SERVICE FEE": "10.其他 10.6 资金集中归集(同公司内部)10.6.2 管理费",
+    "GLS CASH CON FEES": "10.其他 10.7 集团境内流动性管理 10.7.2 管理费",
+    "GLS MONTHLY MANAGEMENT": "10.其他 10.6 资金集中归集(同公司内部)10.6.2 管理费",
+    "ONE TIME GLS SERVICE": "10.其他 10.9 集团跨境流动性管理 10.9.4 流动性管理方案设计服务费",
+    "ONE TIME GLS RE-STRUCTUR": "10.其他 10.7 集团境内流动性管理 10.7.4 流动性管理方案改造变更服务费",
+    "RE-STRUCTURE FEE": "10.其他 10.7 集团境内流动性管理 10.7.4 流动性管理方案改造变更服务费",
+}
+
+# tariff_type 值替换映射
+TARIFF_VALUE_MAPPING = {
+    "M5_海外汇款/境内汇款": "5_海外汇款/境内汇款/11_跨境贸易人民币代理清算业务",
+}
+
+
+def contains_any(series_list: list, keywords: list) -> pd.Series:
+    """
+    检查多列中是否包含关键词列表中的任一词。
+    series_list: normalized pandas Series 列表
+    keywords: 关键词列表 (需大写)
+    """
+    mask = pd.Series(False, index=series_list[0].index)
+    for s in series_list:
+        for k in keywords:
+            mask = mask | s.fillna("").str.contains(k, na=False, regex=False)
+    return mask
+
+
+def process_tariff_modification(file_path: str, output_dir: str):
+    print(f"Reading file: {file_path}")
+    df, encoding = read_csv_auto_encoding(file_path)
+    print(f"Encoding detected: {encoding}")
+
+    # 1. 预处理：标准化必要列
+    df["_ie_item"] = normalize_text_series(df[IE_ITEM_COL]).fillna("")
+    df["_ie_type"] = normalize_text_series(df[IE_TYPE_COL]).fillna("")
+    
+    # 拼接 pair。如果 ie_type 为空，则不加下划线，以匹配规则如 "GHO"
+    df["_pair"] = df.apply(
+        lambda x: f"{x['_ie_item']}_{x['_ie_type']}" if x["_ie_type"] != "" else x["_ie_item"], 
+        axis=1
+    )
+    
+    # 标准化所有备注列
+    norm_remarks = []
+    for col in REMARK_COLS:
+        if col in df.columns:
+            norm_col = f"_{col}"
+            df[norm_col] = normalize_text_series(df[col])
+            norm_remarks.append(df[norm_col])
+    
+    # 金额转数值
+    amt = pd.to_numeric(df[AMOUNT_COL], errors="coerce")
+    
+    # ========== 处理上一次运行遗留 ==========
+    # 如果上次跑过，存在 tariff_type_original 列，
+    # 把其中"增值税"的行还原回 tariff_type
+    if "tariff_type_original" in df.columns:
+        vat_restore = df["tariff_type_original"].astype(str).str.contains("增值税", na=False)
+        df.loc[vat_restore, TARGET_COL] = df.loc[vat_restore, "tariff_type_original"]
+        # 保留上次的列，不删除
+    
+    # ========== 备份 & 标记增值税行 ==========
+    if TARGET_COL in df.columns:
+        df["_tariff_backup"] = df[TARGET_COL].copy()
+    else:
+        df["_tariff_backup"] = np.nan
+    
+    # 增值税保护：这些行不做任何修改
+    vat_mask = df["_tariff_backup"].astype(str).str.contains("增值税", na=False)
+    
+    # 2. 应用规则
+    
+    # 规则 1: IEPAIR = CMR_AD1 + Narrative contains ACCOUNT / CERTIFICATE
+    mask1 = (df["_pair"] == "CMR_AD1") & contains_any(norm_remarks, [k.upper() for k in CERT_NAR])
+    df.loc[mask1, TARGET_COL] = T_3_5_1_1
+    
+    # 规则 2: IEPAIR in GROUP + Narrative contains REPRINT / 补打 / STATEMENT CHARGE
+    mask2 = (df["_pair"].isin(GROUP_GHO_CMR)) & contains_any(norm_remarks, [k.upper() for k in REPRINT_NAR])
+    df.loc[mask2, TARGET_COL] = T_3_6_1_1
+    
+    # 规则 3: IEPAIR in GROUP + Narrative contains Bank Charges/Invoice No
+    mask3 = (df["_pair"].isin(GROUP_GHO_CMR)) & contains_any(norm_remarks, [k.upper() for k in BANK_CHG_NAR])
+    df.loc[mask3, TARGET_COL] = T_3_13_1_1
+    
+    # 规则 4: IEPAIR = SVC_RSC + Narrative contains 帐单/通知书服务费/STMT/ADV CHARGE FEE
+    mask4 = (df["_pair"] == "SVC_RSC") & contains_any(norm_remarks, [k.upper() for k in STMT_NAR])
+    df.loc[mask4, TARGET_COL] = T_3_1_1_1
+    
+    # 规则 5: IEPAIR = SVC_RSC + Narrative contains ACCOUNT SERVICE FEE CMB
+    mask5 = (df["_pair"] == "SVC_RSC") & contains_any(norm_remarks, [k.upper() for k in SVC_FEE_NAR])
+    df.loc[mask5, TARGET_COL] = T_1_2_1_1
+    
+    # 规则 6: IEPAIR = SVC_CUI + Narrative contains IVC
+    mask6 = (df["_pair"] == "SVC_CUI") & contains_any(norm_remarks, [k.upper() for k in IVC_NAR])
+    df.loc[mask6, TARGET_COL] = T_3_14
+    
+    # 金额规则: CMR_TTI
+    # A. Amount = 80
+    mask_amt_80 = (df["_pair"] == "CMR_TTI") & (np.isclose(amt, 80))
+    df.loc[mask_amt_80, TARGET_COL] = T_11_3_X
+    
+    # B. Amount < 220, Positive, has decimal point
+    mask_amt_dec = (df["_pair"] == "CMR_TTI") & (amt > 0) & (amt < 220) & (amt % 1 != 0)
+    df.loc[mask_amt_dec, TARGET_COL] = T_OVERSEAS
+    
+    # CMR_PY2 表格逻辑
+    if "_trans_remark3" in df.columns:
+        m_py2_1 = (df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("ICBC H2H MONTHLY FEE")
+        df.loc[m_py2_1, TARGET_COL] = T_10_12_H2H
+        
+        m_py2_2 = (df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("MBS MONTHLY FEE")
+        df.loc[m_py2_2, TARGET_COL] = T_10_12_MBS
+        
+        m_py2_3 = (df["_pair"] == "CMR_PY2") & df["_trans_remark3"].fillna("").str.contains("证书费")
+        df.loc[m_py2_3, TARGET_COL] = T_10_12_CERT
+        
+    if "_trans_remark1" in df.columns:
+        m_py2_4 = (df["_pair"] == "CMR_PY2") & (
+            df["_trans_remark1"].fillna("").str.contains("MBS 多银行平台系统设置") |
+            df["_trans_remark1"].fillna("").str.contains("MBS 多银行平台系统设")
+        )
+        df.loc[m_py2_4, TARGET_COL] = T_10_12_CERT
+        
+        if "_trans_remark3" in df.columns:
+            m_py2_5 = (df["_pair"] == "CMR_PY2") & \
+                      df["_trans_remark1"].fillna("").str.contains("STANDING INSTRUCTION 002") & \
+                      (df["_trans_remark3"].fillna("") == "")
+            df.loc[m_py2_5, TARGET_COL] = T_10_12_H2H
+
+    # CMR_DM3 规则
+    mask_dm3 = (df["_pair"] == "CMR_DM3")
+    df.loc[mask_dm3, TARGET_COL] = T_10_10
+    
+    # 直接映射规则（仅按 IEPAIR 判断）
+    df.loc[df["_pair"] == "SVC_HEX", TARGET_COL] = T_SVC_HEX
+    df.loc[df["_pair"] == "CMR_HBN", TARGET_COL] = T_CMR_HBN
+    df.loc[df["_pair"] == "SVC_HBC", TARGET_COL] = T_SVC_HBC
+    df.loc[df["_pair"] == "SVC_HBN", TARGET_COL] = T_SVC_HBN_2
+    
+    # CMR_API + gho_class = RCC → 10.13 移动收款服务
+    if GHO_CLASS_COL in df.columns:
+        df["_gho_class"] = normalize_text_series(df[GHO_CLASS_COL])
+        mask_api_rcc = (df["_pair"] == "CMR_API") & (df["_gho_class"] == "RCC")
+        df.loc[mask_api_rcc, TARGET_COL] = T_10_13
+    
+    # CMR_PY2 + cust_name_cn = 金羚电器有限公司
+    if CUST_NAME_CN_COL in df.columns:
+        mask_jinling = (df["_pair"] == "CMR_PY2") & \
+                       (df[CUST_NAME_CN_COL].astype(str).str.strip() == "金羚电器有限公司")
+        df.loc[mask_jinling, TARGET_COL] = T_10_12_H2H
+    
+    # Cash Concentration: 按 trans_remark1 内容匹配
+    if "_trans_remark1" in df.columns:
+        for keyword, tariff_val in CASH_CON_MAPPING.items():
+            mask_cc = df["_trans_remark1"].fillna("").str.contains(keyword.upper(), na=False, regex=False)
+            df.loc[mask_cc, TARGET_COL] = tariff_val
+    
+    # tariff_type 值替换映射
+    if TARGET_COL in df.columns:
+        df[TARGET_COL] = df[TARGET_COL].replace(TARIFF_VALUE_MAPPING)
+
+    # ========== 增值税保护：强制还原 ==========
+    df.loc[vat_mask, TARGET_COL] = df.loc[vat_mask, "_tariff_backup"]
+
+    # 3. 只对被修改的行保留原值
+    changed_mask = df[TARGET_COL].fillna("").ne(df["_tariff_backup"].fillna(""))
+    df["tariff_type_original_2"] = np.nan
+    df.loc[changed_mask, "tariff_type_original_2"] = df.loc[changed_mask, "_tariff_backup"]
+    
+    # 4. 清理辅助列
+    drop_cols = ["_ie_item", "_ie_type", "_pair", "_tariff_backup", "_gho_class"] + [f"_{c}" for c in REMARK_COLS if f"_{c}" in df.columns]
+    df = df.drop(columns=drop_cols)
+    
+    # 4. 保存
+    file_name = Path(file_path).stem + "_updated.csv"
+    output_path = safely_save_csv(df, output_dir, file_name)
+    print(f"Saved: {output_path}")
+
+
+# =========================
+# 使用方式（直接在 Jupyter cell 中运行）
+# =========================
+input_files = [
+    # r"path/to/your/input.csv",
+]
+output_directory = "./output_updated"
+
+for f in input_files:
+    try:
+        process_tariff_modification(f, output_directory)
+    except Exception as e:
+        print(f"Error processing {f}: {e}")
+    finally:
+        gc.collect()
