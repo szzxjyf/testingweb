@@ -2,7 +2,6 @@ import pandas as pd
 import gc
 from pathlib import Path
 
-
 # =========================
 # 工具函数
 # =========================
@@ -15,41 +14,10 @@ def read_csv_auto_encoding(file_path):
             continue
     raise ValueError(f"无法读取CSV: {file_path}")
 
-
 # =========================
-# 配置
+# 核心处理逻辑
 # =========================
-CHARGE_DEPT_COL = "charge_department"
-TARIFF_TYPE_COL = "tariff_type"
-
-# 源列名 → 导出表头（中文+英文）
-# 按照附件顺序排列
-COLUMN_MAPPING = {
-    "cust_no":       "客户号",
-    "cust_name_en":  "客户名称（英文）",
-    "cust_name_cn":  "客户名称（中文）",
-    "asso_acct_no":  "关联账户账号",
-    "ccy_code":      "币种",
-    "trans_amt":     "交易金额（原始币种）",
-    "trans_amt_cny": "交易金额（人民币）",
-    "trans_date":    "交易日期",
-    "tariff_type":   "收费项目",
-    "work_station":  "交易编号1",
-    "busi_no":       "交易编号2",
-    "trans_remark1": "交易附言1",
-    "trans_remark2": "交易附言2",
-    "trans_remark3": "交易附言3",
-    "trans_remark4": "交易附言4",
-}
-
-# 需要保留的源列名列表
-SOURCE_COLS = list(COLUMN_MAPPING.keys())
-
-# tariff_type 整体替换（在筛选之前执行）
-TARIFF_TYPE_REPLACE = {}
-
-
-def process_export(file_path: str, output_dir: str):
+def process_exported_file(file_path: str, output_dir: str):
     file_path = Path(file_path)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -59,108 +27,76 @@ def process_export(file_path: str, output_dir: str):
     total_rows = len(df)
     print(f"Encoding: {enc}, rows: {total_rows:,}")
 
-    # 1. 客户号替换逻辑：
-    if "cust_no" in df.columns:
-        remark_cols = [c for c in ["trans_remark1", "trans_remark2", "trans_remark3", "trans_remark4"] if c in df.columns]
+    # ===== 1. 修改客户号 =====
+    # export_glcm 导出后的列名是中文
+    CUST_NO_COL = "客户号"
+    REMARK_COLS = ["交易附言1", "交易附言2", "交易附言3", "交易附言4"]
+    
+    if CUST_NO_COL in df.columns:
+        existing_remarks = [c for c in REMARK_COLS if c in df.columns]
+        cn_mask = df[CUST_NO_COL].astype(str).str.strip() == "CN 000000000"
         
-        # 兼容可能有或没有空格的 CN 000000000
-        cn_mask = df["cust_no"].astype(str).str.replace(" ", "") == "CN000000000"
-        
-        if cn_mask.any() and remark_cols:
-            # 横向拼接附言以供搜索
-            combined_remarks = df.loc[cn_mask, remark_cols].fillna("").astype(str).agg(' '.join, axis=1)
-            # 正则提取9位数字: /VAT/CNHSBC + 9 digits
+        modified_count = 0
+        if cn_mask.any() and existing_remarks:
+            combined_remarks = df.loc[cn_mask, existing_remarks].fillna("").astype(str).agg(' '.join, axis=1)
             extracted_digits = combined_remarks.str.extract(r'/VAT/CNHSBC(\d{9})', expand=False)
             
             valid_mask = extracted_digits.notna()
             update_indices = combined_remarks[valid_mask].index
             
-            # 使用 .astype(str) 保证拼接的绝对安全
-            df.loc[update_indices, "cust_no"] = "CNHSBC" + extracted_digits[valid_mask].astype(str)
-            print(f"  [操作] 替换客户号: 将 {len(update_indices)} 条 CN 000000000 变更为 CNHSBC+9位数字 格式")
-            
-        # 附带清理：扫描整列，把原本可能是 "CN 123456789" 格式的数据统一修复为 "CNHSBC123456789"
-        df["cust_no"] = df["cust_no"].astype(str).str.replace(r'^[C|c][N|n]\s+(\d{9})$', r'CNHSBC\1', regex=True)
-
-    # 2. 删除 tariff_type 中包含特定字样的行
-    if TARIFF_TYPE_COL in df.columns:
-        chargeour_mask = df[TARIFF_TYPE_COL].astype(str).str.contains("我行向海外银行要求的 ChargeOur 汇款手续费(对公)", regex=False, na=False)
-        if chargeour_mask.any():
-            count_del = chargeour_mask.sum()
-            prev_rows = len(df)
-            df[chargeour_mask].to_csv(output_dir / f"{file_path.stem}_deleted_chargeour.csv", index=False, encoding="utf-8-sig")
-            df = df[~chargeour_mask].copy()
-            print(f"  [操作] 剔除 ChargeOur: 从 {prev_rows:,} 行 -> 变成 {len(df):,} 行 (去除了 {count_del:,} 行) -> *_deleted_chargeour.csv")
-            
-    # 3. 基础过滤：保留 charge_department = GLCM
-    if CHARGE_DEPT_COL in df.columns:
-        df[CHARGE_DEPT_COL] = df[CHARGE_DEPT_COL].astype(str).str.strip().str.upper()
-        
-        not_glcm_mask = df[CHARGE_DEPT_COL] != "GLCM"
-        if not_glcm_mask.any():
-            count_not_glcm = not_glcm_mask.sum()
-            prev_rows = len(df)
-            df[not_glcm_mask].to_csv(output_dir / f"{file_path.stem}_deleted_not_glcm.csv", index=False, encoding="utf-8-sig")
-            df = df[~not_glcm_mask].copy()
-            print(f"  [操作] 保留 GLCM (剔除其它部门): 从 {prev_rows:,} 行 -> 变成 {len(df):,} 行 (去除了 {count_not_glcm:,} 行) -> *_deleted_not_glcm.csv")
-        else:
-            df = df[~not_glcm_mask].copy()
-        
-    # 4. 去除 tariff_type 包含 "增值税" 的行
-    if TARIFF_TYPE_COL in df.columns:
-        vat_mask = df[TARIFF_TYPE_COL].astype(str).str.contains("增值税", na=False)
-        if vat_mask.any():
-            count_vat = vat_mask.sum()
-            prev_rows = len(df)
-            df[vat_mask].to_csv(output_dir / f"{file_path.stem}_deleted_vat.csv", index=False, encoding="utf-8-sig")
-            df = df[~vat_mask].copy()
-            print(f"  [操作] 剔除 '增值税': 从 {prev_rows:,} 行 -> 变成 {len(df):,} 行 (去除了 {count_vat:,} 行) -> *_deleted_vat.csv")
-        else:
-            df = df[~vat_mask].copy()
-
-    # 5. 只保留指定列（跳过不存在的列）
-    existing_cols = [c for c in SOURCE_COLS if c in df.columns]
-    df = df[existing_cols].copy()
-
-    # 6. 重命名列为我们需要的表头
-    rename_map = {k: v for k, v in COLUMN_MAPPING.items() if k in existing_cols}
-    df = df.rename(columns=rename_map)
-
-    # 7. 生成序列号列（GPS-YYYYMM-000001）
-    date_col_renamed = COLUMN_MAPPING.get("trans_date", "trans_date")
-    if date_col_renamed in df.columns:
-        yyyymm = pd.to_datetime(df[date_col_renamed], errors="coerce").dt.strftime("%Y%m").fillna("000000")
+            if len(update_indices) > 0:
+                new_cust_no = "CNHSBC" + extracted_digits[valid_mask].astype(str)
+                df.loc[update_indices, CUST_NO_COL] = new_cust_no
+                modified_count = len(update_indices)
+                
+        print(f"  [操作1] 修改客户号: 改动了 {modified_count:,} 条数据 (总行数保持 {len(df):,} 行不变)")
     else:
-        yyyymm = "000000"
+        print(f"  [操作1] 修改客户号: 找不到列 '{CUST_NO_COL}', 改动了 0 条数据 (总行数保持 {len(df):,} 行不变)")
+
+    # ===== 2. 删除特殊的 ChargeOur 行 =====
+    TARIFF_COL = "收费项目"
+    if TARIFF_COL in df.columns:
+        chargeour_mask = df[TARIFF_COL].astype(str).str.contains("我行向海外银行要求的 ChargeOur 汇款手续费(对公)", regex=False, na=False)
+        count_del = chargeour_mask.sum()
+        prev_rows = len(df)
         
-    df.insert(0, "序列号", [
-        f"GPS-{m}-{i:06d}" for i, m in enumerate(yyyymm, start=1)
-    ])
+        if count_del > 0:
+            deleted_path = output_dir / f"{file_path.stem}_deleted_chargeour.csv"
+            df[chargeour_mask].to_csv(deleted_path, index=False, encoding="utf-8-sig")
+            df = df[~chargeour_mask].copy()
+            print(f"  [操作2] 剔除 ChargeOur: 从 {prev_rows:,} 行 -> 变成 {len(df):,} 行 (去除了 {count_del:,} 行) -> 保存至 *_deleted_chargeour.csv")
+        else:
+            print(f"  [操作2] 剔除 ChargeOur: 未发现对应记录，从 {prev_rows:,} 行 -> 变成 {len(df):,} 行 (去除了 0 行)")
+    else:
+        print(f"  [操作2] 剔除 ChargeOur: 找不到列 '{TARIFF_COL}', 从 {len(df):,} 行 -> 变成 {len(df):,} 行 (去除了 0 行)")
 
-    # 8. 导出
+    # ===== 3. 保存文件 =====
     remaining_rows = len(df)
-    output_path = output_dir / f"{file_path.stem}_export.csv"
+    output_path = output_dir / f"{file_path.stem}_processed.csv"
     df.to_csv(output_path, index=False, encoding="utf-8-sig")
-    print(f"\nSaved: {output_path}")
-    print(f"原始行数: {total_rows:,} → 剩余行数: {remaining_rows:,}（去除 {total_rows - remaining_rows:,} 行）")
+    print(f"\nSaved updated file: {output_path.name}")
+    print(f"最终行数: {total_rows:,} → {remaining_rows:,}")
 
 
+# =========================
 # 使用方式（直接在 Jupyter cell 中运行）
 # =========================
-output_directory = "./output_custom_vat"
+# 这里指定 export_glcm 输出的文件所在的文件夹
+input_directory = Path(r"./output_export") 
+output_directory = Path(r"./output_vat_cn_step2")
 
-# 方式1: 处理整个文件夹
-input_files = sorted(Path(r"./output_updated").glob("*.csv"))
+print(f"扫描目录: {input_directory}")
+csv_files = sorted(input_directory.glob("*.csv"))
+# 排除掉可能存在的 "_deleted_" 报告文件
+csv_files = [f for f in csv_files if "_deleted_" not in f.name]
 
-# 方式2: 单个文件测试
-# input_files = [r"path/to/your/input.csv"]
+print(f"找到 {len(csv_files)} 个待处理的 CSV 文件\n")
 
-print(f"找到 {len(input_files)} 个 CSV 文件\n")
-
-for f in input_files:
+for f in csv_files:
     try:
-        process_export(str(f), output_directory)
+        process_exported_file(str(f), str(output_directory))
     except Exception as e:
-        print(f"Error processing {f}: {e}")
+        print(f"Error processing {f.name}: {e}")
     finally:
         gc.collect()
+
