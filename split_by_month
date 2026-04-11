@@ -71,13 +71,21 @@ def merge_and_split_by_month(input_dir: str, output_dir: str):
     combined["_month"] = combined["_date"].dt.strftime("%Y%m")  # 如 202501
 
     # 重新按照 export_glcm 的逻辑生成序列号
+    # 为了保证时序并且"从 000001 开始"，这里先按时间排序，并让每个月独立从 1 开始计数
+    combined = combined.sort_values(by=["_date"], na_position="last").reset_index(drop=True)
+    
     if "序列号" in combined.columns:
         combined = combined.drop(columns=["序列号"])
+        
+    # 对每个 YYYYMM 分组，计算独立的自增序号
+    combined["_month_filled"] = combined["_month"].fillna("000000")
+    combined["_seq"] = combined.groupby("_month_filled").cumcount() + 1
     
-    yyyymm = combined["_month"].fillna("000000")
     combined.insert(0, "序列号", [
-        f"GPS-{m}-{i:06d}" for i, m in enumerate(yyyymm, start=1)
+        f"GPS-{m}-{i:06d}" for m, i in zip(combined["_month_filled"], combined["_seq"])
     ])
+    
+    combined = combined.drop(columns=["_seq", "_month_filled"])
 
     combined.loc[combined["_date"].isna(), "_month"] = "unknown"
 
