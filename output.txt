@@ -93,7 +93,17 @@ def process_export(file_path: str, output_dir: str):
     rename_map = {k: v for k, v in COLUMN_MAPPING.items() if k in existing_cols}
     df = df.rename(columns=rename_map)
 
-    # 5. 导出
+    # 5. 生成序列号列（GPS-YYYYMM-000001）
+    date_col_renamed = COLUMN_MAPPING.get("trans_date", "trans_date")
+    if date_col_renamed in df.columns:
+        yyyymm = pd.to_datetime(df[date_col_renamed], errors="coerce").dt.strftime("%Y%m").fillna("000000")
+    else:
+        yyyymm = "000000"
+    df.insert(0, "序列号", [
+        f"GPS-{m}-{i:06d}" for i, m in enumerate(yyyymm, start=1)
+    ])
+
+    # 6. 导出
     remaining_rows = len(df)
     output_path = output_dir / f"{file_path.stem}_export.csv"
     df.to_csv(output_path, index=False, encoding="utf-8-sig")
