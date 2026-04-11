@@ -73,7 +73,7 @@ def process_export(file_path: str, output_dir: str):
             valid_mask = extracted_digits.notna()
             update_indices = combined_remarks[valid_mask].index
             
-            df.loc[update_indices, "cust_no"] = "CN " + extracted_digits[valid_mask]
+            df.loc[update_indices, "cust_no"] = "CNHSBC" + extracted_digits[valid_mask]
             print(f"Updated 'cust_no' for {len(update_indices)} rows using /VAT/CNHSBC+9digits rule.")
 
     # 2. 删除 tariff_type 中包含特定字样的行
