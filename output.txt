@@ -111,17 +111,29 @@ def process_export(file_path: str, output_dir: str):
     print(f"原始行数: {total_rows:,} → 剩余行数: {remaining_rows:,}（去除 {total_rows - remaining_rows:,} 行）")
 
 
-# =========================
 # 使用方式（直接在 Jupyter cell 中运行）
+# 以下三种方式任选其一，其余注释掉
 # =========================
-input_files = [
-    # r"path/to/your/input.csv",
-]
 output_directory = "./output_export"
+
+# 方式1: 处理整个文件夹
+input_files = sorted(Path(r"./output_updated").glob("*.csv"))
+
+# 方式2: 指定多个文件
+# input_files = [
+#     r"path/to/file1.csv",
+#     r"path/to/file2.csv",
+# ]
+
+# 方式3: 单个文件
+# input_files = [r"path/to/your/input.csv"]
+
+# =========================
+print(f"找到 {len(input_files)} 个 CSV 文件\n")
 
 for f in input_files:
     try:
-        process_export(f, output_directory)
+        process_export(str(f), output_directory)
     except Exception as e:
         print(f"Error processing {f}: {e}")
     finally:
