@@ -1,0 +1,99 @@
+import pandas as pd
+import gc
+from pathlib import Path
+
+
+# =========================
+# 工具函数
+# =========================
+def read_csv_auto_encoding(file_path):
+    """自动尝试多种编码读取 CSV"""
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            return pd.read_csv(file_path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"无法读取CSV: {file_path}")
+
+
+# =========================
+# 配置
+# =========================
+TRANS_DATE_COL = "交易日期trans_date"  # export_glcm 导出后的列名
+
+
+def merge_and_split_by_month(input_dir: str, output_dir: str):
+    input_dir = Path(input_dir)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. 读取文件夹内所有 CSV 并汇总
+    csv_files = sorted(input_dir.glob("*.csv"))
+    if not csv_files:
+        print(f"未找到 CSV 文件: {input_dir}")
+        return
+
+    print(f"找到 {len(csv_files)} 个 CSV 文件")
+
+    all_dfs = []
+    for f in csv_files:
+        try:
+            df, enc = read_csv_auto_encoding(f)
+            print(f"  读取: {f.name} ({enc}, {len(df):,} 行)")
+            all_dfs.append(df)
+        except Exception as e:
+            print(f"  跳过: {f.name} - {e}")
+
+    if not all_dfs:
+        print("没有成功读取任何文件")
+        return
+
+    combined = pd.concat(all_dfs, ignore_index=True)
+    total_rows = len(combined)
+    print(f"\n汇总完成: {total_rows:,} 行")
+
+    # 释放中间数据
+    del all_dfs
+    gc.collect()
+
+    # 2. 解析交易日期
+    if TRANS_DATE_COL not in combined.columns:
+        print(f"ERROR: 列 '{TRANS_DATE_COL}' 不存在，无法按月分割")
+        print(f"可用列: {list(combined.columns)}")
+        return
+
+    combined["_date"] = pd.to_datetime(combined[TRANS_DATE_COL], errors="coerce")
+    invalid_count = combined["_date"].isna().sum()
+    if invalid_count > 0:
+        print(f"WARNING: {invalid_count:,} 行日期无法解析，将归入 'unknown' 文件")
+
+    combined["_month"] = combined["_date"].dt.strftime("%Y%m")  # 如 202501
+    combined.loc[combined["_date"].isna(), "_month"] = "unknown"
+
+    # 3. 按月分割导出
+    months = sorted(combined["_month"].unique())
+    print(f"\n按月分割: {len(months)} 个月份")
+    print("-" * 40)
+
+    for month in months:
+        month_df = combined[combined["_month"] == month].copy()
+        month_df = month_df.drop(columns=["_date", "_month"])
+
+        output_path = output_dir / f"{month}.csv"
+        month_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+        print(f"  {month}: {len(month_df):,} 行 → {output_path.name}")
+
+    print(f"\n原始总行数: {total_rows:,}")
+    print(f"导出文件数: {len(months)}")
+
+    del combined
+    gc.collect()
+
+
+# =========================
+# 使用方式（直接在 Jupyter cell 中运行）
+# =========================
+input_directory = "./output_export"     # 输入文件夹（放所有待汇总的 CSV）
+output_directory = "./output_monthly"   # 输出文件夹（按月分割后的文件）
+
+merge_and_split_by_month(input_directory, output_directory)
