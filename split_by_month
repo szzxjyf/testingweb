@@ -40,6 +40,7 @@ def merge_and_split_by_month(input_dir: str, output_dir: str):
         try:
             df, enc = read_csv_auto_encoding(f)
             print(f"  读取: {f.name} ({enc}, {len(df):,} 行)")
+            df["_source_file"] = f.name
             all_dfs.append(df)
         except Exception as e:
             print(f"  跳过: {f.name} - {e}")
@@ -68,6 +69,16 @@ def merge_and_split_by_month(input_dir: str, output_dir: str):
         print(f"WARNING: {invalid_count:,} 行日期无法解析，将归入 'unknown' 文件")
 
     combined["_month"] = combined["_date"].dt.strftime("%Y%m")  # 如 202501
+
+    # 重新按照 export_glcm 的逻辑生成序列号
+    if "序列号" in combined.columns:
+        combined = combined.drop(columns=["序列号"])
+    
+    yyyymm = combined["_month"].fillna("000000")
+    combined.insert(0, "序列号", [
+        f"GPS-{m}-{i:06d}" for i, m in enumerate(yyyymm, start=1)
+    ])
+
     combined.loc[combined["_date"].isna(), "_month"] = "unknown"
 
     # 3. 按月分割导出
@@ -77,7 +88,7 @@ def merge_and_split_by_month(input_dir: str, output_dir: str):
 
     for month in months:
         month_df = combined[combined["_month"] == month].copy()
-        month_df = month_df.drop(columns=["_date", "_month"])
+        month_df = month_df.drop(columns=["_date", "_month", "_source_file"], errors="ignore")
 
         output_path = output_dir / f"{month}.csv"
         month_df.to_csv(output_path, index=False, encoding="utf-8-sig")
@@ -85,6 +96,24 @@ def merge_and_split_by_month(input_dir: str, output_dir: str):
 
     print(f"\n原始总行数: {total_rows:,}")
     print(f"导出文件数: {len(months)}")
+
+    # ========= 汇总产出报告 =========
+    print("\n" + "="*40)
+    print(" 各月份源文件数量分布报告 ")
+    print("="*40)
+    
+    # 统计 (月份, 来源文件) 的分组
+    report_df = combined.groupby(["_month", "_source_file"]).size().unstack(fill_value=0)
+    
+    # 增加合计行与合计列
+    report_df["Total"] = report_df.sum(axis=1)
+    report_df.loc["Grand Total"] = report_df.sum(axis=0)
+    
+    print(report_df)
+    
+    report_path = output_dir / "source_summary_report.csv"
+    report_df.to_csv(report_path, encoding="utf-8-sig")
+    print(f"\n报告已保存至: {report_path}")
 
     del combined
     gc.collect()
