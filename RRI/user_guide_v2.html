@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMI Performance Tracking Tool - 使用指南 V2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #fff;
+        }
+
+        h1 {
+            color: #DB0011;
+            font-size: 30px;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #DB0011;
+            padding-bottom: 10px;
+        }
+
+        .version-tag {
+            display: inline-block;
+            background: #DB0011;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 3px;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #DB0011;
+            font-size: 22px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 4px solid #DB0011;
+            padding-left: 12px;
+        }
+
+        h3 {
+            color: #333;
+            font-size: 17px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        p {
+            margin-bottom: 12px;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #DB0011;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th {
+            background: #DB0011;
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8f8f8;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .note strong {
+            color: #856404;
+        }
+
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #DB0011;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .warning strong {
+            color: #DB0011;
+        }
+
+        .info {
+            background: #e8f4fd;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .info strong {
+            color: #004085;
+        }
+
+        .file-card {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .file-card h3 {
+            color: #DB0011;
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-required {
+            background: #ffebee;
+            color: #DB0011;
+            border: 1px solid #DB0011;
+        }
+
+        .badge-filter {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+
+        .badge-id {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #1565c0;
+        }
+
+        .badge-date {
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #e65100;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #DB0011, transparent);
+            margin: 35px 0;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            padding: 8px 0 8px 40px;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 28px;
+            height: 28px;
+            background: #DB0011;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AMI Performance Tracking Tool 使用指南</h1>
+    <div class="version-tag">V2 版本 — 适用于 rri_combined_v2.html</div>
+
+    <div class="section">
+        <h2>概述</h2>
+        <p>本工具用于处理四个 CSV 数据文件，自动按 <strong>员工 (Staff ID) + 月份</strong> 维度生成综合绩效统计报表。</p>
+        <p>所有数据处理均在浏览器本地完成，<strong>不会上传至任何服务器</strong>。</p>
+
+        <div class="info">
+            <strong>V2 版本变更说明：</strong> 文件1 (CME Testimonials) 的筛选逻辑已从「Subject 包含 Testimonial」改为「<strong>Country = China</strong>」。
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <h2>四个输入文件详解</h2>
+
+        <!-- File 1 -->
+        <div class="file-card">
+            <h3>文件 1：CME Testimonials（Testimonial/Compliment 统计）</h3>
+            <p><strong>用途：</strong>统计每位员工每月的 Testimonial/Compliment 数量。</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>列名（必须完全一致）</th>
+                        <th>用途</th>
+                        <th>标签</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Country</code></td>
+                        <td>筛选条件：仅保留值为 <strong>"China"</strong> 的行</td>
+                        <td><span class="badge badge-filter">筛选字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Created By Employee ID</code></td>
+                        <td>员工编号，用于归属统计</td>
+                        <td><span class="badge badge-id">人员字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Created On</code></td>
+                        <td>创建日期，用于判断月份</td>
+                        <td><span class="badge badge-date">日期字段</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning">
+                <strong>⚠️ 关键注意事项：</strong>
+                <ul style="margin-bottom: 0;">
+                    <li><code>Country</code> 的值必须精确为 <strong>"China"</strong>（区分大小写，首字母大写）</li>
+                    <li>"china"、"CHINA"、"CN" 等写法<strong>不会被识别</strong></li>
+                    <li><code>Created On</code> 日期格式需为 <strong>"YYYY/M/D"</strong> 或 <strong>"YYYY/M/D H:MM"</strong>，例如 "2026/1/26 9:45"</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- File 2 -->
+        <div class="file-card">
+            <h3>文件 2：CME Client Engagement（会议与服务审查统计）</h3>
+            <p><strong>用途：</strong>统计 Client Meeting 和 Service Review 数量。</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>列名（必须完全一致）</th>
+                        <th>用途</th>
+                        <th>标签</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Meeting Type</code></td>
+                        <td>会议类型，区分 Client Meeting 和 Service Review</td>
+                        <td><span class="badge badge-filter">筛选字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Attendee Employee ID</code></td>
+                        <td>参会人员编号（Client Meeting 按此统计）</td>
+                        <td><span class="badge badge-id">人员字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Created By Employee ID</code></td>
+                        <td>创建人编号（Service Review 按此统计）</td>
+                        <td><span class="badge badge-id">人员字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Year & Month</code></td>
+                        <td>年月标识</td>
+                        <td><span class="badge badge-date">日期字段</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="note">
+                <strong>统计规则：</strong>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Client Meeting：</strong>按 <code>Attendee Employee ID</code>（参会人）归属统计</li>
+                    <li><strong>Service Review：</strong>按 <code>Created By Employee ID</code>（创建人）归属统计</li>
+                    <li><code>Meeting Type</code> 必须精确匹配 "Client Meeting" 或 "Service Review"（区分大小写）</li>
+                    <li><code>Year & Month</code> 格式为 5~6 位数字，如 "20253" → 自动转为 "202503"</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- File 3 -->
+        <div class="file-card">
+            <h3>文件 3：CME PG（Deal 统计与 EBV 汇总）</h3>
+            <p><strong>用途：</strong>统计成交笔数 (Deal Count) 和 EBV 总额。</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>列名（必须完全一致）</th>
+                        <th>用途</th>
+                        <th>标签</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Deal TL PSID</code></td>
+                        <td>员工编号，用于归属统计</td>
+                        <td><span class="badge badge-id">人员字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Month&Year</code></td>
+                        <td>年月标识</td>
+                        <td><span class="badge badge-date">日期字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Staff Team Country</code></td>
+                        <td>筛选条件：必须为 <strong>"China"</strong></td>
+                        <td><span class="badge badge-filter">筛选字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Domestic Contribution</code></td>
+                        <td>筛选条件：必须等于 <strong>100</strong></td>
+                        <td><span class="badge badge-filter">筛选字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>Deal Category_Alt</code></td>
+                        <td>筛选条件：必须为 <strong>"Won"</strong></td>
+                        <td><span class="badge badge-filter">筛选字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>EBV (USD000)</code></td>
+                        <td>EBV 数值（单位：千美元）</td>
+                        <td><span class="badge badge-required">数据字段</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning">
+                <strong>⚠️ 三重筛选条件（必须同时满足）：</strong>
+                <ul style="margin-bottom: 0;">
+                    <li><code>Staff Team Country</code> = "China"（精确匹配，区分大小写）</li>
+                    <li><code>Domestic Contribution</code> = 100（数值匹配）</li>
+                    <li><code>Deal Category_Alt</code> = "Won"（精确匹配，区分大小写）</li>
+                </ul>
+                <p style="margin-bottom: 0; margin-top: 10px;">只有同时满足以上三个条件的行才会被统计。不满足任何一个条件的行将被忽略。</p>
+            </div>
+        </div>
+
+        <!-- File 4 -->
+        <div class="file-card">
+            <h3>文件 4：NPS Report（NPS 发送统计）</h3>
+            <p><strong>用途：</strong>统计每位员工每月的 NPS 发送次数。</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>列名（必须完全一致）</th>
+                        <th>用途</th>
+                        <th>标签</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Staff ID</code></td>
+                        <td>员工编号</td>
+                        <td><span class="badge badge-id">人员字段</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>NPS Sending Date</code></td>
+                        <td>NPS 发送日期</td>
+                        <td><span class="badge badge-date">日期字段</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="note">
+                <strong>日期格式注意：</strong>
+                <code>NPS Sending Date</code> 需为 <strong>MM/DD/YYYY</strong> 格式，例如 "01/13/2026"。系统将提取月份和年份生成 "YYYYMM" 标识。
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <h2>CSV 列名通用注意事项</h2>
+        <div class="warning">
+            <strong>⚠️ 极其重要 — 列名必须与下表完全一致：</strong>
+            <p>列名的<strong>大小写、空格、特殊字符</strong>必须与 CSV 文件表头完全匹配。如有不一致，系统将报错提示缺少必需的列。</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>文件</th>
+                    <th>所有必需列名</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>文件 1</td>
+                    <td><code>Country</code>、<code>Created By Employee ID</code>、<code>Created On</code></td>
+                </tr>
+                <tr>
+                    <td>文件 2</td>
+                    <td><code>Attendee Employee ID</code>、<code>Created By Employee ID</code>、<code>Year & Month</code>、<code>Meeting Type</code></td>
+                </tr>
+                <tr>
+                    <td>文件 3</td>
+                    <td><code>Deal TL PSID</code>、<code>Month&Year</code>、<code>Staff Team Country</code>、<code>Domestic Contribution</code>、<code>Deal Category_Alt</code>、<code>EBV (USD000)</code></td>
+                </tr>
+                <tr>
+                    <td>文件 4</td>
+                    <td><code>Staff ID</code>、<code>NPS Sending Date</code></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <h2>数据合并逻辑</h2>
+        <p>四个文件处理完成后，系统以 <code>Staff ID + 月份 (YYYYMM)</code> 作为唯一键进行合并。</p>
+        <ul>
+            <li>如果某员工在某月只出现在部分文件中，缺失的指标将自动填充为 <strong>0</strong></li>
+            <li>最终结果按月份升序排列，同月内按 Staff ID 升序排列</li>
+        </ul>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <h2>输出字段说明</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>输出列</th>
+                    <th>来源</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Staff ID</td>
+                    <td>所有文件</td>
+                    <td>员工编号</td>
+                </tr>
+                <tr>
+                    <td>Month</td>
+                    <td>所有文件</td>
+                    <td>月份标识（YYYYMM 格式）</td>
+                </tr>
+                <tr>
+                    <td>Testimonial</td>
+                    <td>文件 1</td>
+                    <td>Country 为 China 的记录数</td>
+                </tr>
+                <tr>
+                    <td>Client Meeting</td>
+                    <td>文件 2</td>
+                    <td>以参会人身份参加的 Client Meeting 数</td>
+                </tr>
+                <tr>
+                    <td>Service Review</td>
+                    <td>文件 2</td>
+                    <td>以创建人身份发起的 Service Review 数</td>
+                </tr>
+                <tr>
+                    <td>Deal Count</td>
+                    <td>文件 3</td>
+                    <td>满足三重筛选条件的成交笔数</td>
+                </tr>
+                <tr>
+                    <td>EBV Total</td>
+                    <td>文件 3</td>
+                    <td>满足条件的 EBV 总额（单位：千美元）</td>
+                </tr>
+                <tr>
+                    <td>NPS Count</td>
+                    <td>文件 4</td>
+                    <td>NPS 发送次数</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <h2>使用步骤</h2>
+        <ol class="step-list">
+            <li>在浏览器中打开 <code>rri_combined_v2.html</code> 文件</li>
+            <li>依次上传四个 CSV 文件（顺序不限，但需对应正确的上传卡片）</li>
+            <li>四个文件全部上传后，点击 <strong>"Start Processing"</strong> 按钮</li>
+            <li>查看处理日志（可选），确认每个文件的处理记录数</li>
+            <li>查看统计卡片汇总和趋势图表</li>
+            <li>在底部勾选需要导出的月份，点击 <strong>"Export Selected Months"</strong> 下载 CSV</li>
+        </ol>
+
+        <div class="note">
+            <strong>提示：</strong>表格默认仅显示前 20 条记录，但导出功能包含<strong>全部数据</strong>。
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <h2>图表功能</h2>
+        <ul>
+            <li>提供 6 个趋势图标签页（Testimonial、Client Meeting、Service Review、Deal Count、EBV Total、NPS Count）</li>
+            <li>数据按月份聚合后展示（跨员工汇总）</li>
+            <li>点击标签页即可切换查看不同指标的月度趋势</li>
+        </ul>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <h2>常见问题</h2>
+
+        <h3>Q：系统提示 "missing required columns"，怎么回事？</h3>
+        <p>A：这表示 CSV 文件的某项表头列名与系统要求不匹配（包括大小写、空格或特殊字符）。</p>
+        <p><strong>V2 版本功能：</strong>系统现在会明确指出具体是哪个字段缺失，并会在处理日志中以黄色文字显示该文件的<strong>「实际表头」</strong>内容。您可以根据日志输出快速对比并修正文件表头。</p>
+
+        <h3>Q：为什么部分员工的 Testimonial 统计为 0？</h3>
+        <p>A：V2 版本中 Testimonial 仅统计 <code>Country</code> 列为 "China" 的记录。请确认该员工的记录 Country 值是否为 "China"（注意大小写）。</p>
+
+        <h3>Q：为什么 CME PG 的 Deal 数据很少？</h3>
+        <p>A：CME PG 有三重筛选条件，必须<strong>同时满足</strong>：Staff Team Country = "China"、Domestic Contribution = 100、Deal Category_Alt = "Won"。任一条件不满足的行都会被排除。</p>
+
+        <h3>Q：表格只显示 20 行，数据是否完整？</h3>
+        <p>A：完整的。页面仅展示前 20 行以提升性能，导出功能会包含全部数据。</p>
+
+        <h3>Q：日期格式不对怎么办？</h3>
+        <p>A：请确认各文件的日期格式：</p>
+        <ul>
+            <li>文件 1 的 <code>Created On</code>：<strong>YYYY/M/D</strong> 或 <strong>YYYY/M/D H:MM</strong></li>
+            <li>文件 2 的 <code>Year & Month</code>：<strong>YYYYM</strong> 或 <strong>YYYYMM</strong>（纯数字）</li>
+            <li>文件 3 的 <code>Month&Year</code>：<strong>YYYYM</strong> 或 <strong>YYYYMM</strong>（纯数字）</li>
+            <li>文件 4 的 <code>NPS Sending Date</code>：<strong>MM/DD/YYYY</strong></li>
+        </ul>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section" style="text-align: center; color: #999; font-size: 13px;">
+        <p>AMI Performance Tracking Tool V2 使用指南 · 最后更新：2026年4月</p>
+    </div>
+
+</body>
+</html>
