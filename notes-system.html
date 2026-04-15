@@ -1099,7 +1099,9 @@
       }
 
       const draft = getDraft();
-      if (draft && draft.noteId === noteId) {
+      // Only restore draft while editing an existing note.
+      // New note should always open as a clean form.
+      if (noteId !== null && draft && String(draft.noteId) === String(noteId)) {
         applyDraft(draft);
         showToast("已恢复自动保存的草稿");
       }
