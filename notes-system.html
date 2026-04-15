@@ -697,6 +697,7 @@
     let editingNoteId = null;
     let editingNotebookId = null;
     let autosaveTimer = null;
+    let noteModalSnapshot = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       loadData();
@@ -728,13 +729,43 @@
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
-          ["noteModal", "notebookModal", "detailModal"].forEach(closeModalById);
+          if (isModalOpen("noteModal")) {
+            // Prevent accidental ESC from closing note editor.
+            event.preventDefault();
+            return;
+          }
+          if (isModalOpen("notebookModal")) {
+            closeNotebookModal();
+            return;
+          }
+          if (isModalOpen("detailModal")) {
+            closeDetailModal();
+          }
         }
       });
 
       document.addEventListener("click", (event) => {
         if (event.target.classList.contains("modal")) {
+          if (event.target.id === "noteModal") {
+            // Ignore backdrop click on note editor to avoid accidental exit.
+            return;
+          }
+          if (event.target.id === "notebookModal") {
+            closeNotebookModal();
+            return;
+          }
+          if (event.target.id === "detailModal") {
+            closeDetailModal();
+            return;
+          }
           event.target.classList.remove("show");
+        }
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        if (isModalOpen("noteModal") && isNoteFormDirty()) {
+          event.preventDefault();
+          event.returnValue = "";
         }
       });
     }
@@ -993,6 +1024,32 @@
       return card;
     }
 
+    function isModalOpen(id) {
+      const modal = document.getElementById(id);
+      return !!(modal && modal.classList.contains("show"));
+    }
+
+    function getCurrentFormState() {
+      return {
+        notebookId: document.getElementById("noteNotebook").value || "",
+        title: document.getElementById("noteTitle").value || "",
+        content: document.getElementById("noteContent").value || "",
+        tags: document.getElementById("noteTags").value || "",
+        pinned: document.getElementById("notePinned").value || "false"
+      };
+    }
+
+    function captureNoteModalSnapshot() {
+      noteModalSnapshot = getCurrentFormState();
+    }
+
+    function isNoteFormDirty() {
+      if (!isModalOpen("noteModal")) return false;
+      if (!noteModalSnapshot) return false;
+      const current = getCurrentFormState();
+      return JSON.stringify(current) !== JSON.stringify(noteModalSnapshot);
+    }
+
     function openNoteModal(noteId = null) {
       editingNoteId = noteId;
       const modal = document.getElementById("noteModal");
@@ -1025,12 +1082,19 @@
         showToast("已恢复自动保存的草稿");
       }
 
+      captureNoteModalSnapshot();
       modal.classList.add("show");
     }
 
-    function closeNoteModal() {
+    function closeNoteModal(force = false) {
+      if (!force && isNoteFormDirty()) {
+        const ok = confirm("你有未保存到笔记列表的修改。已自动保存草稿，确定退出编辑吗？");
+        if (!ok) return false;
+      }
       document.getElementById("noteModal").classList.remove("show");
       editingNoteId = null;
+      noteModalSnapshot = null;
+      return true;
     }
 
     function handleNoteSubmit(event) {
@@ -1081,7 +1145,7 @@
       saveData(true);
       renderNotebooks();
       renderNotes();
-      closeNoteModal();
+      closeNoteModal(true);
       showToast("笔记已保存");
     }
 
@@ -1352,6 +1416,18 @@
     }
 
     function closeModalById(id) {
+      if (id === "noteModal") {
+        closeNoteModal();
+        return;
+      }
+      if (id === "notebookModal") {
+        closeNotebookModal();
+        return;
+      }
+      if (id === "detailModal") {
+        closeDetailModal();
+        return;
+      }
       const modal = document.getElementById(id);
       if (modal && modal.classList.contains("show")) {
         modal.classList.remove("show");
