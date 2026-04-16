@@ -778,11 +778,13 @@
             const countryIndex = headers.indexOf('Country');
             const createdByIndex = headers.indexOf('Created By Employee ID');
             const createdOnIndex = headers.indexOf('Created On');
+            const instanceIdIndex = headers.indexOf('Instance ID');
 
             const missingCols1 = [];
             if (countryIndex === -1) missingCols1.push('Country');
             if (createdByIndex === -1) missingCols1.push('Created By Employee ID');
             if (createdOnIndex === -1) missingCols1.push('Created On');
+            if (instanceIdIndex === -1) missingCols1.push('Instance ID');
             if (missingCols1.length > 0) {
                 addLog(`CME Testimonials 文件实际表头: ${headers.join(', ')}`, 'warning');
                 throw new Error(`CME Testimonials 文件缺少以下必需列: ${missingCols1.join(', ')}`);
@@ -802,16 +804,26 @@
 
             const data = {};
             let processedRows = 0;
+            let duplicateRows = 0;
+            const seenInstanceIds = new Set();
 
             for (let i = 1; i < lines.length; i++) {
                 const values = parseCSVLine(lines[i].trim());
-                if (values.length <= Math.max(countryIndex, createdByIndex, createdOnIndex)) continue;
+                if (values.length <= Math.max(countryIndex, createdByIndex, createdOnIndex, instanceIdIndex)) continue;
 
                 const country = values[countryIndex].trim();
                 const staffId = normalizeStaffId(values[createdByIndex]);
                 const yearMonth = parseCreatedOn(values[createdOnIndex]);
+                const instanceId = values[instanceIdIndex].trim();
 
                 if (country === 'China' && staffId) {
+                    // Deduplicate by Instance ID
+                    if (seenInstanceIds.has(instanceId)) {
+                        duplicateRows++;
+                        continue;
+                    }
+                    seenInstanceIds.add(instanceId);
+
                     const key = `${staffId}_${yearMonth}`;
                     if (!data[key]) {
                         data[key] = { staffId, monthId: yearMonth, testimonial: 0 };
@@ -825,7 +837,10 @@
                 }
             }
 
-            addLog(`CME Testimonials: Completed, ${processedRows} valid records`, 'success');
+            if (duplicateRows > 0) {
+                addLog(`CME Testimonials: Removed ${duplicateRows} duplicate records (by Instance ID)`, 'info');
+            }
+            addLog(`CME Testimonials: Completed, ${processedRows} valid records (after deduplication)`, 'success');
             return data;
         }
 
