@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>本地笔记系统</title>
+  <style>
+    :root {
+      --ink: #1f1d1a;
+      --ink-soft: #3a362f;
+      --paper: #f5efe6;
+      --paper-deep: #efe4d5;
+      --accent: #0f6f5c;
+      --accent-dark: #0b5a4b;
+      --accent-light: #dff2ee;
+      --shadow: 0 12px 30px rgba(31, 29, 26, 0.12);
+      --shadow-soft: 0 6px 18px rgba(31, 29, 26, 0.1);
+      --border: #e3d7c5;
+      --toast: #202020;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+      background: radial-gradient(circle at top left, #fdf9f3 0%, #f5efe6 45%, #efe2d2 100%);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 290px;
+      background: linear-gradient(165deg, #ffffff 0%, #f7f1e8 100%);
+      border-right: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      padding: 26px 22px 18px;
+      background: linear-gradient(135deg, #0f6f5c 0%, #094a3f 100%);
+      color: #fff;
+    }
+
+    .brand h1 {
+      font-size: 1.4em;
+      letter-spacing: 1px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .brand p {
+      font-size: 0.85em;
+      opacity: 0.9;
+    }
+
+    .sidebar-actions {
+      padding: 16px 18px 8px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.92em;
+      transition: all 0.25s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .btn.ghost:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .notebook-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0 16px;
+    }
+
+    .notebook-item {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(227, 215, 197, 0.6);
+      transition: all 0.25s ease;
+      position: relative;
+      color: var(--ink-soft);
+      font-size: 0.96em;
+    }
+
+    .notebook-item:hover {
+      background: var(--accent-light);
+      padding-left: 24px;
+    }
+
+    .notebook-item.active {
+      background: var(--accent-light);
+      color: var(--ink);
+      font-weight: 700;
+      border-right: 4px solid var(--accent);
+    }
+
+    .notebook-actions {
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .notebook-item:hover .notebook-actions {
+      opacity: 1;
+    }
+
+    .icon-btn {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.95em;
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .sidebar-footer {
+      padding: 12px 18px;
+      font-size: 0.78em;
+      color: #6b6257;
+      border-top: 1px solid var(--border);
+      background: rgba(247, 241, 232, 0.6);
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-header {
+      padding: 24px 30px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .main-title {
+      font-size: 1.8em;
+      font-weight: 700;
+      color: var(--accent-dark);
+    }
+
+    .save-status {
+      font-size: 0.8em;
+      color: #6a6257;
+      margin-top: 4px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search {
+      position: relative;
+    }
+
+    .search input {
+      width: 260px;
+      padding: 10px 38px 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.95em;
+      transition: all 0.2s ease;
+    }
+
+    .search input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 111, 92, 0.15);
+    }
+
+    .search span {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7b7267;
+    }
+
+    .toolbar select {
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.9em;
+      color: var(--ink-soft);
+    }
+
+    .content {
+      flex: 1;
+      padding: 24px 30px 40px;
+      overflow-y: auto;
+    }
+
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .note-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #f0e4d5;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .note-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+
+    .note-card .title {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: var(--accent-dark);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .note-card .snippet {
+      color: #5f564b;
+      font-size: 0.9em;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 3.6em;
+    }
+
+    .note-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8em;
+      color: #7b7267;
+      border-top: 1px solid #f0e4d5;
+      padding-top: 8px;
+      gap: 10px;
+    }
+
+    .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      background: var(--accent-light);
+      color: var(--accent-dark);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75em;
+      font-weight: 600;
+    }
+
+    .note-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .note-card:hover .note-actions {
+      opacity: 1;
+    }
+
+    .pin {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent-dark);
+      font-weight: 600;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 80px 20px;
+      color: #6b6257;
+      display: none;
+    }
+
+    .empty h3 {
+      font-size: 1.4em;
+      color: var(--accent-dark);
+      margin-bottom: 8px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 25, 21, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.show {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      width: 100%;
+      max-width: 860px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 92vh;
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      background: #f7f1e8;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-weight: 700;
+      color: var(--accent-dark);
+      font-size: 0.92em;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.96em;
+      font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 111, 92, 0.12);
+    }
+
+    .form-group textarea {
+      min-height: 240px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #b8ccb8;
+      border-radius: 12px;
+      padding: 14px;
+      background: #f9fcfa;
+      color: #436056;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .drop-zone.active {
+      border-color: var(--accent);
+      background: #eaf6f2;
+      color: var(--accent-dark);
+    }
+
+    .drop-zone-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .drop-zone-tip {
+      font-size: 0.82em;
+      margin-bottom: 10px;
+      color: #6f786f;
+    }
+
+    .attachment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .attachment-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #f7f3eb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .attachment-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .attachment-preview {
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      background: #ebe3d4;
+      border: 1px solid #dfd0bb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      font-size: 0.75em;
+      color: #726451;
+    }
+
+    .attachment-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .attachment-name {
+      font-size: 0.88em;
+      font-weight: 700;
+      color: #2f2b24;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 360px;
+    }
+
+    .attachment-meta {
+      font-size: 0.76em;
+      color: #6a6257;
+    }
+
+    .attachment-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .detail-subtitle {
+      margin-top: 14px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: var(--accent-dark);
+      font-size: 0.96em;
+    }
+
+    .empty-attachments {
+      font-size: 0.84em;
+      color: #7a7268;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: var(--toast);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      font-size: 0.85em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .toast.show {
+      opacity: 0.95;
+    }
+
+    .detail-content h2 {
+      color: var(--accent-dark);
+      margin-bottom: 10px;
+    }
+
+    .detail-content pre {
+      white-space: pre-wrap;
+      font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+      background: #f8f1e7;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+      }
+      .main-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .toolbar {
+        justify-content: flex-start;
+      }
+      .search input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>本地笔记</h1>
+        <p>自动保存 · 手动保存 · 离线使用</p>
+      </div>
+      <div class="sidebar-actions">
+        <button class="btn ghost" onclick="openNotebookModal()">+ 笔记本</button>
+        <button class="btn primary" onclick="openNoteModal()">+ 笔记</button>
+      </div>
+      <div class="notebook-list" id="notebookList"></div>
+      <div class="sidebar-footer">提示：自动保存为本地存储，可导入/导出备份。</div>
+    </aside>
+
+    <main class="main">
+      <header class="main-header">
+        <div>
+          <div class="main-title" id="mainTitle">全部笔记</div>
+          <div class="save-status" id="saveStatus">尚未保存</div>
+          <div class="save-status" id="folderStatus">保存文件夹：未设置</div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <input type="text" id="searchInput" placeholder="搜索标题、内容或标签" />
+            <span>🔍</span>
+          </div>
+          <select id="sortSelect">
+            <option value="updated_desc">最近更新</option>
+            <option value="created_desc">最近创建</option>
+            <option value="title_asc">标题 A-Z</option>
+            <option value="pinned_first">置顶优先</option>
+          </select>
+          <button class="btn ghost" onclick="chooseSaveFolder()">设置保存文件夹</button>
+          <button class="btn ghost" onclick="manualSave()">保存</button>
+          <button class="btn ghost" onclick="exportData()">导出</button>
+          <button class="btn ghost" onclick="importData()">导入</button>
+          <button class="btn primary" onclick="openNoteModal()">新建笔记</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="notes-grid" id="noteGrid"></div>
+        <div class="empty" id="emptyState">
+          <h3>还没有笔记</h3>
+          <p>点击“新建笔记”开始记录你的想法。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="noteModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div id="noteModalTitle">新建笔记</div>
+        <button class="icon-btn" onclick="closeNoteModal()">✕</button>
+      </div>
+      <form id="noteForm" class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="noteNotebook">所属笔记本 *</label>
+            <select id="noteNotebook" required></select>
+          </div>
+          <div class="form-group">
+            <label for="notePinned">置顶</label>
+            <select id="notePinned">
+              <option value="false">否</option>
+              <option value="true">是</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="noteTitle">标题 *</label>
+          <input id="noteTitle" type="text" required placeholder="例如：项目复盘、今日灵感" />
+        </div>
+        <div class="form-group">
+          <label for="noteContent">内容 *</label>
+          <textarea id="noteContent" required placeholder="输入你的笔记内容...支持多行。"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="noteTags">标签（逗号分隔）</label>
+          <input id="noteTags" type="text" placeholder="例如：计划,灵感,工作" />
+        </div>
+        <div class="form-group">
+          <label>附件（拖拽文件/图片自动离线保存并分类）</label>
+          <div class="drop-zone" id="noteDropZone">
+            <div class="drop-zone-title">拖拽文件到这里</div>
+            <div class="drop-zone-tip">保存路径：已设置的本地文件夹下 `assets/<分类>/<日期>/`</div>
+            <button class="btn ghost" type="button" id="pickAttachmentBtn">选择文件</button>
+          </div>
+          <div class="attachment-list" id="noteAttachmentList"></div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn ghost" type="button" onclick="closeNoteModal()">取消</button>
+        <button class="btn primary" type="submit" form="noteForm">保存笔记</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="notebookModal">
+    <div class="modal-content" style="max-width: 560px;">
+      <div class="modal-header">
+        <div id="notebookModalTitle">新建笔记本</div>
+        <button class="icon-btn" onclick="closeNotebookModal()">✕</button>
+      </div>
+      <form id="notebookForm" class="modal-body">
+        <div class="form-group">
+          <label for="notebookName">笔记本名称 *</label>
+          <input id="notebookName" type="text" required placeholder="例如：工作、阅读、生活" />
+        </div>
+        <div class="form-group">
+          <label for="notebookDesc">描述</label>
+          <textarea id="notebookDesc" placeholder="简单描述用途" style="min-height: 120px;"></textarea>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn ghost" type="button" onclick="closeNotebookModal()">取消</button>
+        <button class="btn primary" type="submit" form="notebookForm">保存笔记本</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="detailModal">
+    <div class="modal-content" style="max-width: 780px;">
+      <div class="modal-header">
+        <div>笔记详情</div>
+        <button class="icon-btn" onclick="closeDetailModal()">✕</button>
+      </div>
+      <div class="modal-body detail-content" id="detailContent"></div>
+      <div class="modal-footer">
+        <button class="btn ghost" type="button" onclick="closeDetailModal()">关闭</button>
+        <button class="btn primary" type="button" id="editFromDetailBtn">编辑</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="fileInput" accept=".json" style="display: none;" />
+  <input type="file" id="attachmentInput" multiple style="display: none;" />
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEYS = {
+      notebooks: "noteNotebooks",
+      notes: "noteItems",
+      draft: "noteDraft",
+      lastSave: "noteLastSave"
+    };
+
+    let notebooks = [
+      { id: 1, name: "工作", description: "项目与会议记录" },
+      { id: 2, name: "生活", description: "日常随记" },
+      { id: 3, name: "阅读", description: "书摘与灵感" }
+    ];
+
+    let notes = [
+      {
+        id: 1001,
+        notebookId: 1,
+        title: "本周项目回顾",
+        content: "本周完成了需求梳理与原型确认，下一步聚焦接口对齐与测试计划。\n\n待办：\n1. 明确上线窗口\n2. 与设计对齐视觉稿",
+        tags: ["项目", "复盘"],
+        pinned: true,
+        createdAt: "2026-04-10",
+        updatedAt: "2026-04-12"
+      },
+      {
+        id: 1002,
+        notebookId: 3,
+        title: "阅读笔记：结构化思维",
+        content: "重点是先定义问题，再拆解。收集信息时注意层级和证据链。",
+        tags: ["阅读", "思维"],
+        pinned: false,
+        createdAt: "2026-04-11",
+        updatedAt: "2026-04-11"
+      }
+    ];
+
+    const FOLDER_DB = "note-folder-db";
+    const FOLDER_STORE = "handles";
+    const ATTACHMENT_ROOT = "assets";
+    let folderHandle = null;
+
+    let currentNotebookId = null;
+    let editingNoteId = null;
+    let editingNotebookId = null;
+    let autosaveTimer = null;
+    let currentAttachments = [];
+    let attachmentSaving = false;
+    let notePreviewUrls = [];
+    let detailPreviewUrls = [];
+    let noteModalSnapshot = null;
+    let notebookModalSnapshot = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadData();
+      normalizeNotes();
+      loadFolderHandle();
+      renderNotebooks();
+      renderNotes();
+      setupEvents();
+      restoreDraftIfAny();
+    });
+
+    function setupEvents() {
+      document.getElementById("searchInput").addEventListener("input", () => renderNotes());
+      document.getElementById("sortSelect").addEventListener("change", () => renderNotes());
+      document.getElementById("noteForm").addEventListener("submit", handleNoteSubmit);
+      document.getElementById("notebookForm").addEventListener("submit", handleNotebookSubmit);
+      document.getElementById("fileInput").addEventListener("change", handleFileImport);
+      document.getElementById("attachmentInput").addEventListener("change", handleAttachmentInputChange);
+      document.getElementById("pickAttachmentBtn").addEventListener("click", () => {
+        document.getElementById("attachmentInput").click();
+      });
+      document.getElementById("editFromDetailBtn").addEventListener("click", () => {
+        if (window.currentDetailNoteId) {
+          const noteId = window.currentDetailNoteId;
+          closeDetailModal();
+          openNoteModal(noteId);
+        }
+      });
+
+      ["noteNotebook", "noteTitle", "noteContent", "noteTags", "notePinned"].forEach(id => {
+        document.getElementById(id).addEventListener("input", scheduleAutosaveDraft);
+        document.getElementById(id).addEventListener("change", scheduleAutosaveDraft);
+      });
+
+      setupDropZone();
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          if (isModalOpen("noteModal")) {
+            // Prevent accidental ESC from closing note editor.
+            event.preventDefault();
+            return;
+          }
+          if (isModalOpen("notebookModal")) {
+            // Prevent accidental ESC from closing notebook editor.
+            event.preventDefault();
+            return;
+          }
+          if (isModalOpen("detailModal")) {
+            closeDetailModal();
+          }
+        }
+      });
+
+      document.addEventListener("click", (event) => {
+        if (event.target.classList.contains("modal")) {
+          if (event.target.id === "noteModal") {
+            // Ignore backdrop click on note editor to avoid accidental exit.
+            return;
+          }
+          if (event.target.id === "notebookModal") {
+            // Ignore backdrop click on notebook editor to avoid accidental exit.
+            return;
+          }
+          if (event.target.id === "detailModal") {
+            closeDetailModal();
+            return;
+          }
+          event.target.classList.remove("show");
+        }
+      });
+
+      document.addEventListener("dragover", (event) => {
+        if (isModalOpen("noteModal")) {
+          event.preventDefault();
+        }
+      });
+
+      document.addEventListener("drop", (event) => {
+        if (isModalOpen("noteModal") && !event.target.closest("#noteDropZone")) {
+          event.preventDefault();
+        }
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        const hasUnsavedNote = isModalOpen("noteModal") && isNoteFormDirty();
+        const hasUnsavedNotebook = isModalOpen("notebookModal") && isNotebookFormDirty();
+        if (hasUnsavedNote || hasUnsavedNotebook) {
+          event.preventDefault();
+          event.returnValue = "";
+        }
+      });
+    }
+
+    function normalizeNotes() {
+      notes = (notes || []).map((note) => ({
+        ...note,
+        attachments: Array.isArray(note.attachments) ? note.attachments : []
+      }));
+    }
+
+    function cloneAttachments(attachments) {
+      return (attachments || []).map((item) => ({ ...item }));
+    }
+
+    function setupDropZone() {
+      const dropZone = document.getElementById("noteDropZone");
+      if (!dropZone) return;
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          dropZone.classList.add("active");
+        });
+      });
+
+      ["dragleave", "dragend"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          dropZone.classList.remove("active");
+        });
+      });
+
+      dropZone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        dropZone.classList.remove("active");
+        const files = Array.from(event.dataTransfer?.files || []);
+        void addAttachmentsToCurrentNote(files);
+      });
+    }
+
+    function handleAttachmentInputChange(event) {
+      const files = Array.from(event.target.files || []);
+      event.target.value = "";
+      void addAttachmentsToCurrentNote(files);
+    }
+
+    async function addAttachmentsToCurrentNote(files) {
+      if (!files.length) return;
+      if (!isModalOpen("noteModal")) return;
+      if (attachmentSaving) return;
+
+      if (!folderHandle) {
+        alert("请先点击“设置保存文件夹”，再拖拽附件。");
+        return;
+      }
+
+      attachmentSaving = true;
+      document.getElementById("saveStatus").textContent = "正在保存附件...";
+      try {
+        const allowed = await ensureFolderPermission();
+        if (!allowed) {
+          alert("没有文件夹写入权限，附件保存失败。");
+          return;
+        }
+
+        const saved = [];
+        for (const file of files) {
+          const attachment = await persistAttachmentFile(file);
+          saved.push(attachment);
+        }
+
+        currentAttachments = [...currentAttachments, ...saved];
+        await renderNoteAttachmentList();
+        scheduleAutosaveDraft();
+        showToast(`已添加 ${saved.length} 个附件`);
+      } catch (error) {
+        console.error("保存附件失败", error);
+        alert("附件保存失败，请检查文件夹权限后重试。");
+      } finally {
+        attachmentSaving = false;
+      }
+    }
+
+    async function persistAttachmentFile(file) {
+      const category = classifyAttachment(file);
+      const dateFolder = new Date().toISOString().slice(0, 10);
+      const safeName = sanitizeFileName(file.name || "unnamed");
+      const uniqueName = `${Date.now()}_${Math.random().toString(16).slice(2, 8)}_${safeName}`;
+      const folder = await ensureNestedDirectory(folderHandle, [ATTACHMENT_ROOT, category, dateFolder]);
+      const fileHandle = await folder.getFileHandle(uniqueName, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(file);
+      await writable.close();
+
+      return {
+        id: createRecordId(),
+        name: file.name || uniqueName,
+        storedName: uniqueName,
+        category,
+        relativePath: [ATTACHMENT_ROOT, category, dateFolder, uniqueName].join("/"),
+        mimeType: file.type || "",
+        size: file.size || 0,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function createRecordId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      return `${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
+    }
+
+    function sanitizeFileName(name) {
+      return name
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .replace(/\s+/g, "_")
+        .replace(/_+/g, "_");
+    }
+
+    function classifyAttachment(file) {
+      const type = (file.type || "").toLowerCase();
+      const name = (file.name || "").toLowerCase();
+      const ext = name.includes(".") ? name.split(".").pop() : "";
+
+      if (type.startsWith("image/")) return "images";
+      if (type.startsWith("video/")) return "videos";
+      if (type.startsWith("audio/")) return "audio";
+
+      const docExt = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt", "md", "csv"];
+      const archiveExt = ["zip", "rar", "7z", "tar", "gz", "bz2"];
+      if (docExt.includes(ext)) return "documents";
+      if (archiveExt.includes(ext)) return "archives";
+      return "others";
+    }
+
+    async function ensureNestedDirectory(baseHandle, parts) {
+      let current = baseHandle;
+      for (const part of parts) {
+        current = await current.getDirectoryHandle(part, { create: true });
+      }
+      return current;
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return "0 B";
+      const units = ["B", "KB", "MB", "GB"];
+      let value = bytes;
+      let idx = 0;
+      while (value >= 1024 && idx < units.length - 1) {
+        value /= 1024;
+        idx += 1;
+      }
+      return `${value.toFixed(value >= 10 || idx === 0 ? 0 : 1)} ${units[idx]}`;
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function isImageAttachment(attachment) {
+      return (attachment.mimeType || "").toLowerCase().startsWith("image/");
+    }
+
+    function clearPreviewUrls(type) {
+      const target = type === "detail" ? detailPreviewUrls : notePreviewUrls;
+      target.forEach((url) => URL.revokeObjectURL(url));
+      target.length = 0;
+    }
+
+    async function getAttachmentObjectUrl(attachment, type) {
+      try {
+        if (!folderHandle) return null;
+        const file = await readAttachmentFile(attachment);
+        if (!file) return null;
+        const url = URL.createObjectURL(file);
+        if (type === "detail") detailPreviewUrls.push(url);
+        if (type === "note") notePreviewUrls.push(url);
+        return url;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function readAttachmentFile(attachment) {
+      if (!folderHandle || !attachment || !attachment.relativePath) return null;
+      const fileHandle = await getFileHandleFromRelativePath(attachment.relativePath);
+      return fileHandle.getFile();
+    }
+
+    async function getFileHandleFromRelativePath(relativePath) {
+      const parts = String(relativePath).split("/").filter(Boolean);
+      if (!parts.length) throw new Error("invalid path");
+      let current = folderHandle;
+      for (let i = 0; i < parts.length - 1; i += 1) {
+        current = await current.getDirectoryHandle(parts[i], { create: false });
+      }
+      return current.getFileHandle(parts[parts.length - 1], { create: false });
+    }
+
+    async function renderNoteAttachmentList() {
+      const list = document.getElementById("noteAttachmentList");
+      if (!list) return;
+      clearPreviewUrls("note");
+
+      if (!currentAttachments.length) {
+        list.innerHTML = "<div class=\"empty-attachments\">暂无附件</div>";
+        return;
+      }
+
+      list.innerHTML = currentAttachments.map((attachment) => `
+        <div class="attachment-item">
+          <div class="attachment-main">
+            <div class="attachment-preview" id="note-preview-${attachment.id}">预览</div>
+            <div>
+              <div class="attachment-name">${escapeHtml(attachment.name)}</div>
+              <div class="attachment-meta">${escapeHtml(attachment.category)} · ${formatBytes(attachment.size)}</div>
+            </div>
+          </div>
+          <div class="attachment-actions">
+            <button class="icon-btn" type="button" onclick="openAttachment('${attachment.id}', 'note')" title="打开">打开</button>
+            <button class="icon-btn" type="button" onclick="removeAttachment('${attachment.id}')" title="移除">移除</button>
+          </div>
+        </div>
+      `).join("");
+
+      for (const attachment of currentAttachments) {
+        if (!isImageAttachment(attachment)) continue;
+        const slot = document.getElementById(`note-preview-${attachment.id}`);
+        if (!slot) continue;
+        const url = await getAttachmentObjectUrl(attachment, "note");
+        if (!url) {
+          slot.textContent = "图片";
+          continue;
+        }
+        slot.innerHTML = `<img src="${url}" alt="${escapeHtml(attachment.name)}">`;
+      }
+    }
+
+    async function renderDetailAttachmentList(attachments) {
+      const list = document.getElementById("detailAttachmentList");
+      if (!list) return;
+      clearPreviewUrls("detail");
+
+      if (!attachments.length) {
+        list.innerHTML = "<div class=\"empty-attachments\">无附件</div>";
+        return;
+      }
+
+      list.innerHTML = attachments.map((attachment) => `
+        <div class="attachment-item">
+          <div class="attachment-main">
+            <div class="attachment-preview" id="detail-preview-${attachment.id}">预览</div>
+            <div>
+              <div class="attachment-name">${escapeHtml(attachment.name)}</div>
+              <div class="attachment-meta">${escapeHtml(attachment.category || "others")} · ${formatBytes(attachment.size)}</div>
+            </div>
+          </div>
+          <div class="attachment-actions">
+            <button class="icon-btn" type="button" onclick="openAttachment('${attachment.id}', 'detail')" title="打开">打开</button>
+          </div>
+        </div>
+      `).join("");
+
+      for (const attachment of attachments) {
+        if (!isImageAttachment(attachment)) continue;
+        const slot = document.getElementById(`detail-preview-${attachment.id}`);
+        if (!slot) continue;
+        const url = await getAttachmentObjectUrl(attachment, "detail");
+        if (!url) {
+          slot.textContent = "图片";
+          continue;
+        }
+        slot.innerHTML = `<img src="${url}" alt="${escapeHtml(attachment.name)}">`;
+      }
+    }
+
+    function removeAttachment(attachmentId) {
+      const before = currentAttachments.length;
+      currentAttachments = currentAttachments.filter((item) => String(item.id) !== String(attachmentId));
+      if (currentAttachments.length !== before) {
+        void renderNoteAttachmentList();
+        scheduleAutosaveDraft();
+      }
+    }
+
+    async function openAttachment(attachmentId, source) {
+      const list = source === "detail"
+        ? (window.currentDetailAttachments || [])
+        : currentAttachments;
+      const attachment = list.find((item) => String(item.id) === String(attachmentId));
+      if (!attachment) return;
+      try {
+        const file = await readAttachmentFile(attachment);
+        if (!file) {
+          alert("附件文件不存在，可能已被移动或删除。");
+          return;
+        }
+        const url = URL.createObjectURL(file);
+        window.open(url, "_blank");
+        setTimeout(() => URL.revokeObjectURL(url), 60 * 1000);
+      } catch (error) {
+        alert("打开附件失败，请检查文件夹权限。");
+      }
+    }
+
+    function isFolderSupported() {
+      return typeof window.showDirectoryPicker === "function";
+    }
+
+    async function openFolderDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(FOLDER_DB, 1);
+        request.onupgradeneeded = () => {
+          request.result.createObjectStore(FOLDER_STORE);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function idbSet(key, value) {
+      const db = await openFolderDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(FOLDER_STORE, "readwrite");
+        tx.objectStore(FOLDER_STORE).put(value, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function idbGet(key) {
+      const db = await openFolderDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(FOLDER_STORE, "readonly");
+        const req = tx.objectStore(FOLDER_STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function loadFolderHandle() {
+      const status = document.getElementById("folderStatus");
+      if (!isFolderSupported()) {
+        status.textContent = "保存文件夹：浏览器不支持";
+        return;
+      }
+      try {
+        const handle = await idbGet("folder");
+        if (handle) {
+          folderHandle = handle;
+          updateFolderStatus();
+        }
+      } catch (error) {
+        console.warn("读取保存文件夹失败", error);
+      }
+    }
+
+    function updateFolderStatus() {
+      const status = document.getElementById("folderStatus");
+      if (!isFolderSupported()) {
+        status.textContent = "保存文件夹：浏览器不支持";
+        return;
+      }
+      if (folderHandle) {
+        status.textContent = `保存文件夹：${folderHandle.name}`;
+      } else {
+        status.textContent = "保存文件夹：未设置";
+      }
+    }
+
+    async function chooseSaveFolder() {
+      if (!isFolderSupported()) {
+        alert("当前浏览器不支持写入本地文件夹。建议使用 Chrome/Edge。");
+        return;
+      }
+      try {
+        const handle = await window.showDirectoryPicker();
+        folderHandle = handle;
+        await idbSet("folder", handle);
+        updateFolderStatus();
+        showToast("已设置保存文件夹");
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          alert("设置保存文件夹失败");
+        }
+      }
+    }
+
+    async function ensureFolderPermission() {
+      if (!folderHandle) return false;
+      const options = { mode: "readwrite" };
+      let permission = await folderHandle.queryPermission(options);
+      if (permission === "granted") return true;
+      permission = await folderHandle.requestPermission(options);
+      return permission === "granted";
+    }
+
+    async function writeToFolder(isAuto) {
+      if (!folderHandle) return;
+      try {
+        const allowed = await ensureFolderPermission();
+        if (!allowed) return;
+        const fileHandle = await folderHandle.getFileHandle("notes_data.json", { create: true });
+        const writable = await fileHandle.createWritable();
+        const data = {
+          notebooks,
+          notes,
+          exportTime: new Date().toISOString(),
+          version: "2.1"
+        };
+        await writable.write(JSON.stringify(data, null, 2));
+        await writable.close();
+        if (!isAuto) {
+          showToast("已写入保存文件夹");
+        }
+      } catch (error) {
+        console.error("写入文件夹失败", error);
+        if (!isAuto) {
+          alert("写入保存文件夹失败，请重新选择文件夹。");
+        }
+      }
+    }
+
+    function renderNotebooks() {
+      const container = document.getElementById("notebookList");
+      container.innerHTML = "";
+
+      const allItem = createNotebookItem(null, "全部笔记", notes.length);
+      container.appendChild(allItem);
+
+      notebooks.forEach(nb => {
+        const count = notes.filter(note => note.notebookId === nb.id).length;
+        const item = createNotebookItem(nb.id, nb.name, count, true);
+        container.appendChild(item);
+      });
+    }
+
+    function createNotebookItem(id, name, count, editable = false) {
+      const item = document.createElement("div");
+      item.className = "notebook-item" + (currentNotebookId === id ? " active" : "");
+
+      item.innerHTML = `
+        <span>${name} (${count})</span>
+        ${editable ? `
+          <span class="notebook-actions">
+            <button class="icon-btn" onclick="editNotebook(${id})" title="编辑">✏️</button>
+            <button class="icon-btn" onclick="deleteNotebook(${id})" title="删除">🗑️</button>
+          </span>
+        ` : ""}
+      `;
+
+      item.addEventListener("click", (e) => {
+        if (!e.target.classList.contains("icon-btn")) {
+          selectNotebook(id);
+        }
+      });
+      return item;
+    }
+
+    function selectNotebook(id) {
+      currentNotebookId = id;
+      const title = document.getElementById("mainTitle");
+      if (id === null) {
+        title.textContent = "全部笔记";
+      } else {
+        const notebook = notebooks.find(nb => nb.id === id);
+        title.textContent = notebook ? notebook.name : "全部笔记";
+      }
+      renderNotebooks();
+      renderNotes();
+    }
+
+    function renderNotes() {
+      const grid = document.getElementById("noteGrid");
+      const emptyState = document.getElementById("emptyState");
+      const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+      const sortMode = document.getElementById("sortSelect").value;
+
+      let filtered = [...notes];
+
+      if (currentNotebookId !== null) {
+        filtered = filtered.filter(note => note.notebookId === currentNotebookId);
+      }
+
+      if (searchTerm) {
+        filtered = filtered.filter(note => {
+          const tagsText = (note.tags || []).join(" ").toLowerCase();
+          const attachmentText = (note.attachments || []).map((item) => item.name || "").join(" ").toLowerCase();
+          return note.title.toLowerCase().includes(searchTerm) ||
+            note.content.toLowerCase().includes(searchTerm) ||
+            tagsText.includes(searchTerm) ||
+            attachmentText.includes(searchTerm);
+        });
+      }
+
+      filtered.sort((a, b) => {
+        if (sortMode === "updated_desc") {
+          return new Date(b.updatedAt) - new Date(a.updatedAt);
+        }
+        if (sortMode === "created_desc") {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        if (sortMode === "title_asc") {
+          return a.title.localeCompare(b.title, "zh");
+        }
+        if (sortMode === "pinned_first") {
+          if (a.pinned === b.pinned) {
+            return new Date(b.updatedAt) - new Date(a.updatedAt);
+          }
+          return a.pinned ? -1 : 1;
+        }
+        return 0;
+      });
+
+      grid.innerHTML = "";
+
+      if (filtered.length === 0) {
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+      filtered.forEach(note => {
+        grid.appendChild(createNoteCard(note));
+      });
+    }
+
+    function createNoteCard(note) {
+      const card = document.createElement("div");
+      card.className = "note-card";
+
+      const notebook = notebooks.find(nb => nb.id === note.notebookId);
+      const notebookName = notebook ? notebook.name : "未分类";
+      const snippet = note.content.replace(/\n/g, " ").trim();
+      const attachmentCount = (note.attachments || []).length;
+
+      card.innerHTML = `
+        <div class="note-actions">
+          <button class="icon-btn" onclick="showDetail(${note.id})" title="查看">👁️</button>
+          <button class="icon-btn" onclick="openNoteModal(${note.id})" title="编辑">✏️</button>
+          <button class="icon-btn" onclick="deleteNote(${note.id})" title="删除">🗑️</button>
+        </div>
+        <div class="title">${note.title}</div>
+        <div class="snippet">${snippet}</div>
+        <div class="note-meta">
+          <div class="tags">
+            <span class="tag">${notebookName}</span>
+            ${(note.tags || []).map(tag => `<span class="tag">${tag}</span>`).join("")}
+            ${attachmentCount ? `<span class="tag">附件 ${attachmentCount}</span>` : ""}
+          </div>
+          <div>${note.pinned ? "📌" : ""} ${note.updatedAt}</div>
+        </div>
+      `;
+
+      card.addEventListener("click", (event) => {
+        if (!event.target.classList.contains("icon-btn")) {
+          showDetail(note.id);
+        }
+      });
+
+      return card;
+    }
+
+    function isModalOpen(id) {
+      const modal = document.getElementById(id);
+      return !!(modal && modal.classList.contains("show"));
+    }
+
+    function getCurrentFormState() {
+      return {
+        notebookId: document.getElementById("noteNotebook").value || "",
+        title: document.getElementById("noteTitle").value || "",
+        content: document.getElementById("noteContent").value || "",
+        tags: document.getElementById("noteTags").value || "",
+        pinned: document.getElementById("notePinned").value || "false",
+        attachments: JSON.stringify(currentAttachments || [])
+      };
+    }
+
+    function captureNoteModalSnapshot() {
+      noteModalSnapshot = getCurrentFormState();
+    }
+
+    function isNoteFormDirty() {
+      if (!isModalOpen("noteModal")) return false;
+      if (!noteModalSnapshot) return false;
+      const current = getCurrentFormState();
+      return JSON.stringify(current) !== JSON.stringify(noteModalSnapshot);
+    }
+
+    function getCurrentNotebookFormState() {
+      return {
+        name: document.getElementById("notebookName").value || "",
+        description: document.getElementById("notebookDesc").value || ""
+      };
+    }
+
+    function captureNotebookModalSnapshot() {
+      notebookModalSnapshot = getCurrentNotebookFormState();
+    }
+
+    function isNotebookFormDirty() {
+      if (!isModalOpen("notebookModal")) return false;
+      if (!notebookModalSnapshot) return false;
+      const current = getCurrentNotebookFormState();
+      return JSON.stringify(current) !== JSON.stringify(notebookModalSnapshot);
+    }
+
+    function openNoteModal(noteId = null) {
+      editingNoteId = noteId;
+      const modal = document.getElementById("noteModal");
+      const title = document.getElementById("noteModalTitle");
+      const form = document.getElementById("noteForm");
+      form.reset();
+      clearPreviewUrls("note");
+      currentAttachments = [];
+
+      loadNotebookOptions();
+
+      if (noteId) {
+        title.textContent = "编辑笔记";
+        const note = notes.find(n => n.id === noteId);
+        if (note) {
+          document.getElementById("noteNotebook").value = note.notebookId;
+          document.getElementById("noteTitle").value = note.title;
+          document.getElementById("noteContent").value = note.content;
+          document.getElementById("noteTags").value = (note.tags || []).join(", ");
+          document.getElementById("notePinned").value = String(note.pinned);
+          currentAttachments = cloneAttachments(note.attachments || []);
+        }
+      } else {
+        title.textContent = "新建笔记";
+        if (currentNotebookId) {
+          document.getElementById("noteNotebook").value = currentNotebookId;
+        }
+      }
+
+      const draft = getDraft();
+      // Only restore draft while editing an existing note.
+      // New note should always open as a clean form.
+      if (noteId !== null && draft && String(draft.noteId) === String(noteId)) {
+        applyDraft(draft);
+        showToast("已恢复自动保存的草稿");
+      }
+
+      captureNoteModalSnapshot();
+      modal.classList.add("show");
+      void renderNoteAttachmentList();
+    }
+
+    function closeNoteModal(force = false) {
+      if (!force && isNoteFormDirty()) {
+        const ok = confirm("你有未保存到笔记列表的修改。已自动保存草稿，确定退出编辑吗？");
+        if (!ok) return false;
+      }
+      document.getElementById("noteModal").classList.remove("show");
+      editingNoteId = null;
+      noteModalSnapshot = null;
+      currentAttachments = [];
+      clearPreviewUrls("note");
+      return true;
+    }
+
+    function handleNoteSubmit(event) {
+      event.preventDefault();
+      const notebookId = parseInt(document.getElementById("noteNotebook").value, 10);
+      const title = document.getElementById("noteTitle").value.trim();
+      const content = document.getElementById("noteContent").value.trim();
+      const tags = document.getElementById("noteTags").value
+        .split(",")
+        .map(tag => tag.trim())
+        .filter(Boolean);
+      const pinned = document.getElementById("notePinned").value === "true";
+      const attachments = cloneAttachments(currentAttachments);
+
+      if (!notebookId || !title || !content) {
+        alert("请填写所有必填字段");
+        return;
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+
+      if (editingNoteId) {
+        const idx = notes.findIndex(note => note.id === editingNoteId);
+        if (idx !== -1) {
+          notes[idx] = {
+            ...notes[idx],
+            notebookId,
+            title,
+            content,
+            tags,
+            pinned,
+            attachments,
+            updatedAt: today
+          };
+        }
+      } else {
+        notes.push({
+          id: Date.now(),
+          notebookId,
+          title,
+          content,
+          tags,
+          pinned,
+          attachments,
+          createdAt: today,
+          updatedAt: today
+        });
+      }
+
+      clearDraft();
+      saveData(true);
+      renderNotebooks();
+      renderNotes();
+      closeNoteModal(true);
+      showToast("笔记已保存");
+    }
+
+    function deleteNote(noteId) {
+      if (!confirm("确定要删除这条笔记吗？")) return;
+      notes = notes.filter(note => note.id !== noteId);
+      saveData(true);
+      renderNotebooks();
+      renderNotes();
+    }
+
+    function showDetail(noteId) {
+      const note = notes.find(n => n.id === noteId);
+      if (!note) return;
+      const notebook = notebooks.find(nb => nb.id === note.notebookId);
+      const notebookName = notebook ? notebook.name : "未分类";
+      const attachments = cloneAttachments(note.attachments || []);
+
+      window.currentDetailNoteId = noteId;
+      window.currentDetailAttachments = attachments;
+      clearPreviewUrls("detail");
+
+      document.getElementById("detailContent").innerHTML = `
+        <h2>${note.title}</h2>
+        <div class="tags" style="margin-bottom: 12px;">
+          <span class="tag">${notebookName}</span>
+          ${(note.tags || []).map(tag => `<span class="tag">${tag}</span>`).join("")}
+          ${note.pinned ? "<span class=\"tag\">置顶</span>" : ""}
+        </div>
+        <pre>${note.content}</pre>
+        <div class="detail-subtitle">附件（${attachments.length}）</div>
+        <div id="detailAttachmentList" class="attachment-list"></div>
+        <div style="margin-top: 12px; font-size: 0.85em; color: #6a6257;">
+          创建：${note.createdAt} ｜ 更新：${note.updatedAt}
+        </div>
+      `;
+
+      document.getElementById("detailModal").classList.add("show");
+      void renderDetailAttachmentList(attachments);
+    }
+
+    function closeDetailModal() {
+      document.getElementById("detailModal").classList.remove("show");
+      window.currentDetailNoteId = null;
+      window.currentDetailAttachments = [];
+      clearPreviewUrls("detail");
+    }
+
+    function openNotebookModal(notebookId = null) {
+      editingNotebookId = notebookId;
+      const modal = document.getElementById("notebookModal");
+      const form = document.getElementById("notebookForm");
+      const title = document.getElementById("notebookModalTitle");
+      form.reset();
+
+      if (notebookId) {
+        title.textContent = "编辑笔记本";
+        const notebook = notebooks.find(nb => nb.id === notebookId);
+        if (notebook) {
+          document.getElementById("notebookName").value = notebook.name;
+          document.getElementById("notebookDesc").value = notebook.description || "";
+        }
+      } else {
+        title.textContent = "新建笔记本";
+      }
+
+      captureNotebookModalSnapshot();
+      modal.classList.add("show");
+    }
+
+    function closeNotebookModal(force = false) {
+      if (!force && isNotebookFormDirty()) {
+        const ok = confirm("笔记本信息尚未保存，确定退出编辑吗？");
+        if (!ok) return false;
+      }
+      document.getElementById("notebookModal").classList.remove("show");
+      editingNotebookId = null;
+      notebookModalSnapshot = null;
+      return true;
+    }
+
+    function handleNotebookSubmit(event) {
+      event.preventDefault();
+      const name = document.getElementById("notebookName").value.trim();
+      const description = document.getElementById("notebookDesc").value.trim();
+
+      if (!name) {
+        alert("请填写笔记本名称");
+        return;
+      }
+
+      if (editingNotebookId) {
+        const idx = notebooks.findIndex(nb => nb.id === editingNotebookId);
+        if (idx !== -1) {
+          notebooks[idx] = { ...notebooks[idx], name, description };
+        }
+      } else {
+        notebooks.push({ id: Date.now(), name, description });
+      }
+
+      saveData(true);
+      renderNotebooks();
+      closeNotebookModal(true);
+    }
+
+    function editNotebook(id) {
+      openNotebookModal(id);
+    }
+
+    function deleteNotebook(id) {
+      const count = notes.filter(note => note.notebookId === id).length;
+      if (count > 0) {
+        alert(`该笔记本下还有 ${count} 条笔记，请先删除或转移。`);
+        return;
+      }
+      if (!confirm("确定要删除该笔记本吗？")) return;
+      notebooks = notebooks.filter(nb => nb.id !== id);
+      if (currentNotebookId === id) {
+        selectNotebook(null);
+      }
+      saveData(true);
+      renderNotebooks();
+    }
+
+    function loadNotebookOptions() {
+      const select = document.getElementById("noteNotebook");
+      select.innerHTML = "";
+      notebooks.forEach(nb => {
+        const option = document.createElement("option");
+        option.value = nb.id;
+        option.textContent = nb.name;
+        select.appendChild(option);
+      });
+    }
+
+    function saveData(isAuto) {
+      normalizeNotes();
+      localStorage.setItem(STORAGE_KEYS.notebooks, JSON.stringify(notebooks));
+      localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify(notes));
+      const now = new Date();
+      localStorage.setItem(STORAGE_KEYS.lastSave, now.toISOString());
+      updateSaveStatus(now, isAuto);
+      writeToFolder(isAuto);
+    }
+
+    function manualSave() {
+      saveData(false);
+      showToast("已手动保存");
+    }
+
+    function updateSaveStatus(time, isAuto) {
+      const text = `${isAuto ? "自动" : "手动"}保存：${formatTime(time)}`;
+      document.getElementById("saveStatus").textContent = text;
+    }
+
+    function loadData() {
+      try {
+        const storedNotebooks = localStorage.getItem(STORAGE_KEYS.notebooks);
+        const storedNotes = localStorage.getItem(STORAGE_KEYS.notes);
+        const storedSave = localStorage.getItem(STORAGE_KEYS.lastSave);
+
+        if (storedNotebooks) notebooks = JSON.parse(storedNotebooks);
+        if (storedNotes) notes = JSON.parse(storedNotes);
+        normalizeNotes();
+        if (storedSave) updateSaveStatus(new Date(storedSave), true);
+      } catch (error) {
+        console.error("加载数据失败", error);
+      }
+    }
+
+    function exportData() {
+      const data = {
+        notebooks,
+        notes,
+        exportTime: new Date().toISOString(),
+        version: "2.1"
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `笔记数据_${new Date().toISOString().split("T")[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function importData() {
+      document.getElementById("fileInput").click();
+    }
+
+    function handleFileImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.notebooks && data.notes) {
+            if (confirm("确定导入吗？将覆盖当前所有数据。")) {
+              notebooks = data.notebooks;
+              notes = data.notes;
+              normalizeNotes();
+              currentNotebookId = null;
+              saveData(true);
+              renderNotebooks();
+              renderNotes();
+              showToast("导入成功");
+            }
+          } else {
+            alert("文件格式不正确");
+          }
+        } catch (error) {
+          alert("文件解析失败");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    function scheduleAutosaveDraft() {
+      if (!document.getElementById("noteModal").classList.contains("show")) return;
+      if (autosaveTimer) clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => {
+        saveDraft();
+      }, 400);
+    }
+
+    function saveDraft() {
+      const notebookId = document.getElementById("noteNotebook").value;
+      const title = document.getElementById("noteTitle").value;
+      const content = document.getElementById("noteContent").value;
+      const tags = document.getElementById("noteTags").value;
+      const pinned = document.getElementById("notePinned").value;
+      const draft = {
+        noteId: editingNoteId,
+        notebookId,
+        title,
+        content,
+        tags,
+        pinned,
+        attachments: cloneAttachments(currentAttachments),
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEYS.draft, JSON.stringify(draft));
+      document.getElementById("saveStatus").textContent = `自动保存草稿：${formatTime(new Date())}`;
+    }
+
+    function getDraft() {
+      const raw = localStorage.getItem(STORAGE_KEYS.draft);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function applyDraft(draft) {
+      if (!draft) return;
+      if (draft.notebookId) document.getElementById("noteNotebook").value = draft.notebookId;
+      if (draft.title !== undefined) document.getElementById("noteTitle").value = draft.title;
+      if (draft.content !== undefined) document.getElementById("noteContent").value = draft.content;
+      if (draft.tags !== undefined) document.getElementById("noteTags").value = draft.tags;
+      if (draft.pinned !== undefined) document.getElementById("notePinned").value = draft.pinned;
+      if (Array.isArray(draft.attachments)) {
+        currentAttachments = cloneAttachments(draft.attachments);
+        void renderNoteAttachmentList();
+      }
+    }
+
+    function clearDraft() {
+      localStorage.removeItem(STORAGE_KEYS.draft);
+    }
+
+    function restoreDraftIfAny() {
+      const draft = getDraft();
+      if (draft && draft.savedAt) {
+        document.getElementById("saveStatus").textContent = `检测到草稿：${formatTime(new Date(draft.savedAt))}`;
+      }
+    }
+
+    function formatTime(date) {
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    function closeModalById(id) {
+      if (id === "noteModal") {
+        closeNoteModal();
+        return;
+      }
+      if (id === "notebookModal") {
+        closeNotebookModal();
+        return;
+      }
+      if (id === "detailModal") {
+        closeDetailModal();
+        return;
+      }
+      const modal = document.getElementById(id);
+      if (modal && modal.classList.contains("show")) {
+        modal.classList.remove("show");
+      }
+    }
+  </script>
+</body>
+</html>
