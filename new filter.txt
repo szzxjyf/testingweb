@@ -1,0 +1,220 @@
+"""
+CMR_TT / CMR_EFT 筛选脚本
+=========================
+规则来源：Ebber C X GUO
+
+筛选条件（满足任一即保留）:
+  CMR_TT:
+    条件1: IE PAIR = CMR_TT  AND  付款附言包含 PACKAGE（不区分大小写）
+    条件2: IE PAIR = CMR_TT  AND  金额 > 1000.00
+  CMR_EFT:
+    条件3: IE PAIR = CMR_EFT AND  付款附言包含 PACKAGE（不区分大小写）
+    条件4: IE PAIR = CMR_EFT AND  金额 > 200.00
+
+前置过滤（沿用 csv.py 逻辑）:
+  - OWNER = GLCM / GPS
+  - 或 OWNER 为空 + LINE = CMB / CIBM 且 PAIR ≠ CMB_NC1 / CMB_NCC
+  - 排除 trans_remark1 = "VAT PAYABLE - OUTPUT VAT"
+"""
+
+import pandas as pd
+import gc
+import re
+from pathlib import Path
+
+# =========================
+# CSV 源字段名
+# =========================
+IE_ITEM_COL = "ie_item"
+IE_TYPE_COL = "ie_type"
+AMOUNT_COL  = "trans_amt_cny"
+OWNER_COL   = "charge_department"
+LINE_COL    = "cust_group"
+REMARK1_COL = "trans_remark1"
+
+# 付款附言列（用于检查 PACKAGE 关键词）
+REMARK_COLS = ["trans_remark1", "trans_remark2", "trans_remark3", "trans_remark4"]
+
+# =========================
+# 规则配置
+# =========================
+
+# 目标 PAIR 及其金额阈值（PAIR -> 阈值）
+PAIR_RULES = {
+    "CMR_TT":  1000.0,   # CMR_TT 金额 > 1000
+    "CMR_EFT":  200.0,   # CMR_EFT 金额 > 200
+}
+
+# 关键词（不区分大小写，任一 remark 列包含即命中）
+KEYWORDS = ["PACKAGE"]
+
+# 前置过滤常量
+VALID_OWNER_VALUES = {"GLCM", "GPS"}
+VALID_LINE_VALUES  = {"CMB", "CIBM"}
+OTHERS_EXCLUDE_PAIRS = {"CMB_NC1", "CMB_NCC"}
+EXCLUDED_REMARK1   = "VAT PAYABLE - OUTPUT VAT"
+
+
+# =========================
+# 工具函数
+# =========================
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """标准化文本列：去空格 + 转大写"""
+    return s.astype("string").str.strip().str.upper()
+
+
+def read_csv_auto_encoding(file_path):
+    """自动尝试多种编码读取 CSV"""
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
+        try:
+            return pd.read_csv(file_path, encoding=enc, low_memory=False), enc
+        except Exception:
+            continue
+    raise ValueError(f"Cannot decode CSV: {file_path}")
+
+
+# =========================
+# 核心处理函数
+# =========================
+
+def process_one_csv(file_path, output_dir):
+    file_path = Path(file_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"\nProcessing: {file_path.name}")
+    print("-" * 50)
+
+    # ---- 1. 读取 CSV ----
+    df, used_encoding = read_csv_auto_encoding(file_path)
+    print(f"  Encoding : {used_encoding}")
+    print(f"  Total rows: {len(df):,}")
+
+    # ---- 2. 标准化辅助列 ----
+    df["_ie_item"]  = normalize_text_series(df[IE_ITEM_COL])
+    df["_ie_type"]  = normalize_text_series(df[IE_TYPE_COL])
+    df["_owner"]    = normalize_text_series(df[OWNER_COL])
+    df["_line"]     = normalize_text_series(df[LINE_COL])
+    df["_remark1"]  = normalize_text_series(df[REMARK1_COL])
+    df["_pair"]     = df["_ie_item"] + "_" + df["_ie_type"]
+
+    amt = pd.to_numeric(df[AMOUNT_COL], errors="coerce")
+
+    # ---- 3. 前置过滤（沿用 csv.py 逻辑） ----
+    # A. OWNER = GLCM / GPS
+    owner_valid_mask = df["_owner"].fillna("").isin(VALID_OWNER_VALUES)
+
+    # B. OWNER为空 + LINE=CMB/CIBM + PAIR ≠ CMB_NC1/CMB_NCC
+    owner_blank_mask = df[OWNER_COL].isna() | df["_owner"].eq("", fill_value="")
+    line_mask = df["_line"].fillna("").isin(VALID_LINE_VALUES)
+    pair_exclude_mask = ~df["_pair"].fillna("").isin(OTHERS_EXCLUDE_PAIRS)
+    owner_blank_keep_mask = owner_blank_mask & line_mask & pair_exclude_mask
+
+    # C. 排除 VAT
+    remark_exclude_mask = df["_remark1"].ne(EXCLUDED_REMARK1, fill_value="")
+
+    source_mask = (owner_valid_mask | owner_blank_keep_mask) & remark_exclude_mask
+
+    df = df[source_mask].copy()
+    amt = amt[source_mask].copy()
+    print(f"  After pre-filter: {len(df):,} rows")
+
+    # ---- 4. 只保留目标 PAIR（CMR_TT / CMR_EFT） ----
+    target_pairs = set(PAIR_RULES.keys())
+    pair_mask = df["_pair"].fillna("").isin(target_pairs)
+    df = df[pair_mask].copy()
+    amt = amt[pair_mask].copy()
+    print(f"  Target pair rows: {len(df):,}")
+
+    if df.empty:
+        print("  No target pair rows found, skipping.")
+        return
+
+    # ---- 5. 计算 PACKAGE 关键词 mask（所有行共用） ----
+    keyword_pattern = "|".join(re.escape(k) for k in KEYWORDS)
+    package_mask = pd.Series(False, index=df.index)
+    for col in REMARK_COLS:
+        if col in df.columns:
+            package_mask = package_mask | (
+                df[col].astype(str).str.contains(keyword_pattern, case=False, na=False, regex=True)
+            )
+
+    # ---- 6. 按 PAIR 分别应用金额阈值，合并结果 ----
+    final_mask = pd.Series(False, index=df.index)
+    df["_match_reason"] = ""
+
+    print(f"\n  === Match Summary ===")
+
+    for pair, threshold in PAIR_RULES.items():
+        is_pair = df["_pair"].eq(pair, fill_value="")
+        pkg_hit = is_pair & package_mask
+        amt_hit = is_pair & (amt > threshold)
+        pair_mask_hit = pkg_hit | amt_hit
+
+        # 统计
+        pkg_only = (pkg_hit & ~amt_hit).sum()
+        amt_only = (~pkg_hit & amt_hit).sum()
+        both     = (pkg_hit & amt_hit).sum()
+        total    = pair_mask_hit.sum()
+
+        print(f"  [{pair}] (阈值>{threshold:.0f})")
+        print(f"    PACKAGE only           : {pkg_only:,}")
+        print(f"    金额>{threshold:.0f} only          : {amt_only:,}")
+        print(f"    Both                   : {both:,}")
+        print(f"    Subtotal               : {total:,}")
+
+        # 标记匹配原因
+        amt_label = f"AMT>{threshold:.0f}"
+        idx_pkg_only = df.index[pkg_hit & ~amt_hit]
+        idx_amt_only = df.index[~pkg_hit & amt_hit]
+        idx_both     = df.index[pkg_hit & amt_hit]
+
+        df.loc[idx_pkg_only, "_match_reason"] = f"{pair}: PACKAGE"
+        df.loc[idx_amt_only, "_match_reason"] = f"{pair}: {amt_label}"
+        df.loc[idx_both,     "_match_reason"] = f"{pair}: PACKAGE + {amt_label}"
+
+        final_mask = final_mask | pair_mask_hit
+
+    result = df[final_mask].copy()
+    print(f"  {'─'*35}")
+    print(f"  Total matched            : {len(result):,}")
+
+    # ---- 7. 清理临时列 & 导出 ----
+    result["损益科目代码"] = result["_pair"]
+    result = result.drop(
+        columns=["_ie_item", "_ie_type", "_owner", "_line", "_remark1", "_pair"],
+        errors="ignore"
+    )
+
+    output_path = output_dir / f"{file_path.stem}_cmr_filtered.csv"
+    result.to_csv(output_path, index=False, encoding="utf-8-sig")
+
+    print(f"\n  Saved: {output_path}")
+    print(f"  Final rows: {len(result):,}")
+
+    # ---- 8. 释放内存 ----
+    del df, result, amt
+    gc.collect()
+
+
+# =========================
+# 批量处理多个 CSV 文件
+# =========================
+file_list = [
+    # r"./202601.csv",
+    # r"./202602.csv",
+]
+
+output_dir = r"./output"
+
+for i, file_path in enumerate(file_list, 1):
+    print(f"\n{'='*50}")
+    print(f"[{i}/{len(file_list)}]")
+    print(f"{'='*50}")
+    try:
+        process_one_csv(file_path, output_dir)
+    except Exception as e:
+        print(f"Failed: {file_path}")
+        print(f"Error: {e}")
+        gc.collect()
