@@ -2,28 +2,15 @@ import pandas as pd
 
 def read_csv_auto_encoding(file_path):
     """尝试多种编码读取 CSV 文件，返回 (DataFrame, encoding)"""
-    encodings = ["utf-8-sig", "utf-8", "gb18030", "gbk", "utf-16"]
-
-    last_error = None
-
-    for enc in encodings:
+    for enc in ["utf-8-sig", "utf-8", "gb18030", "gbk"]:
         try:
-            print(f"Trying encoding: {enc}")
-
-            df = pd.read_csv(
+            return pd.read_csv(
                 file_path,
                 encoding=enc,
-                engine="python",      # 关键：换成 python 引擎
-                sep=None,             # 自动识别分隔符
-                on_bad_lines="skip"   # 跳过坏行
-            )
-
-            print(f"Success with encoding: {enc}")
-            return df, enc
-
-        except Exception as e:
-            last_error = e
-            print(f"Failed with {enc}: {type(e).__name__}: {e}")
+                low_memory=False,
+                error_bad_lines=False
+            ), enc
+        except Exception:
             continue
 
-    raise ValueError(f"无法读取 CSV 文件，最后错误是：{last_error}")
+    raise ValueError(f"无法解码 CSV 文件: {file_path}")
