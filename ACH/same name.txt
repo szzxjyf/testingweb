@@ -1,0 +1,219 @@
+"""
+同名划转识别模块
+================
+识别付款人与收款人为同一名称的交易（同名划转）。
+
+判定逻辑（满足任一即判定为同名划转）:
+    1. DFAC2N（付款人）== PO@BNM（收款人），大小写不敏感
+    2. NAR（交易附言）包含同名相关关键词，大小写不敏感
+
+关键词列表:
+    同名, same name, tongming, tong ming
+
+使用方法 (Jupyter Notebook):
+    from same_name_transfer import *
+
+    # 一键识别
+    result = find_same_name_transfers(data)
+
+    # 查看结果
+    result['matched']       # 匹配到的同名划转 DataFrame
+    result['summary']       # 汇总统计 DataFrame
+"""
+
+import pandas as pd
+import re
+
+
+# ============================================
+# 配置
+# ============================================
+
+# 同名关键词列表（可扩展）
+DEFAULT_KEYWORDS = [
+    '同名',
+    'same name',
+    'tongming',
+    'tong ming',
+]
+
+# 列名映射（方便将来换列名时只改这里）
+COL_PAYER = 'DFAC2N'       # 付款人名字
+COL_PAYEE = 'PO@BNM'       # 收款人名字
+COL_NAR = 'NAR'            # 交易附言
+COL_CUST = 'CUST'          # 客户号
+COL_AMT = 'AMT'            # 金额
+COL_BENE_BANK = 'BENE_BANK'  # 收款银行
+
+
+# ============================================
+# 辅助函数
+# ============================================
+
+def _fmt_int(val):
+    """整数格式化，千分位分隔，避免科学计数法。"""
+    return f"{int(val):,}"
+
+
+def _normalize(s):
+    """将字符串统一为小写并去除首尾空格，None/NaN 返回空字符串。"""
+    if pd.isna(s):
+        return ''
+    return str(s).strip().lower()
+
+
+def _build_nar_pattern(keywords):
+    """根据关键词列表构建正则表达式模式（大小写不敏感）。"""
+    escaped = [re.escape(kw) for kw in keywords]
+    return re.compile('|'.join(escaped), re.IGNORECASE)
+
+
+# ============================================
+# 核心函数
+# ============================================
+
+def find_same_name_transfers(data, payer_col=COL_PAYER, payee_col=COL_PAYEE,
+                              nar_col=COL_NAR, keywords=None, show=True):
+    """
+    识别同名划转交易。
+
+    判定逻辑（满足任一即匹配）:
+        1. 付款人名字 == 收款人名字（大小写不敏感，去除首尾空格）
+        2. 交易附言包含同名相关关键词（大小写不敏感）
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        原始数据表。
+    payer_col : str
+        付款人列名，默认 'DFAC2N'。
+    payee_col : str
+        收款人列名，默认 'PO@BNM'。
+    nar_col : str
+        交易附言列名，默认 'NAR'。
+    keywords : list or None
+        同名关键词列表，默认使用 DEFAULT_KEYWORDS。
+    show : bool
+        是否打印汇总信息，默认 True。
+
+    Returns
+    -------
+    dict
+        - 'matched': pd.DataFrame, 所有匹配的同名划转记录
+        - 'by_name': pd.DataFrame, 按名称命中（付款人==收款人）
+        - 'by_nar': pd.DataFrame, 按附言关键词命中
+        - 'summary': pd.DataFrame, 汇总统计表
+        - 'match_reason': pd.Series, 每条匹配记录的命中原因
+    """
+    if keywords is None:
+        keywords = DEFAULT_KEYWORDS
+
+    df = data.copy()
+
+    # --- 条件 1：付款人 == 收款人 ---
+    payer_norm = df[payer_col].apply(_normalize)
+    payee_norm = df[payee_col].apply(_normalize)
+    mask_name = (payer_norm == payee_norm) & (payer_norm != '')
+
+    # --- 条件 2：附言包含同名关键词 ---
+    pattern = _build_nar_pattern(keywords)
+    nar_norm = df[nar_col].fillna('').astype(str)
+    mask_nar = nar_norm.str.contains(pattern, na=False)
+
+    # --- 合并：任一条件满足 ---
+    mask_any = mask_name | mask_nar
+
+    # 标记命中原因
+    reasons = []
+    for name_hit, nar_hit in zip(mask_name, mask_nar):
+        if name_hit and nar_hit:
+            reasons.append('名称匹配 + 附言关键词')
+        elif name_hit:
+            reasons.append('名称匹配')
+        elif nar_hit:
+            reasons.append('附言关键词')
+        else:
+            reasons.append('')
+
+    df['_match_reason'] = reasons
+
+    matched = df[mask_any].copy()
+    by_name = df[mask_name].copy()
+    by_nar = df[mask_nar].copy()
+
+    # --- 汇总统计 ---
+    total = len(data)
+    n_matched = len(matched)
+    n_name_only = (mask_name & ~mask_nar).sum()
+    n_nar_only = (~mask_name & mask_nar).sum()
+    n_both = (mask_name & mask_nar).sum()
+
+    summary = pd.DataFrame({
+        '指标': [
+            '原始记录总数',
+            '同名划转笔数',
+            '同名划转占比',
+            '',
+            '── 命中明细 ──',
+            '仅名称匹配',
+            '仅附言关键词',
+            '两者同时命中',
+            '',
+            '── 涉及客户 ──',
+            '涉及客户数 (CUST)',
+            '涉及付款人数 (DFAC2N)',
+        ],
+        '值': [
+            _fmt_int(total),
+            _fmt_int(n_matched),
+            f"{n_matched / total * 100:.2f}%" if total > 0 else '0%',
+            '',
+            '',
+            _fmt_int(n_name_only),
+            _fmt_int(n_nar_only),
+            _fmt_int(n_both),
+            '',
+            '',
+            _fmt_int(matched[COL_CUST].nunique()) if COL_CUST in matched.columns else 'N/A',
+            _fmt_int(matched[payer_col].nunique()) if len(matched) > 0 else '0',
+        ]
+    })
+
+    # 返回干净的 summary
+    clean_summary = summary[
+        (summary['指标'] != '') & (~summary['指标'].str.startswith('──'))
+    ].reset_index(drop=True)
+
+    if show:
+        print("🔍 同名划转识别结果")
+        print("=" * 60)
+        for _, row in summary.iterrows():
+            indicator = row['指标']
+            value = row['值']
+            if indicator.startswith('──'):
+                print(f"\n  {indicator}")
+            elif indicator == '':
+                continue
+            else:
+                print(f"  {indicator:<22s}  {value}")
+
+        print(f"\n📎 使用的关键词: {keywords}")
+
+        # 打印命中的附言样例（如有）
+        if n_nar_only + n_both > 0:
+            nar_samples = matched[matched['_match_reason'].str.contains('附言')][nar_col].head(5)
+            print(f"\n📝 附言命中样例 (最多5条):")
+            for i, nar in enumerate(nar_samples, 1):
+                print(f"    {i}. {nar}")
+
+    # 清理临时列
+    matched_clean = matched.drop(columns=['_match_reason'])
+    match_reason = matched['_match_reason']
+
+    return {
+        'matched': matched_clean,
+        'by_name': by_name.drop(columns=['_match_reason']),
+        'by_nar': by_nar.drop(columns=['_match_reason']),
+        'summary': clean_summary,
+        'match_reason': match_reason.reset_index(drop=True),
+    }
