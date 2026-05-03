@@ -1,0 +1,413 @@
+"""
+客户交易数据统计分析模块
+========================
+基于 CUST（客户号）和 DFAC2N（公司名）对交易数据进行多维度统计分析。
+
+核心逻辑:
+    - 分析维度以 CUST（客户号）为基础
+    - 展示时自动对应 DFAC2N（公司名），格式为 "客户号 (公司名)"
+    - 一个 CUST 只对应一个 DFAC2N
+    - 多个 CUST 可能对应同一个 DFAC2N
+
+使用方法 (Jupyter Notebook):
+    from cust_analysis import *
+
+    # 一键运行全部分析
+    run_full_analysis(data)
+
+    # 或单独调用某个分析函数
+    counts = cust_value_counts(data)
+    pareto_analysis(data)
+    summary_stats(data)
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats as sp_stats
+
+
+# ============================================
+# 全局设置 & 辅助函数
+# ============================================
+
+def _setup_plot_style():
+    """设置 matplotlib 中文字体和全局样式。"""
+    plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS', 'Microsoft YaHei', 'PingFang SC']
+    plt.rcParams['axes.unicode_minus'] = False
+    plt.rcParams['figure.dpi'] = 120
+
+
+def _build_cust_company_map(data, cust_col='CUST', company_col='DFAC2N'):
+    """
+    建立 CUST → DFAC2N 的一对一映射字典。
+
+    Returns
+    -------
+    dict
+        {客户号: 公司名} 映射字典。
+    """
+    return data.drop_duplicates(subset=cust_col).set_index(cust_col)[company_col].to_dict()
+
+
+def _format_label(cust, cust_map):
+    """将客户号格式化为 '客户号 (公司名)' 的展示标签。"""
+    company = cust_map.get(cust, '')
+    return f"{cust} ({company})" if company else str(cust)
+
+
+def _fmt_int(val):
+    """整数格式化，千分位分隔，避免科学计数法。"""
+    return f"{int(val):,}"
+
+
+def _fmt_float(val, decimals=2):
+    """浮点数格式化，避免科学计数法。"""
+    return f"{val:,.{decimals}f}"
+
+
+# ============================================
+# 1. 基础 value_counts 分析
+# ============================================
+
+def cust_value_counts(data, cust_col='CUST', company_col='DFAC2N', top_n=20, show=True):
+    """
+    对 CUST 做 value_counts 分析，展示时附带 DFAC2N 公司名。
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+    cust_col : str
+    company_col : str
+    top_n : int
+    show : bool
+
+    Returns
+    -------
+    pd.DataFrame
+        包含客户号、公司名、交易笔数、占比的 DataFrame（降序排列）。
+    """
+    counts = data[cust_col].value_counts()
+    cust_map = _build_cust_company_map(data, cust_col, company_col)
+    total = counts.sum()
+
+    result = pd.DataFrame({
+        '客户号': counts.index,
+        '公司名': [cust_map.get(c, '') for c in counts.index],
+        '交易笔数': counts.values,
+        '占比': [f"{v / total * 100:.2f}%" for v in counts.values],
+        '累计占比': [f"{counts.iloc[:i+1].sum() / total * 100:.2f}%" for i in range(len(counts))],
+    })
+
+    if show:
+        print(f"📊 客户交易基础统计")
+        print(f"{'=' * 65}")
+        print(f"  记录总数:       {_fmt_int(len(data))}")
+        print(f"  唯一客户数:     {_fmt_int(data[cust_col].nunique())}")
+        print(f"  唯一公司数:     {_fmt_int(data[company_col].nunique())}")
+        print(f"  平均交易笔数:   {_fmt_float(counts.mean())}")
+        print(f"  中位数交易笔数: {_fmt_float(counts.median(), 1)}")
+        print(f"\n🏆 Top {top_n} 客户排名:")
+        print(f"{'-' * 65}")
+        top_df = result.head(top_n).copy()
+        top_df.index = range(1, len(top_df) + 1)
+        top_df.index.name = '排名'
+        print(top_df.to_string())
+        print(f"\n📈 频次分布统计 (describe):")
+        print(f"{'-' * 65}")
+        print(counts.describe().apply(lambda x: _fmt_float(x)))
+
+    return result
+
+
+# ============================================
+# 2. 帕累托 (Pareto) 分析
+# ============================================
+
+def pareto_analysis(data, cust_col='CUST', company_col='DFAC2N',
+                    top_n=20, figsize=(18, 7)):
+    """
+    客户集中度与帕累托分析，图表 Y 轴标签显示 "客户号 (公司名)"。
+    Top N 柱状图同时标注笔数和百分比。
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+    cust_col : str
+    company_col : str
+    top_n : int
+    figsize : tuple
+
+    Returns
+    -------
+    dict
+        - 'top_df': pd.DataFrame, Top N 客户明细表
+        - 'pareto_80_pct': float, 贡献 80% 交易量的客户占比
+    """
+    _setup_plot_style()
+    counts = data[cust_col].value_counts()
+    cust_map = _build_cust_company_map(data, cust_col, company_col)
+    total = counts.sum()
+
+    # 构建 Top N DataFrame
+    top = counts.head(top_n)
+    cum_sum = top.cumsum()
+    top_df = pd.DataFrame({
+        '客户号': top.index,
+        '公司名': [cust_map.get(c, '') for c in top.index],
+        '交易笔数': top.values,
+        '占比': [f"{v / total * 100:.2f}%" for v in top.values],
+        '累计笔数': cum_sum.values,
+        '累计占比': [f"{v / total * 100:.2f}%" for v in cum_sum.values],
+    })
+    top_df.index = range(1, len(top_df) + 1)
+    top_df.index.name = '排名'
+
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+
+    # --- 左图：Top N 柱状图（标签带公司名，标注笔数+百分比）---
+    top_labels = [_format_label(c, cust_map) for c in top.index]
+    colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(top)))
+    axes[0].barh(range(len(top)), top.values, color=colors)
+    axes[0].set_yticks(range(len(top)))
+    axes[0].set_yticklabels(top_labels, fontsize=8)
+    axes[0].invert_yaxis()
+    axes[0].set_xlabel('交易笔数')
+    axes[0].set_title(f'Top {top_n} 客户交易笔数', fontsize=14, fontweight='bold')
+    for i, v in enumerate(top.values):
+        pct = v / total * 100
+        axes[0].text(v + 0.5, i, f"{_fmt_int(v)}  ({pct:.1f}%)", va='center', fontsize=8)
+
+    # --- 右图：帕累托曲线 ---
+    cumulative_pct = counts.cumsum() / total * 100
+    customer_pct = np.arange(1, len(cumulative_pct) + 1) / len(cumulative_pct) * 100
+
+    axes[1].plot(customer_pct, cumulative_pct.values, color='#2196F3', linewidth=2)
+    axes[1].fill_between(customer_pct, cumulative_pct.values, alpha=0.15, color='#2196F3')
+    axes[1].axhline(y=80, color='red', linestyle='--', alpha=0.7, label='80% 交易量')
+    axes[1].set_xlabel('客户占比 (%)')
+    axes[1].set_ylabel('累计交易笔数占比 (%)')
+    axes[1].set_title('客户帕累托曲线 (Pareto)', fontsize=14, fontweight='bold')
+    axes[1].legend()
+    axes[1].grid(True, alpha=0.3)
+
+    idx_80 = np.searchsorted(cumulative_pct.values, 80)
+    pct_80 = customer_pct[idx_80] if idx_80 < len(customer_pct) else 100
+    axes[1].axvline(x=pct_80, color='red', linestyle='--', alpha=0.7)
+    axes[1].annotate(
+        f'{pct_80:.1f}% 的客户\n贡献 80% 交易',
+        xy=(pct_80, 80), fontsize=10, color='red',
+        xytext=(min(pct_80 + 10, 85), 60),
+        arrowprops=dict(arrowstyle='->', color='red')
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+    print(f"\n📊 帕累托分析结论: {pct_80:.1f}% 的客户贡献了 80% 的交易笔数")
+
+    return {'top_df': top_df, 'pareto_80_pct': round(pct_80, 2)}
+
+
+# ============================================
+# 3. 关键统计指标汇总
+# ============================================
+
+def _calc_gini(values):
+    """计算基尼系数。"""
+    sorted_vals = np.sort(values)
+    n = len(sorted_vals)
+    index = np.arange(1, n + 1)
+    return (2 * np.sum(index * sorted_vals) / (n * np.sum(sorted_vals)) - (n + 1) / n)
+
+
+def summary_stats(data, cust_col='CUST', company_col='DFAC2N', show=True):
+    """
+    生成关键统计指标汇总表，包含多维度笔数分析。
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+    cust_col : str
+    company_col : str
+    show : bool
+
+    Returns
+    -------
+    pd.DataFrame
+        统计指标汇总表。
+    """
+    counts = data[cust_col].value_counts()
+    cust_map = _build_cust_company_map(data, cust_col, company_col)
+    gini = _calc_gini(counts.values)
+    total = counts.sum()
+    n_cust = len(counts)
+
+    top_cust = counts.idxmax()
+    top_cust_label = _format_label(top_cust, cust_map)
+
+    # 分位数分析
+    q25, q50, q75 = counts.quantile([0.25, 0.5, 0.75])
+    iqr = q75 - q25
+
+    # 各梯度客户贡献
+    top5_n = max(1, int(n_cust * 0.05))
+    top10_n = max(1, int(n_cust * 0.10))
+    top20_n = max(1, int(n_cust * 0.20))
+    top50_n = max(1, int(n_cust * 0.50))
+    top5_pct = counts.iloc[:top5_n].sum() / total * 100
+    top10_pct = counts.iloc[:top10_n].sum() / total * 100
+    top20_pct = counts.iloc[:top20_n].sum() / total * 100
+    top50_pct = counts.iloc[:top50_n].sum() / total * 100
+
+
+    summary = pd.DataFrame({
+        '指标': [
+            '── 基础概览 ──',
+            '记录总数',
+            '唯一客户数',
+            '唯一公司数',
+            '',
+            '── 集中趋势 ──',
+            '平均交易笔数/客户',
+            '中位数 (Q2)',
+            '众数',
+            '',
+            '── 离散程度 ──',
+            '标准差',
+            '变异系数 (CV)',
+            'Q1 (25%分位)',
+            'Q3 (75%分位)',
+            'IQR (四分位距)',
+            '最小交易笔数',
+            '最大交易笔数',
+            '最大交易笔数客户',
+            '',
+            '── 分布形态 ──',
+            '偏度 (Skewness)',
+            '峰度 (Kurtosis)',
+            '',
+            '── 集中度指标 ──',
+            '基尼系数 (Gini)',
+            '前5%客户交易占比',
+            '前10%客户交易占比',
+            '前20%客户交易占比',
+            '前50%客户交易占比',
+        ],
+        '值': [
+            '',
+            _fmt_int(total),
+            _fmt_int(n_cust),
+            _fmt_int(data[company_col].nunique()),
+            '',
+            '',
+            _fmt_float(counts.mean()),
+            _fmt_float(q50, 1),
+            _fmt_int(counts.mode().iloc[0]),
+            '',
+            '',
+            _fmt_float(counts.std()),
+            f"{counts.std() / counts.mean() * 100:.1f}%",
+            _fmt_float(q25, 1),
+            _fmt_float(q75, 1),
+            _fmt_float(iqr, 1),
+            _fmt_int(counts.min()),
+            _fmt_int(counts.max()),
+            top_cust_label,
+            '',
+            '',
+            _fmt_float(sp_stats.skew(counts.values)),
+            _fmt_float(sp_stats.kurtosis(counts.values)),
+            '',
+            '',
+            f"{gini:.4f}",
+            f"{top5_pct:.1f}%  ({_fmt_int(top5_n)} 个客户)",
+            f"{top10_pct:.1f}%  ({_fmt_int(top10_n)} 个客户)",
+            f"{top20_pct:.1f}%  ({_fmt_int(top20_n)} 个客户)",
+            f"{top50_pct:.1f}%  ({_fmt_int(top50_n)} 个客户),
+        ]
+    })
+
+    if show:
+        print(f"📋 客户交易统计指标汇总")
+        print("=" * 65)
+        for _, row in summary.iterrows():
+            indicator = row['指标']
+            value = row['值']
+            if indicator.startswith('──'):
+                print(f"\n  {indicator}")
+            elif indicator == '':
+                continue
+            else:
+                print(f"  {indicator:<22s}  {value}")
+
+    # 返回干净的 DataFrame（过滤掉分隔行和空行）
+    clean = summary[
+        (summary['指标'] != '') & (~summary['指标'].str.startswith('──'))
+    ].reset_index(drop=True)
+    return clean
+
+
+# ============================================
+# 一键运行全部分析
+# ============================================
+
+def run_full_analysis(data, cust_col='CUST', company_col='DFAC2N', top_n=20):
+    """
+    一键运行全部分析流程。
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+    cust_col : str
+    company_col : str
+    top_n : int
+
+    Returns
+    -------
+    dict
+        包含各分析结果的字典:
+        - 'cust_map': dict (CUST → DFAC2N 映射)
+        - 'value_counts': pd.DataFrame
+        - 'pareto': dict
+        - 'summary': pd.DataFrame
+    """
+    cust_map = _build_cust_company_map(data, cust_col, company_col)
+    print("🚀 开始全量分析...\n")
+    print(f"📎 CUST → DFAC2N 映射概览:")
+    print(f"   唯一客户数: {_fmt_int(len(cust_map))}")
+    print(f"   唯一公司数: {_fmt_int(len(set(cust_map.values())))}")
+
+    from collections import Counter
+    company_counter = Counter(cust_map.values())
+    multi_cust_companies = {k: v for k, v in company_counter.items() if v > 1}
+    if multi_cust_companies:
+        print(f"\n   ⚠️  以下公司拥有多个客户号:")
+        for company, cnt in sorted(multi_cust_companies.items(), key=lambda x: -x[1]):
+            custs = [c for c, comp in cust_map.items() if comp == company]
+            print(f"      {company}: {cnt} 个客户号 → {custs}")
+
+    print("\n\n" + "=" * 65)
+    print("  第 1 部分: 基础 value_counts 分析")
+    print("=" * 65)
+    vc = cust_value_counts(data, cust_col=cust_col, company_col=company_col, top_n=top_n)
+
+    print("\n\n" + "=" * 65)
+    print("  第 2 部分: 帕累托 (Pareto) 分析")
+    print("=" * 65)
+    pareto = pareto_analysis(data, cust_col=cust_col, company_col=company_col, top_n=top_n)
+
+    print("\n\n" + "=" * 65)
+    print("  第 3 部分: 关键统计指标汇总")
+    print("=" * 65)
+    summary = summary_stats(data, cust_col=cust_col, company_col=company_col)
+
+    print("\n\n✅ 全量分析完成!")
+
+    return {
+        'cust_map': cust_map,
+        'value_counts': vc,
+        'pareto_top_df': pareto['top_df'],
+        'pareto_80_pct': pareto['pareto_80_pct'],
+        'summary': summary,
+    }
