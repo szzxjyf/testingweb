@@ -1,0 +1,170 @@
+Below is a refined English version you can use for the upgrade proposal, with a clear comparison between the existing E2C mapping and the enhanced BDP capability.
+
+⸻
+
+Upgrade Proposal: From E2C Mapping to BDP Beneficiary Shield
+
+1. Background
+
+Under the current payment process, some clients use offshore treasury centres to initiate domestic payment instructions in China. These instructions may include personal beneficiary information such as beneficiary name, bank account number, and beneficiary bank name.
+
+With the latest CAC requirements on cross-border data handling, clients are increasingly expected to minimize the offshore transmission and exposure of personal beneficiary information.
+
+To address this requirement, we propose enhancing the existing English-to-Chinese mapping function by introducing a new BDP capability. The upgraded solution will allow offshore users to submit only a Debit Account + Beneficiary Code, while the full beneficiary details will be resolved and enriched locally within the bank’s China payment system before payment execution.
+
+⸻
+
+2. Current Solution: Existing E2C Mapping
+
+The existing E2C mapping logic supports the enrichment of beneficiary bank name and beneficiary name based on the following combination:
+
+Debit Account + Vendor ID + Beneficiary Account
+
+If the combination matches an existing E2C record, the system enriches:
+
+Beneficiary Bank Name + Beneficiary Name
+
+Key Characteristics
+
+The current E2C mapping is mainly designed to support existing payment processing and data enrichment. However, the beneficiary account number still needs to be included in the payment instruction submitted by the client.
+
+This means the offshore treasury centre may still have access to sensitive beneficiary information, especially where the payment involves employees or personal beneficiaries.
+
+⸻
+
+3. Proposed Upgrade: BDP Beneficiary Shield
+
+The upgraded BDP capability introduces a new mapping type under the existing mapping framework.
+
+For BDP payments, the offshore treasury centre only needs to provide:
+
+Debit Account + Beneficiary Code
+
+The China local GPE system will then use this combination to retrieve and enrich the full beneficiary information:
+
+Beneficiary Account + Beneficiary Bank Name + Beneficiary Name
+
+The key enhancement is that personal beneficiary information can be stored and maintained locally in China, while the offshore centre only handles a beneficiary code.
+
+⸻
+
+4. Key System Changes
+
+The proposed upgrade includes the following changes:
+
+Area	Upgrade Description
+Mapping Type	Add a new TYPE field to distinguish between E2C and BDP records
+Default Value	Existing records will be migrated as TYPE = E2C on Day 1
+New BDP Logic	Support lookup by Debit Account + Beneficiary Code
+Data Enrichment	Automatically enrich full beneficiary account, bank name, and beneficiary name
+UI Change	Add a TYPE dropdown in the English-to-Chinese Mapping profile
+Control	TYPE must be mandatory and non-editable in query/edit mode
+Duplicate Check	Enhance duplicate validation to avoid conflicting E2C and BDP records
+BAU Compatibility	Existing E2C process and payment channels remain unchanged
+
+⸻
+
+5. Comparison: Existing E2C vs Upgraded BDP
+
+Item	Existing E2C Mapping	Upgraded BDP Capability
+Main Purpose	Enrich beneficiary bank name and beneficiary name	Protect beneficiary data and enrich full beneficiary information locally
+Input from Client	Debit Account + Vendor ID + Beneficiary Account	Debit Account + Beneficiary Code
+Beneficiary Account Required in Instruction	Yes	No
+Beneficiary Name Required in Instruction	No / enriched by system	No / enriched locally by system
+Beneficiary Bank Name Required in Instruction	No / enriched by system	No / enriched locally by system
+Sensitive Data Exposure to Offshore Centre	Higher, because beneficiary account is still included	Lower, because only beneficiary code is transmitted
+Enrichment Output	Beneficiary Bank Name + Beneficiary Name	Beneficiary Account + Beneficiary Bank Name + Beneficiary Name
+Data Protection Value	Limited	Strong
+Impact on Existing Process	Existing BAU	New logic, but designed to coexist with E2C
+Operational Complexity	Lower	Higher, due to BDP data maintenance and control requirements
+Best-fit Scenario	Existing client mapping needs	Payroll, reimbursement, personal beneficiary payments, offshore initiation
+
+⸻
+
+6. Advantages of the Existing E2C Solution
+
+The existing E2C solution has several advantages:
+
+1. Stable and proven process
+    It is already part of the current BAU process and has been used by existing clients.
+2. Lower implementation risk
+    Since it is an existing function, system impact and operational changes are relatively limited.
+3. Backward compatibility
+    Existing payment flows, channels, and mapping records can continue to work without major changes.
+4. Simple maintenance model
+    The mapping logic is relatively straightforward because the beneficiary account is already provided in the payment instruction.
+
+⸻
+
+7. Limitations of the Existing E2C Solution
+
+However, E2C does not fully address the new data protection requirement.
+
+1. Beneficiary account is still exposed offshore
+    The offshore treasury centre still needs to include the beneficiary account in the payment instruction.
+2. Limited privacy protection
+    E2C enriches some beneficiary information, but it does not eliminate the cross-border handling of key personal data.
+3. Not ideal for personal beneficiary scenarios
+    For salary, reimbursement, or individual payments, the beneficiary account number itself is sensitive.
+4. Less aligned with data minimization principles
+    The process does not sufficiently reduce the personal data elements transmitted outside China.
+
+⸻
+
+8. Advantages of the Upgraded BDP Capability
+
+The BDP enhancement provides stronger business and compliance value.
+
+1. Stronger personal data protection
+    Offshore users only need to provide a beneficiary code. Full beneficiary details are stored and resolved locally in China.
+2. Better alignment with CAC requirements
+    The solution supports data minimization by reducing cross-border exposure of personal beneficiary information.
+3. Improved client value proposition
+    It helps clients with offshore treasury centres continue centralized payment operations while meeting local data protection expectations.
+4. Compatible with existing framework
+    The solution reuses the existing E2C mapping framework and adds TYPE = BDP, avoiding the need to build a completely separate platform.
+5. Supports future scalability
+    Once the BDP model is established, it may be extended to more code-based payment enrichment scenarios.
+
+⸻
+
+9. Potential Limitations and Risks of BDP
+
+The BDP solution also introduces additional operational and control requirements.
+
+1. Higher master data maintenance effort
+    The bank needs to maintain accurate BDP mapping records, including beneficiary code, account, bank name, and beneficiary name.
+2. Higher operational risk if mapping is incorrect
+    If a beneficiary code is mapped to the wrong account, the payment may be enriched incorrectly.
+3. Need for strong maker-checker controls
+    Since BDP mapping determines the final payment beneficiary, creation and maintenance should require proper approval, audit trail, and access control.
+4. Duplicate and conflict handling must be robust
+    The system must prevent duplicate or conflicting combinations, especially where the same Debit Account + Vendor ID may exist under both E2C and BDP.
+5. Exception handling needs to be clearly defined
+    If the BDP mapping is not found, the system should clearly define whether the payment will be rejected, sent to repair, or follow another exception process.
+6. Client onboarding and data setup may be more complex
+    Clients need to provide and maintain beneficiary code mapping information before using the solution.
+
+⸻
+
+10. Recommended Approach
+
+We recommend implementing the BDP capability as an enhancement to the existing E2C framework, rather than replacing E2C entirely.
+
+The proposed model is:
+
+Existing clients and existing mapping records → Continue under TYPE = E2C
+New privacy-sensitive scenarios → Use TYPE = BDP
+
+This approach provides a balanced solution:
+
+* It protects existing BAU processes.
+* It minimizes disruption to current clients.
+* It introduces a new privacy-preserving capability for clients with offshore treasury centres.
+* It allows the bank to support both traditional mapping and enhanced beneficiary data protection under one framework.
+
+⸻
+
+11. Suggested Executive Summary
+
+The proposed upgrade introduces a new BDP capability under the existing E2C mapping framework. While the existing E2C logic requires the beneficiary account to be included in the payment instruction, BDP allows offshore treasury centres to submit only a beneficiary code. The full beneficiary account, bank name, and beneficiary name will be enriched locally within the China payment system before execution. This reduces offshore exposure of personal beneficiary data, strengthens alignment with CAC data protection expectations, and preserves compatibility with existing payment flows. Its key trade-off is the need for stronger master data maintenance, duplicate controls, and operational governance.
