@@ -168,3 +168,83 @@ This approach provides a balanced solution:
 11. Suggested Executive Summary
 
 The proposed upgrade introduces a new BDP capability under the existing E2C mapping framework. While the existing E2C logic requires the beneficiary account to be included in the payment instruction, BDP allows offshore treasury centres to submit only a beneficiary code. The full beneficiary account, bank name, and beneficiary name will be enriched locally within the China payment system before execution. This reduces offshore exposure of personal beneficiary data, strengthens alignment with CAC data protection expectations, and preserves compatibility with existing payment flows. Its key trade-off is the need for stronger master data maintenance, duplicate controls, and operational governance.
+
+可以补充得更专业，但建议不要简单写成“cross-border transfer is not allowed”，而是写成：
+
+Cross-border transfer of China employee payroll data is highly regulated and only permissible when legal bases, CAC mechanisms, notice/consent, PIPIA and security controls are satisfied. BDP is designed to avoid/minimise overseas exposure of identifiable employee data.
+
+原因是：2024年CAC《促进和规范数据跨境流动规定》确实对部分跨境人力资源管理场景提供了豁免，但仍要求履行告知、单独同意、个人信息保护影响评估、技术安全措施等基础义务；如果达到敏感个人信息/个人信息出境规模门槛，还可能触发安全评估、标准合同或认证机制。 ￼
+
+建议把这一页改成这个逻辑
+
+1. 左侧 Regulatory Background 不要只放一句话，改成“为什么工资代发会触发监管”
+
+可直接放英文：
+
+Regulatory trigger: payroll data as cross-border personal information
+
+China employee payroll instructions may contain employee name, bank account, ID/reference, salary amount and employer relationship, which can constitute personal information and potentially sensitive personal information. When overseas Treasury/TMS can access or generate these instructions, China-origin employee data may be considered provided overseas.
+
+Under CAC’s cross-border data regime, such transfer may require one or more of the following depending on data type, volume and scenario:
+
+* Personal information protection impact assessment
+* Employee notice and separate consent where applicable
+* Standard contract filing / certification / CAC security assessment
+* Data minimisation, local storage, access control and incident response controls
+
+2. 中间增加一个 “Regulatory challenge / Pain point”
+
+这部分是你现在页面缺的。它能把法规背景和BDP方案连起来。
+
+可直接放英文：
+
+Key compliance challenge
+
+Traditional overseas payroll initiation requires full beneficiary details to be visible outside China. This creates three regulatory pressure points:
+
+1. Identifiability risk – overseas parties can identify individual China employees.
+2. Sensitive data exposure – salary and bank account details increase data sensitivity.
+3. CAC compliance burden – transfer may require filing, assessment, contract controls and ongoing monitoring.
+
+3. 右侧方案图旁边加“BDP为什么能解决”
+
+现在右侧图只是说明“海外只传Beneficiary ID”，但没讲清楚监管价值。建议加一个小框，标题叫：
+
+BDP compliance-by-design response
+
+可直接放英文：
+
+BDP converts the payroll flow from “full employee data shared overseas” to “tokenised instruction with China-resident mapping”:
+
+* Overseas TMS sends Beneficiary ID only, not name/account/bank details
+* Full beneficiary mapping table is stored and maintained in China
+* HSBC China resolves the token locally and completes domestic payout
+* Overseas parties cannot directly identify the employee from the payment file
+* Audit trail, access control and retention rules support regulatory evidence
+
+4. 底部加一句强结论，提升这一页的商业价值
+
+推荐一句话：
+
+Bottom line: BDP is not merely a mapping tool; it is a China-resident beneficiary data protection layer that enables centralised Treasury payment initiation while reducing cross-border exposure of identifiable China employee payroll data.
+
+这一页可以用的完整版本
+
+标题建议改成：
+
+BDP: A China-Resident Data Protection Layer for Cross-Border Payroll Initiation
+
+页面三栏结构：
+
+Regulatory trigger	Compliance risk	BDP response
+Payroll files may contain China employee PI / sensitive PI	Overseas Treasury/TMS visibility creates cross-border data transfer exposure	Tokenised Beneficiary ID sent overseas; full mapping stays in China
+CAC regime requires classification, PIPIA, consent/notice and transfer mechanism where applicable	Full beneficiary details increase CAC filing / assessment burden	HSBC China resolves the token domestically for payout
+Regulators expect data minimisation, local protection and traceability	Re-identification, onward transfer and data leakage risks	Access control, audit trail, local storage and no overseas mapping export
+
+特别建议
+
+你现在左下角写“HSBC is the first international bank…”这一句，如果没有内部可引用材料支撑，建议弱化成：
+
+HSBC China has established localised data storage and completed relevant cross-border data compliance arrangements, enabling it to act as a China-resident processing and mapping layer for regulated payment data.
+
+这样更稳，不容易被质疑“first international bank”的准确性。
