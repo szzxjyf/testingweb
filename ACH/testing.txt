@@ -250,3 +250,21 @@ HSBC China has established localised data storage and completed relevant cross-b
 这样更稳，不容易被质疑“first international bank”的准确性。
 
 SafeX Pay is a lightweight solution designed for companies with data localization needs. To meet local regulatory requirements on sensitive personal data handling, overseas users only input a predefined beneficiary ID, and once the instruction reaches HSBC China, the bank automatically converts it into the full beneficiary details, ensuring sensitive personal information remains within Mainland China.
+
+Thank you very much for sharing the screenshots — they helped us better understand the customer’s top-up flow.
+
+Based on the screenshots, this appears to be a B2B online banking payment model. We actually evaluated this approach at least twice in the past, likely for similar top-up scenarios, but ultimately decided not to proceed, as the overall efficiency was not considered ideal.
+
+The main considerations were as follows:
+
+1. **Complex user journey**
+   After selecting the bank, the user still needs to be redirected to the online banking portal to complete the payment, rather than paying directly within the platform.
+
+2. **Approval process constraints**
+   Unlike retail payments, corporate payments usually involve one or even two levels of approval. As a result, the process may not necessarily be more efficient than simply initiating a standard bank transfer directly through online banking.
+
+3. **Integration effort**
+   The redirection model also requires additional bank interface integrations, which introduces extra development and maintenance effort.
+
+Overall, this is not currently a solution that we would strongly recommend or prioritize.
+
