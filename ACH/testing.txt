@@ -248,3 +248,5 @@ Regulators expect data minimisation, local protection and traceability	Re-identi
 HSBC China has established localised data storage and completed relevant cross-border data compliance arrangements, enabling it to act as a China-resident processing and mapping layer for regulated payment data.
 
 这样更稳，不容易被质疑“first international bank”的准确性。
+
+SafeX Pay is a lightweight solution designed for companies with data localization needs. To meet local regulatory requirements on sensitive personal data handling, overseas users only input a predefined beneficiary ID, and once the instruction reaches HSBC China, the bank automatically converts it into the full beneficiary details, ensuring sensitive personal information remains within Mainland China.
