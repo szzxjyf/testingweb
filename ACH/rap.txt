@@ -1,0 +1,49 @@
+Payments	Response
+Please describe how payment rejections are handled (e.g. validation, compliance, cut-off related). Include root-cause information provided, timelines, and how payers are notified (channels, frequency, and format).
+请描述支付被拒的处理方式（例如，验证、合规性、截止日期相关）。包括提供的根本原因信息、时间线以及付款人如何收到通知（渠道、频率和格式）。	For rejected RMB payments, returned funds will be credited to the customer's account on the same day, provided the funds are received by the Bank before 21:40.
+Please describe how returned payments are processed, including value dating, reconciliation, and fees (if applicable). Specify how and when payers are notified and what return-reason detail is provided.
+请描述退款的处理流程，包括计息日期、对账和费用（如适用）。请说明付款人如何以及何时收到通知，以及提供哪些退款原因详情。	
+Please describe how outgoing payments are handled when the local bank branch is closed due to a public holiday, but the relevant clearing system or currency is open. Include payment submission, processing, and execution timelines.
+请描述当本地银行分支机构因公共假日关闭，但相关清算系统或货币仍开放时，如何处理对外付款。请包含付款提交、处理和执行的时间线。	Domestic RMB payments can be processed on non-business days via CNAPS-BEPS.
+Please indicate whether incoming funds credited on the same value date as an outgoing payment request can be used to fund that payment on the same day, or whether such payments are executed on the next business day, even when instructions are submitted before the applicable cut-off time. If same-day funding is not supported, please specify the impacted currencies, clarify whether this applies to both D-1 and D-2 cut-off payments, and describe any available exceptions or alternative processing options
+请说明在与出账付款请求相同起息日入账的资金是否可用于资助当日付款，或者此类付款是否在下一个工作日执行，即使指令在适用的截止时间之前提交。如果不支持当日资金，请具体说明受影响的货币，阐明这是否适用于 D-1 和 D-2 截止付款，并描述任何可用的例外情况或替代处理选项。	
+Please describe your process when insufficient funds are detected during outgoing payment execution, including payment queuing, retry logic, partial execution (if applicable), and client notifications.
+请描述在执行对外支付时检测到资金不足时的处理流程，包括支付排队、重试逻辑、部分执行（如适用）以及客户通知。	In the event of insufficient funds, the Bank will notify the customer and re-attempt payment processing upon subsequent balance checks. The Bank will continue to verify fund availability on the following business day(s). If the payment cannot be executed, the instruction will be automatically cancelled after 30 calendar days.
+
+Partial execution of payment instructions is not supported.
+Please describe your service offering for Verification of Payee (VoP), including scope, coverage, and implementation approach, and indicate any fees associated with this service.
+请描述您的收款人验证（VoP）服务，包括范围、覆盖范围和实施方法，并说明与此服务相关的任何费用。	Verification of Payee (VoP) service is currently not available.
+In relation to cross-border payments, please describe how you help clients remove or minimize intermediary bank charges (e.g. routing options, correspondent network, and transparency tools).
+关于跨境支付，请描述您如何帮助客户消除或最大程度地降低中间银行费用（例如，路由选项、代理行网络和透明度工具）。	Not DOME
+Please describe your process and customer tools for recall requests.
+请描述您处理召回请求的流程和客户工具。	Due to the near real-time nature of RMB domestic payments, payment recall is generally not supported once a payment has been processed. Customers may resubmit the payment after any returned funds have been credited back to their account.
+Please describe your service offering for salary payments in China, including supported payment types, processing timelines and cutoffs, value dating, support for bulk payments, and any payroll-related controls or reporting.
+请描述贵公司在中国提供薪资支付服务的情况，包括支持的支付类型、处理时间线和截止日期、起息日、对批量支付的支持，以及任何与薪资相关的控制或报告。	HSBC supports domestic RMB payroll payments via both priority payment and ACH payment.
+
+ACH payroll payments are processed using a one-debit-to-multiple-credit structure, ensuring payroll confidentiality and beneficiary information protection.
+
+The ACH payroll payment cut-off time is 18:00 (local time) on business days.
+
+HSBC can provide T-Day or T+1 ACH reports, as well as stamped payroll payment reports and detailed payment schedules upon request.
+Please describe your simplified solutions for cross-border CNY and FCY payments for goods and services, including white-listing or trusted counterparty options, documentation requirements, transaction limits, and supported use cases.
+请描述您针对跨境人民币和外币商品及服务支付的简化解决方案，包括白名单或可信交易对手选项、文件要求、交易限额以及支持的使用场景。	Not DOME
+Please describe your participation (direct or indirect) in CNAPS-HVPS, CNAPS-BEPS, and CIPS, including cut-off times, processing times, value dating, supported transactions, and limitations.
+请描述您直接或间接参与CNAPS-HVPS、CNAPS-BEPS和CIPS的情况，包括截止时间、处理时间、起息日、支持的交易和限制。	The Bank is a direct participant of both CNAPS-HVPS (High Value Payment System) and CNAPS-BEPS (Bulk Electronic Payment System).
+
+CNAPS-HVPS
+Clearing window: Business days from 20:30 to 17:10 on the following business day.
+HSBC processing window: 03:00 to 17:10, and 20:30 to 21:40 on business days.
+
+CNAPS-BEPS
+Clearing window: 24x7.
+HSBC processing window: 03:00 to 21:40 on business days, and throughout non-business days.
+
+The Bank supports both RMB payments and collections through CNAPS-HVPS and CNAPS-BEPS, with no specific restrictions applicable under standard processing arrangements.
+Please specify the currencies supported for outgoing cross-border TT payments from onshore China accounts, including eligible debit accounts, correspondent banks, cut-off times, and value dating
+请说明中国境内账户对外跨境电汇（TT）支付支持的币种，包括符合条件的借记账户、代理银行、截止时间和起息日。	Not DOME
+Please describe typical lead times for document review and handling for cross-border payments and specify any applicable SLAs.
+请描述跨境支付文件审查和处理的典型交付周期，并说明任何适用的服务水平协议。	Not DOME
+Please confirm whether you support centralized collection and disbursement of current account funds, as well as net cross-border settlement. If applicable, could you provide details on the associated requirements (for example, whether transactions must be trade or non-trade, and which currencies are supported)? Additionally, it would be helpful if you could outline the overall process involved.
+请确认贵公司是否支持经常项目资金的集中收付和跨境净额结算。如果支持，请提供相关要求（例如，交易是否必须是贸易或非贸易性质，以及支持哪些货币）的详细信息。此外，如果能概述整个流程，将不胜感激。	Not DOME
+Please describe your automated confirmation capabilities for incoming cross-border transactions, including channels and workflow.
+请描述您对跨境入账交易的自动确认能力，包括渠道和工作流程。	Not DOME
