@@ -1,0 +1,51 @@
+import pandas as pd
+from functools import reduce
+
+input_file = "input.xlsx"
+output_file = "merged_output.xlsx"
+
+# 读取所有 sheet
+sheets = pd.read_excel(input_file, sheet_name=None)
+
+monthly_dfs = []
+
+for sheet_name, df in sheets.items():
+    # 标准化列名
+    df = df.rename(columns={
+        "Customer ID": "Customer",
+        "Customer": "Customer",
+        "TXN": "Transaction",
+        "Transaction": "Transaction"
+    })
+
+    # 只保留需要的两列
+    df = df[["Customer", "Transaction"]]
+
+    # 如果同一个客户在同一个月有多行，先汇总
+    df = df.groupby("Customer", as_index=False)["Transaction"].sum()
+
+    # 将 Transaction 改成月份列名，例如 202501
+    df = df.rename(columns={"Transaction": sheet_name})
+
+    monthly_dfs.append(df)
+
+# 按 Customer 做全量合并
+result = reduce(
+    lambda left, right: pd.merge(left, right, on="Customer", how="outer"),
+    monthly_dfs
+)
+
+# 按月份排序
+month_cols = sorted([col for col in result.columns if col != "Customer"])
+result = result[["Customer"] + month_cols]
+
+# 空值补 0
+result[month_cols] = result[month_cols].fillna(0).astype(int)
+
+# 可选：增加总计列
+result["Total"] = result[month_cols].sum(axis=1)
+
+# 输出
+result.to_excel(output_file, index=False)
+
+print("Done:", output_file)
