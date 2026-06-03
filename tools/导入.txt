@@ -1,0 +1,27 @@
+import pandas as pd
+
+# 文件路径
+file_path = "input.xlsx"
+
+# 读取所有sheet
+all_sheets = pd.read_excel(file_path, sheet_name=None)
+
+result_list = []
+
+for sheet_name, df in all_sheets.items():
+
+    # 筛选 AMT >= 50000
+    filtered_df = df[df["AMT"] >= 50000].copy()
+
+    # 保留来源sheet（可选）
+    filtered_df["Sheet"] = sheet_name
+
+    result_list.append(filtered_df)
+
+# 合并所有结果
+result = pd.concat(result_list, ignore_index=True)
+
+# 输出
+result.to_excel("AMT_50000_above.xlsx", index=False)
+
+print(f"共筛选出 {len(result)} 条记录")
