@@ -1,0 +1,44 @@
+BLUF:
+The meeting covered key business updates across IWPB and CIB, with a strong focus on AI initiatives. Zoom AI Companion remains restricted to Customer Facing staff due to cross-border data and compliance concerns, while HSBC Productivity Suite (HPS) is expected to be rolled out bank-wide within the next one to two weeks. Global AI applications and the next five-year digital transformation agenda were also discussed.
+
+Meeting Summary
+
+1. Business Updates
+
+(a) IWPB
+
+* Provided updates on several ongoing initiatives, including the Referral System.
+
+(b) CIB
+
+* Shared information on the first IDR/CNY transaction and E3 confirmation letter-related developments.
+
+(c) Other Updates
+
+* Introduced a new ML model and the CFCII platform.
+
+2. Key AI Initiatives
+
+(a) Zoom AI Companion
+
+* Current Status: Approximately 3,600 Non-Customer Facing colleagues currently have access.
+* Risk Considerations: Access for Customer Facing roles remains restricted due to RC, Legal, and People Risk considerations. The primary concern is that Zoom AI is hosted on AWS cloud infrastructure in the EU, which raises cross-border data transfer implications.
+* Interim Workaround: Where there is a business need, colleagues with existing access can act as meeting organizers and leverage the functionality.
+* Future Direction: Discussions will continue regarding broader enablement for Customer Facing roles. Potential options include business sponsorship and risk acceptance, or a localized deployment. However, Eric indicated that localization is not currently a priority.
+* Access Request Process: Not all Non-Customer Facing colleagues have access today. If ServiceNow requests are unsuccessful, departments may consolidate user lists and submit them to Eric, who can coordinate a bulk request with the Global team.
+
+(b) HPS (HSBC Productivity Suite)
+
+* Positive progress was shared, with a full rollout expected within the next one to two weeks.
+* An official announcement may be released as early as next week.
+
+3. Other Discussions
+
+(a) Global AI Applications
+
+* Global will continue introducing AI-related applications through a top-down approach.
+* Harrison and HRPC asked whether earlier visibility could be provided for upcoming initiatives. Eric committed to exploring this and aims to share more forward-looking updates in future meetings.
+
+(b) Five-Year Digital Transformation Agenda
+
+* Eric highlighted the bank’s “Next 5-Year Digital Transformation” strategy and encouraged greater involvement from business teams in shaping and supporting the transformation journey.
