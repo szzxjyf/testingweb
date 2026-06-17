@@ -1,0 +1,64 @@
+HSBC supports online collections, covering both online and offline payment acceptance scenarios.
+
+1. Offline / In-store Collections
+
+(a) On-site collections can be supported through POS terminals, enabling both card payments and QR code payments.
+
+(b) HSBC supports both QR code scanning models, including merchant-presented QR codes and customer-presented QR codes.
+
+(c) HSBC can provide a mobile app for clients. In addition to working with POS terminals, the app can turn store staff’s mobile phones into devices for scanning customer QR codes or presenting merchant QR codes for payment.
+
+2. Online Collections
+
+(a) HSBC supports multiple online collection channels, including WeChat Pay, Alipay, mini-program payments, and other customized collection scenarios, including but not limited to payment collection via direct payment links.
+
+(b) Payments are mainly supported within the WeChat and Alipay ecosystems. For clients’ self-developed online stores or platforms, HSBC can also provide integration support, including H5 payments and in-app payment redirection to WeChat Pay or Alipay.
+
+
+
+
+HSBC also provides the Omni Collection Portal, which enables clients to manage users, configure access controls and user entitlements, access transaction data, and administer various collection-related functions.
+
+Key functionalities, including transaction inquiry, report generation and download, and refund processing, can be performed through the OmniCollector Portal.
+
+Upon successful collection of funds, HSBC can provide real-time notifications to clients, subject to the specific payment scenario and product configuration.
+
+Collected funds are credited to the client’s designated settlement account as a consolidated payment on T+1. HSBC subsequently provides detailed reconciliation reports, including settlement and transaction-level details, to facilitate automated reconciliation processes.
+
+
+
+
+HSBC supports QR code payment acceptance, including both merchant-presented QR codes (C-scan-B) and customer-presented QR codes (B-scan-C). Supported payment schemes include WeChat Pay, Alipay, and UnionPay QR Code.
+
+QR code payments are typically used for in-store acquiring scenarios. Upon successful payment, the acquiring service provider (e.g., UnionPay or Fuiou) will consolidate the transactions and credit the aggregated funds to the client's corporate account, typically on a T+1 or T+2 basis, depending on the settlement arrangement.
+
+In addition, HSBC provides detailed reconciliation reports, including settlement results and transaction-level details underlying the previous day's consolidated settlement amount. These reports can be leveraged by clients to support automated reconciliation processes.
+
+
+
+
+HSBC is technically capable of supporting Direct Debit collection solutions. However, the applicability of such arrangements is subject to local regulatory requirements and market practices.
+
+In the Chinese Mainland market, Direct Debit is subject to stringent regulatory and business-use restrictions. Eligibility is typically assessed based on the specific use case, industry sector, and underlying transaction nature.
+
+Accordingly, whether a Direct Debit solution can be implemented will need to be evaluated on a case-by-case basis, taking into consideration the client's business model and the relevant regulatory requirements.
+
+
+
+For acquiring transactions processed through designated acquiring partners (e.g., UnionPay or Fuiou), HSBC provides comprehensive settlement consolidation and reconciliation reporting services.
+
+The reconciliation process typically operates as follows:
+
+Settlement of Funds
+Transaction proceeds are consolidated and credited to the client's HSBC corporate account on a T+1 basis, subject to the applicable settlement arrangement.
+
+Reconciliation Reporting
+HSBC provides reconciliation reports that identify matched, unmatched, and exception items, enabling efficient reconciliation management.
+
+Transaction-Level Details
+The reports include detailed transaction-level information and breakdowns across different payment scenarios, providing full visibility into individual consumer transactions underlying the settlement amount.
+
+File Formats
+Reconciliation reports can be delivered in standard formats, including CSV and XLSX.
+
+In terms of file delivery and data transmission, HSBC supports multiple channels, including Host-to-Host (H2H), API-based integration, and email delivery, allowing clients to integrate reconciliation data into their internal systems efficiently.
