@@ -1,0 +1,15 @@
+Dear [Name],
+
+Thank you again for your sharing during our last discussion. It was very helpful for us to understand that, in other markets, there are existing solutions to support reconciliation for e-commerce platforms similar to Tmall, Taobao, JD.com, Douyin, and other platforms in China.
+
+In China, unified reconciliation is increasingly mentioned in many RFPs. However, based on our current capabilities, we are mainly able to support standard billing and reconciliation in acquiring scenarios, such as offline acquiring or payments made via WeChat Pay and Alipay, by connecting with UnionPay, China UMS, Fuiou, or similar payment service providers. Reconciliation related to e-commerce platforms is generally outside our current service scope.
+
+Since these requirements are clearly appearing in client RFPs, and we also discussed that other markets may retrieve billing information through plugins, we would like to seek your further guidance on the following points:
+
+1. Could you share more details on how such solutions work in other markets?
+2. Are there any sample reports or sample outputs that we could refer to?
+3. How is the pricing generally structured?
+
+We would like to explore whether a similar solution could be developed or introduced for the China market. To our knowledge, there are currently no banks in China offering this type of service. If we are able to provide such capabilities, it would give us a stronger starting point and significantly improve our chances of success when presenting solutions to clients.
+
+Thank you in advance for your support, and we look forward to hearing your thoughts.
