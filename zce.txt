@@ -28,3 +28,105 @@ Thank you to Jeffrey Ji and Fiona for helping the client promptly resolve the AC
 * 优化国际化机制：建议在扩大国际化品种覆盖的同时，进一步简化国际化、QFII 等相关机制，降低客户理解和参与门槛，提升整体市场便利性。
 * 推动统一对接标准：建议未来在系统对接层面逐步探索更标准化、统一化的接口方案，减少银行与不同交易所逐一开发的成本，提升客户接入效率。
 
+
+
+我查了公开资料，这页主要有几处需要更新，尤其是 FIA 排名、SHFE 名称、国际化品种和主产品清单。
+
+建议修改点
+
+1. “SFE” 应改成 SHFE
+
+页面里写的 SFE 不准确，建议统一改为：
+
+SHFE / INE
+Shanghai Futures Exchange, including Shanghai International Energy Exchange
+
+因为原油、低硫燃料油、20号胶、国际铜、集运指数欧洲线等主要是在 INE 体系下。INE 官网介绍其为 SHFE 发起设立的国际化交易平台，并列明当前开放给境外投资者的产品包括 crude oil、LSFO、TSR 20、bonded copper、SCFIS Europe 及 crude oil options。 
+
+⸻
+
+2. FIA Ranking 不能再用 2021 年数据
+
+现在这页仍写 2021 by trade volume：DCE 9 / SHFE 8 / ZCE 7，这个明显需要更新。
+
+按 FIA 2025 年全年交易量排名：
+
+Exchange	Slide 当前	FIA 2025 建议更新
+ZCE	7	9
+DCE	9	11
+SHFE incl. INE	8	12
+
+FIA 2025 报告显示：ZCE 排名第 9，DCE 排名第 11，SHFE 排名第 12；其中 SHFE 数据包含 Shanghai Futures Exchange 与 Shanghai International Energy Exchange 分项。 
+
+⸻
+
+3. DCE 国际化产品基本正确，但可以写得更准确
+
+页面中 DCE 写的是：
+
+Iron ore / Palm oil / No.1 Soybean / No.2 Soybean / Soybean Meal / Soybean Oil
+
+这个方向基本对，但建议改成更标准的产品名：
+
+Iron Ore; RBD Palm Olein; No.1 Soybean; No.2 Soybean; Soybean Meal; Soybean Oil
+
+时间上也基本正确：DCE 官网历史显示，2018 年 5 月引入境外交易者参与铁矿石期货，2020 年 12 月 22 日开放棕榈油期货，2022 年 12 月 26 日开放一号黄大豆、二号黄大豆、豆粕、豆油期货及期权。 
+
+但注意：2025 年 QFI/RQFI 可参与商品范围又有扩大，例如 DCE 的 PP、PVC、苯乙烯等进入 QFI 可交易范围；这属于 QFI access，不一定等同于本页讲的“国际化品种 / overseas trader model”。如果这页是讲“境外客户通过存管行参与国际化品种”，建议不要混在一起。 
+
+⸻
+
+4. SHFE / INE 国际化产品需要更新
+
+页面现在写：
+
+Crude oil / TSR20 / LSFO / Copper / SCFIS(Europe)
+
+建议改成：
+
+Crude Oil; TSR 20; Low Sulfur Fuel Oil; Bonded Copper; SCFIS (Europe); Nickel
+
+原因是：SHFE 已于 2026 年开放镍期货及期权给境外交易者，这是 SHFE 本部第一个直接开放给境外交易者的期货及期权品种。 
+
+另外，页面中的 Copper 建议改成 Bonded Copper / Copper (BC)，避免和 SHFE 本部普通铜期货混淆。INE 官网列明的是 bonded copper。 
+
+⸻
+
+5. ZCE 国际化产品需要明显更新
+
+页面现在写：
+
+PTA / Rapeseed Oil / Rapeseed Meal / Peanut Kernel
+
+这已经不够新。建议改成两层：
+
+Earlier opened products:
+PTA Futures; Rapeseed Oil Futures/Options; Rapeseed Meal Futures/Options; Peanut Kernel Futures/Options
+
+Newly added polyester / petrochemical products:
+Paraxylene; Bottle-grade PET Resin; Polyester Staple Fiber Futures/Options; PTA Options
+
+ZCE 官网确认，2023 年 1 月 12 日正式引入境外交易者参与菜籽油、菜粕、花生期货及期权。  另外，2026 年 5 月起，ZCE 又进一步开放聚酯板块相关品种，包括 PX、瓶片、短纤期货及期权，以及 PTA 期权。 
+
+⸻
+
+6. 三个 Main Product List 都有点旧
+
+这部分如果只是“主要产品”，可以保留简略口径；但如果想准确，建议更新。
+
+DCE：原清单大体可用，但建议补充近年已有的 Live Hog、Log 等，并注意官网现在也显示 LLDPE/PVC 等月均价期货相关产品。DCE 官网产品页显示其产品包括 RBD Palm Olein、Corn、Corn Starch、LLDPE、PVC 等；行情页也能看到 Live Hogs、Log、Coking Coal、Coke、Iron Ore 等。 
+
+SHFE / INE：建议补充 Aluminium Oxide、Cast Aluminum Alloy、Butadiene Rubber、Offset Paper 等新产品。SHFE 官网概览显示其目前列有 25 个期货产品，包括 copper、aluminum、zinc、lead、tin、nickel、bonded copper、aluminum oxide、gold、silver、steel rebar、wire rod、hot-rolled coils 等。 
+
+ZCE：原清单缺少较多新品种，建议补充 Paraxylene、Sodium Hydroxide、Bottle-grade PET Resin、Propylene。ZCE 官网产品列表已列明这些非农产品，以及 PTA、甲醇、玻璃、动力煤、硅铁、锰硅、尿素、纯碱、短纤等。 
+
+⸻
+
+可以直接改成的核心表格
+
+Exchange	FIA Ranking	International Products	Opening / Latest Update
+DCE	11	Iron Ore; RBD Palm Olein; No.1 Soybean; No.2 Soybean; Soybean Meal; Soybean Oil	2018 / 2020 / 2022
+SHFE / INE	12	Crude Oil; TSR 20; LSFO; Bonded Copper; SCFIS Europe; Nickel	2018 / 2019 / 2020 / 2023 / 2026
+ZCE	9	PTA Futures; Rapeseed Oil; Rapeseed Meal; Peanut Kernel; PX; Bottle-grade PET Resin; Polyester Staple Fiber; PTA Options	2018 / 2023 / 2026
+
+HSBC support 那一列我建议不要仅靠公开网站更新，因为这属于 HSBC 内部资质/申请状态；公开资料只能确认交易所品种是否开放，不能确认 HSBC 当前是否已完成对应存管行或接入资格。
