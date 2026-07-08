@@ -162,3 +162,16 @@ ZCE 官网产品列表现在已经明确列出 Paraxylene、Sodium Hydroxide、B
 ⸻
 
 如果放在 PPT 灰框里，我建议把 Official website 去掉，节省空间；或者只保留成一行小字：Source: DCE, SHFE/INE and ZCE official websites。
+
+I have updated the following items, mainly including:
+
+1. The section on International Products on Slide 2
+2. The content related to the FIA Ranking
+3. Some terminology descriptions that were not precise enough previously
+
+All revised parts have been highlighted in yellow.
+
+For the key products of the commodity exchanges listed at the bottom of Slide 2, I did not include every single product, as this section is mainly intended to highlight some of the core products.
+
+The current wording should still be appropriate. The complete product lists can always be found on the official websites, so I do not think it is necessary for us to repeat the full lists here.
+
