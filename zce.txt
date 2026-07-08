@@ -130,3 +130,35 @@ SHFE / INE	12	Crude Oil; TSR 20; LSFO; Bonded Copper; SCFIS Europe; Nickel	2018 
 ZCE	9	PTA Futures; Rapeseed Oil; Rapeseed Meal; Peanut Kernel; PX; Bottle-grade PET Resin; Polyester Staple Fiber; PTA Options	2018 / 2023 / 2026
 
 HSBC support 那一列我建议不要仅靠公开网站更新，因为这属于 HSBC 内部资质/申请状态；公开资料只能确认交易所品种是否开放，不能确认 HSBC 当前是否已完成对应存管行或接入资格。
+
+
+可以。建议这一页下面三个灰框改成下面版本，不需要特别全到每个细分合约，但要比原来更准、更像给客户看的 slide。
+
+Main Product List of DCE
+
+Futures: corn, corn starch, No.1 soybean, No.2 soybean, soybean meal, soybean oil, RBD palm olein, egg, live hog, fiberboard, blockboard, log, iron ore, coke, coking coal, LLDPE, PVC, PP, ethylene glycol, styrene, LPG, etc.
+Options: soybean meal, corn, iron ore, LPG, palm olein, PVC, PP, live hog, log, etc.
+
+DCE 官网产品页已列出 Live Hog、Log、LLDPE、PVC、PP 等期货/期权品种，所以原 slide 里的 DCE 清单建议补充这些新品种。 
+
+⸻
+
+Main Product List of SHFE / INE
+
+Futures: copper, bonded copper, aluminum, zinc, lead, nickel, tin, aluminium oxide, cast aluminum alloy, gold, silver, steel rebar, wire rod, hot-rolled coil, stainless steel, fuel oil, crude oil, LSFO, bitumen, natural rubber, TSR 20, pulp, butadiene rubber, SCFIS Europe, offset paper, etc.
+Options: copper, aluminum, zinc, gold, silver, rebar, natural rubber, crude oil, LSFO, TSR 20, butadiene rubber, offset paper, etc.
+
+这里建议标题写 SHFE / INE，因为 crude oil、LSFO、TSR 20、bonded copper、SCFIS Europe 等和 INE 相关；SHFE 官网产品页也已出现 Copper(BC)、Aluminium Oxide、Cast Aluminum Alloy、Butadiene Rubber、Offset Paper 等更新品种。 
+
+⸻
+
+Main Product List of ZCE
+
+Futures: wheat, cotton, white sugar, rapeseed oil, rapeseed, rapeseed meal, early rice, late indica rice, japonica rice, cotton yarn, apple, dried jujube, peanut kernel, PTA, methanol, glass, thermal coal, ferrosilicon, manganese silicon, urea, soda ash, polyester staple fiber, paraxylene, sodium hydroxide, bottle-grade PET resin, propylene, etc.
+Options: cotton, white sugar, rapeseed oil, rapeseed meal, apple, dried jujube, peanut kernel, PTA, methanol, glass, thermal coal, ferrosilicon, manganese silicon, urea, soda ash, polyester staple fiber, paraxylene, sodium hydroxide, bottle-grade PET resin, propylene, etc.
+
+ZCE 官网产品列表现在已经明确列出 Paraxylene、Sodium Hydroxide、Bottle-grade PET Resin、Propylene 等，所以原 slide 里的 ZCE 清单需要明显更新。 
+
+⸻
+
+如果放在 PPT 灰框里，我建议把 Official website 去掉，节省空间；或者只保留成一行小字：Source: DCE, SHFE/INE and ZCE official websites。
