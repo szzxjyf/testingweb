@@ -175,3 +175,19 @@ For the key products of the commodity exchanges listed at the bottom of Slide 2,
 
 The current wording should still be appropriate. The complete product lists can always be found on the official websites, so I do not think it is necessary for us to repeat the full lists here.
 
+
+Licence Expansion Roadmap: Financial & Strategic Return (2027–2030)
+
+Year	Licence / Milestone	Total Investment	GPS Share	Cumulative GPS Cost	Revenue & Payback	Product Coverage*	Reputation & Strategic Value	Key Dependency
+2027	ZCE launch	USD 200K	USD 100K	USD 100K	≥USD 100K; first-year payback	51 / 133（38.3%）	Potentially the first and only foreign bank connected to ZCE; overtake DBS and become No.1 by product coverage	Branch resources confirmed; high application certainty
+2028	DCE QFII expansion	USD 200K	USD 100K	USD 200K	Recurring ZCE revenue + incremental DCE revenue	78 / 133（58.6%）	Reinforce market leadership and establish a proven QFII service capability	Leverage successful ZCE admission; high application certainty
+2029	SHFE expansion	USD 200K	USD 100K	USD 300K	Revenue from ZCE and DCE + incremental SHFE revenue	114 / 133（85.7%）	Strengthen HSBC’s position in China’s commodity market and demonstrate support for market internationalisation	Government approval and regulatory engagement
+2030	INE expansion	USD 200K	USD 100K	USD 400K	Scalable recurring revenue across four licence capabilities	125 / 133（94.0%）	Establish an almost complete market footprint and leading foreign-bank franchise	Government approval; synergy with SHFE
+Total	ZCE + DCE + SHFE + INE	USD 800K	USD 400K	USD 400K	Target first-year payback for each licence	94.0% coverage	Financial return + first-mover reputation + stronger foundation for subsequent applications	Subject to annual approval and implementation progress
+
+* Coverage calculation assumes: existing DCE specified products + ZCE in 2027 + DCE QFII in 2028 + SHFE in 2029 + INE in 2030.
+
+页脚可写：
+
+The ZCE licence is not only a revenue opportunity, but also a strategic credential to support subsequent DCE, SHFE and INE applications and reinforce HSBC’s commitment to the internationalisation of China’s futures market.
+
