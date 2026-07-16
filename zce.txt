@@ -224,3 +224,28 @@ Thank you again for taking the time this morning to hear our briefing on the Fut
 
 We would appreciate your guidance on whether ZCE could serve as the right entry point to gradually expand this business. Please also find attached a one-page summary of the key costs, benefits and dependencies.
 
+
+
+Hello Carl and Sally,
+
+I would like to bring to your attention a serious incident involving the FMDB system. The system experienced two connectivity outages—one last night and another this morning.
+
+This incident has already had a significant business impact. DCE has contacted us and requested a formal written explanation with the Bank's official company chop. The Bank is also expected to receive penalty points as a result of these outages.
+
+Based on this morning's discussion, we understand that the immediate trigger was the high volume of HSS customer transactions impacting the GPS platform. However, as of now, we still do not have a complete solution, nor do we have confidence that the same issue will not happen again.
+
+We urgently need the IT team to provide the following:
+
+* A detailed explanation of what happened, including the timeline, root cause and technical analysis.
+* Confirmation on whether the issue has been fully resolved.
+* A permanent solution, including the preventive measures that will ensure this issue will not recur.
+
+We cannot respond to DCE until we have a clear and complete explanation together with a credible remediation plan. Please treat this as a high-priority request and provide your response as soon as possible.
+
+Thank you.
+
+Best regards,
+
+Jeffery
+
+
