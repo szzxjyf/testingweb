@@ -379,4 +379,12 @@ Jeffery
 
 我还建议再做一个小调整，这样会更符合交易所的阅读习惯：在正文最前面增加一个“一、事件摘要（Executive Summary）”，用三四句话把事情说清楚，然后再进入时间线。这样和你截图里的内部 RCA 风格一致，但语言会更正式，也更适合对外发文。
 
+Following two brief connection interruptions between our Futures Margin Deposit Bank (FMDB) system and DCE on 15 and 16 July, DCE has requested a formal incident explanation stamped by the Bank.
+
+We have prepared the attached draft based on the incident details provided by IT, covering the incident timeline, root cause, impact and remediation measures.
+
+Could you please review the draft from a Legal and Compliance perspective, particularly the wording and disclosures, and let us know if any changes are required before submission to DCE?
+
+It would be appreciated if you could provide your comments by [time/date].
+
 
