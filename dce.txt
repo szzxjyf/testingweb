@@ -232,3 +232,13 @@
 2026年7月16日
 
 
+Hi [Name],
+
+I would like to seek your endorsement for the relocation of the HSM server from IFC to PUJ, which is required to meet regulatory requirements.
+
+IT’s endorsement is attached for reference. According to the approval process, business endorsement is also required. As this server is dedicated to supporting the DCE business, may I seek your endorsement to proceed with the relocation?
+
+Thanks,
+Jeffery
+
+
