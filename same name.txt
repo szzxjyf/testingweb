@@ -1,0 +1,41 @@
+import pandas as pd
+
+# 工资 + 报销关键词
+keywords = [
+    "工资",
+    "薪资",
+    "薪金",
+    "薪酬",
+    "奖金",
+    "代发工资",
+    "工资发放",
+    "工资支付",
+    "salary",
+    "payroll",
+    "bonus",
+    "报销",
+    "费用",
+    "差旅",
+    "补贴",
+    "备用金",
+    "reimbursement",
+    "expense"
+]
+
+# 生成匹配规则
+pattern = "|".join(keywords)
+
+# NAR 空值处理
+df["NAR"] = df["NAR"].fillna("").astype(str)
+
+# 筛选包含工资或报销关键词的交易
+filtered_df = df[
+    df["NAR"].str.contains(
+        pattern,
+        case=False,
+        regex=True
+    )
+]
+
+# 如需导出
+filtered_df.to_excel("salary_reimbursement_transaction.xlsx", index=False)
