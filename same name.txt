@@ -1,41 +1,16 @@
-import pandas as pd
+Hi all,  
 
-# 工资 + 报销关键词
-keywords = [
-    "工资",
-    "薪资",
-    "薪金",
-    "薪酬",
-    "奖金",
-    "代发工资",
-    "工资发放",
-    "工资支付",
-    "salary",
-    "payroll",
-    "bonus",
-    "报销",
-    "费用",
-    "差旅",
-    "补贴",
-    "备用金",
-    "reimbursement",
-    "expense"
-]
+Please find attached the potential pipeline list identified from RMB same-name transfer analysis (Jan–Jul 2026).
 
-# 生成匹配规则
-pattern = "|".join(keywords)
+We reviewed around 9 million RMB payment transactions, identified over 500K same-name transfer records, and further filtered transactions containing salary and reimbursement related keywords. In total, 253 customers were identified.
 
-# NAR 空值处理
-df["NAR"] = df["NAR"].fillna("").astype(str)
+These customers are likely using other banks for salary disbursement or reimbursement activities, and could be potential pipeline opportunities for further engagement. Please use this list as a reference and validate based on client-specific circumstances, as some transactions may have other business reasons.
 
-# 筛选包含工资或报销关键词的交易
-filtered_df = df[
-    df["NAR"].str.contains(
-        pattern,
-        case=False,
-        regex=True
-    )
-]
+If you have any other relevant pipeline opportunities, clients that AIC should be aware of, or existing opportunities requiring further discussion, please feel free to share and invite them.
 
-# 如需导出
-filtered_df.to_excel("salary_reimbursement_transaction.xlsx", index=False)
+As SafeX Pay may also be discussed, it would be helpful to include clients with significant corporate-to-individual payment volumes.
+
+Thanks.  
+
+Best regards,  
+[Your Name]
