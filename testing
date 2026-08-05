@@ -1,9 +1,2 @@
-I would still suggest arranging a meeting so that everyone can get on the same page. Although we briefly touched on the client’s requirements this morning, many of the details are still based on assumptions. It would be helpful for everyone to align and brainstorm together before deciding on the next actions.
-
-Instruction level auth｜大额付款确认
-
-贵司今日通过当前客户档案下所有境内人民币账户提交的付款指令，累计金额已达人民币1,000,000元（或等值金额）。为防范欺诈风险并满足境内监管要求，请在确认前核实付款真实性。
-
-File level auth｜大额付款确认
-
-该文件包含通过当前客户档案下境内人民币账户提交的付款指令，可能涉及大额付款。为防范欺诈风险并满足境内监管要求，请在确认前核实文件真实性。
+VA不是独立账号，不能出普通的账户证明，但可以出书面说明，例如：
+某客户在我行申请了账号附加信息服务，可以用088123456011123456789012账号（户名：某某有限公司）收取国内人民币来账。
