@@ -1,0 +1,7 @@
+dfs = []
+
+for sheet_name, sheet_df in all_sheets.items():
+    sheet_df[sheet_df.shape[1]] = sheet_name  # 最后一列写入来源
+    dfs.append(sheet_df)
+
+df = pd.concat(dfs, ignore_index=True)
