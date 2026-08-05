@@ -1,7 +1,38 @@
-dfs = []
+import pandas as pd
 
-for sheet_name, sheet_df in all_sheets.items():
-    sheet_df[sheet_df.shape[1]] = sheet_name  # 最后一列写入来源
-    dfs.append(sheet_df)
+input_file = "你的Excel文件.xlsx"
+output_file = "合并结果.xlsx"
 
-df = pd.concat(dfs, ignore_index=True)
+# 获取所有工作表名称
+excel_file = pd.ExcelFile(input_file)
+
+dataframes = []
+
+for sheet_name in excel_file.sheet_names:
+    # 没有表头，按列的位置读取
+    sheet_df = pd.read_excel(
+        input_file,
+        sheet_name=sheet_name,
+        header=None
+    )
+
+    # 最后一列添加工作表来源
+    sheet_df[len(sheet_df.columns)] = sheet_name
+
+    dataframes.append(sheet_df)
+
+# 按照列的位置向下堆叠
+df = pd.concat(
+    dataframes,
+    axis=0,
+    ignore_index=True
+)
+
+# 导出时不添加字段名和行号
+df.to_excel(
+    output_file,
+    index=False,
+    header=False
+)
+
+print(f"合并完成：{output_file}")
