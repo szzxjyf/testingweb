@@ -1,19 +1,3 @@
-Hi all,
+As part of the Comprehensive Review of Telecom Fraud-related Local Regulatory Requirements, an MSII was identified in relation to ECDS, specifically its CAD commercial draft functionality. Our review of the relevant regulatory documents shows that, since 2024, regulators have issued multiple risk alerts relating to CAD. Inadequate controls over CAD could expose the functionality to misuse by criminals for money laundering, illicit asset transfers and other financial crime activities.
 
-We would like to provide an update on the latest progress regarding the **ECDS-related risk remediation**.
-
-Following our further review of the relevant regulatory documents, we have developed a number of proposed remediation measures to address the identified risks. We also discussed the proposed approach with FCC and other relevant stakeholders at the end of July, and have aligned on the overall remediation direction.
-
-Going forward, we will further develop our **2027 remediation plan** around the following three areas:
-
-| Remediation Area | 2027 Plan / Key Actions |
-|---|---|
-| Customer onboarding | [To be completed] |
-| Function access | [To be completed] |
-| Commercial draft issuance | [To be completed] |
-
-The overall remediation is targeted to be completed by **end-November 2027**.
-
-If there are no further comments, we will proceed to **seek Lin Zong’s endorsement on the proposed remediation plan and nominate Lin Zong as the Action Owner for the overall remediation**.
-
-Thanks all.
+Based on the above, we have developed a proposed remediation approach and discussed it with FCC and other relevant stakeholders at the end of July. The overall direction has been aligned, and we plan to further develop the 2027 remediation plan around the following three areas:
