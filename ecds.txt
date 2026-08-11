@@ -5,3 +5,16 @@ Helpdesk is not merely acting as a “postman” for online requests. More impor
 Given that query reduction is a key focus for GSC, I am happy to support updating the email notification if needed. However, the wording should be made clearer to inform customers that the two codes cannot be reused once entered, regardless of whether the installation is successful. If new codes are required, customers should contact the Bank for reissuance; if they encounter any issues when using the codes, they should contact Helpdesk for assistance.
 
 In addition, the required change is not limited to the email notification, as the reminder on the homepage will also need to be updated. Since the current email notification is hard-coded, the changes may incur development costs. We will ask IT to assess and provide an estimate for both changes together.
+
+
+
+
+
+
+Hi Team,
+
+I believe Helpdesk’s role in handling online requests goes beyond simply acting as a “postman”. As the single point of contact, Helpdesk can understand the full picture, provide more targeted assistance, address issues at source, and ultimately improve the overall customer experience. Customers may encounter a wide range of issues, and certificate renewal is only one of them. Even within the certificate renewal process, issuing the two codes is only a small part. Based on our previous observations, certificate installation is relatively technical, and customers are not always able to complete it successfully by following the user guide alone. In many cases, customers only contact Helpdesk after an unsuccessful installation attempt has caused the codes to become invalid, at which point another set of codes needs to be issued. With a fuller understanding of the issue, Helpdesk can provide the appropriate support and reduce the need for repeated code issuance.
+
+That said, I also understand that query reduction is currently a key focus for GSC, and I am happy to support updating the email reminder if this would help achieve that objective. However, I suggest making the wording clearer by informing customers that once the two codes have been used, they cannot be reused, regardless of whether the process was successful. If new codes are required, customers should contact the Bank for reissuance. If they encounter any issues when using the codes, they should contact Helpdesk for assistance.
+
+In addition, the required changes are not limited to the email reminder, as the reminder on the homepage will also need to be updated. Since the existing email reminder is hard-coded, the changes may incur development costs. We will ask IT to assess both the email and homepage changes and provide a cost estimate.
