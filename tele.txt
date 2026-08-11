@@ -1,0 +1,19 @@
+Hi all,
+
+We would like to provide an update on the latest progress regarding the **ECDS-related risk remediation**.
+
+Following our further review of the relevant regulatory documents, we have developed a number of proposed remediation measures to address the identified risks. We also discussed the proposed approach with FCC and other relevant stakeholders at the end of July, and have aligned on the overall remediation direction.
+
+Going forward, we will further develop our **2027 remediation plan** around the following three areas:
+
+| Remediation Area | 2027 Plan / Key Actions |
+|---|---|
+| Customer onboarding | [To be completed] |
+| Function access | [To be completed] |
+| Commercial draft issuance | [To be completed] |
+
+The overall remediation is targeted to be completed by **end-November 2027**.
+
+If there are no further comments, we will proceed to **seek Lin Zong’s endorsement on the proposed remediation plan and nominate Lin Zong as the Action Owner for the overall remediation**.
+
+Thanks all.
