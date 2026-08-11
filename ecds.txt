@@ -1,0 +1,7 @@
+Hi Team,
+
+Helpdesk is not merely acting as a “postman” for online requests. More importantly, it serves as a single point of contact to help customers resolve issues and improve their overall experience. Certificate installation can be technically challenging, and customers may not always be able to complete it successfully by following the user guide alone. By understanding the full picture and providing targeted support, Helpdesk can address the issue at source and deliver a better customer experience.
+
+Given that query reduction is a key focus for GSC, I am happy to support updating the email notification if needed. However, the wording should be made clearer to inform customers that the two codes cannot be reused once entered, regardless of whether the installation is successful. If new codes are required, customers should contact the Bank for reissuance; if they encounter any issues when using the codes, they should contact Helpdesk for assistance.
+
+In addition, the required change is not limited to the email notification, as the reminder on the homepage will also need to be updated. Since the current email notification is hard-coded, the changes may incur development costs. We will ask IT to assess and provide an estimate for both changes together.
