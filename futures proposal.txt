@@ -1,0 +1,41 @@
+已撤销分散在各交易所段落中的新增内容，统一放到结尾，正文结构更干净。
+
+Thank you for your email.
+
+Below is a summary of our key observations on China’s futures market, together with our current roadmap and progress across the relevant exchanges.
+
+SHFE and INE
+
+The Shanghai Futures Exchange (SHFE) and the Shanghai International Energy Exchange (INE) have always been strategically important to our futures margin depository business, given their strong coverage of metals, energy and other internationally relevant commodities.
+
+Over the past few years, we have been actively exploring the possibility of obtaining the relevant FMDB qualification. Senior management has also visited the exchanges on several occasions to demonstrate our commitment. However, to date, we have only received the latest interface specifications. Under the exchanges’ current approach, a bank is expected to complete the required system development and pass their acceptance testing before they will consider granting the qualification.
+
+This creates a significant degree of uncertainty. We completed similar system development several years ago, but the qualification was ultimately not granted. As the interface specifications have since been updated, we would now need to invest in another round of development without certainty that the application would be approved.
+
+We are therefore exploring a “conditional approval before build” approach. Ideally, SHFE/INE could first provide an internal or non-public indication of approval, subject to HSBC completing the required development and acceptance testing. This would give us sufficient confidence to proceed with the investment while allowing the exchanges to retain final approval until all technical requirements have been met.
+
+ZCE
+
+The Zhengzhou Commodity Exchange (ZCE) has been supportive of HSBC China and has expressed a clear interest in facilitating cooperation between the two institutions. It also represents a meaningful expansion opportunity from a product-coverage perspective.
+
+Based on our previous market assessment, HSBC currently covers 11 specified domestic products through DCE, representing approximately 8.3% of the relevant market. Adding ZCE could increase our coverage to approximately 51 products, or 38.3%, including around 26 products accessible through the QFI route and 14 specified domestic products. It could also potentially make HSBC one of the first foreign banks to establish an FMDB presence at ZCE.
+
+However, our client assessment has not yet identified material or large-scale demand for ZCE-related services. Although an ATP proposal was submitted, it was therefore not prioritized, given the limited near-term revenue visibility and competing investment priorities. We will continue to monitor client demand and maintain engagement with ZCE so that the proposal can be revisited when a clearer commercial case emerges.
+
+GFEX
+
+The Guangzhou Futures Exchange (GFEX) is a relatively new exchange focused primarily on green and transition-related commodities. Its current product portfolio includes silicon metal, lithium carbonate, polysilicon, platinum and palladium, with lithium carbonate futures and options opened to overseas traders under the Specified Domestic Products framework in July 2026.
+
+Given that both the exchange and its product ecosystem are still developing, we do not currently intend to pursue the FMDB qualification. Nevertheless, GFEX has previously contacted HSBC to understand our current setup and approach, indicating its interest in future cooperation.
+
+We expect GFEX to become an increasingly important part of China’s futures market, particularly in commodities linked to renewable energy, battery supply chains and the green transition. It will ultimately be an important part of our overall market coverage, although our immediate priority remains SHFE/INE, followed by ZCE when sufficient client demand emerges.
+
+Overall roadmap
+
+Our current priorities are therefore to:
+
+1. Continue discussions with SHFE/INE on a conditional “approval before build” arrangement, given their strategic importance and the uncertainty associated with upfront system investment;
+2. Maintain engagement with ZCE and reassess the ATP when stronger client demand and a clearer commercial case can be demonstrated; and
+3. Continue monitoring GFEX’s product development and client relevance, while keeping the relationship open for future cooperation.
+
+We would welcome any insights from the Global Sales team, particularly regarding client demand, market trends and potential opportunities across these exchanges. If there is sufficient commercial interest, we would be happy to work together to engage the relevant exchanges and support the next steps.
