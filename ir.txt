@@ -1,0 +1,307 @@
+**Suggested Project Title: GPE E2C Vendor ID Trimming Alignment**
+
+The following draft follows the template structure. Items marked **[To be confirmed]** require business or IT input.
+
+**Context**
+
+**Background**
+
+HBCN provides an English-to-Chinese (E2C) mapping service in GPE for selected customers whose systems do not support Chinese characters. The service enables payment instructions submitted using English-character identifiers to be enriched with predefined beneficiary information, including the beneficiary name, account and bank details.
+
+The customer and the bank jointly maintain an E2C mapping table. GPE identifies the relevant mapping record using the Debit Account, Beneficiary ID (vendor ID) and Credit Account. The customer supplies the vendor ID in the first line of the Beneficiary Name field, which supports up to 35 characters.
+
+Currently, the vendor ID is trimmed when the mapping table is transferred to GPE. However, equivalent trimming is not applied when GPE reads the first line of the Beneficiary Name from an incoming payment instruction. Consequently, a trailing space in that line can prevent a match with the corresponding mapping record.
+
+This longstanding inconsistency has become more apparent as MX usage increases. During message conversion, beneficiary information may be split across multiple lines, leaving a space at the end of the first line. Affected payments require manual intervention.
+
+**Business Drivers**
+
+The main drivers for this request are:
+
+- **Customer experience:** Avoid unnecessary payment processing delays caused by trailing-space mismatches.
+- **Operational efficiency:** Reduce manual investigation and repair of payments affected by this issue.
+- **Processing accuracy:** Reduce the risk of errors associated with manual handling.
+- **Future service usage:** Address the issue before additional customers and increased MX usage create further exposure.
+- **Customer retention:** Improve service reliability and reduce the risk of customer dissatisfaction and potential attrition.
+
+**Effect of Drivers**
+
+If no action is taken, payments affected by trailing-space mismatches will continue to require manual intervention, extending processing times and consuming operational resources.
+
+As more customers use the E2C service and MX payment messages, the volume of affected payments may increase. Continued manual handling creates avoidable operational risk, while recurring delays may reduce customer confidence in the service and adversely affect customer retention and future adoption.
+
+**Objectives**
+
+**Vision**
+
+Provide a reliable E2C mapping service that processes eligible customer payments automatically and consistently, without manual intervention caused solely by trailing spaces in the vendor ID.
+
+**Goals**
+
+- Align the trimming of incoming vendor IDs with the existing trimming rules applied to the E2C mapping table.
+- Eliminate E2C matching failures caused solely by trailing spaces in the first line of the Beneficiary Name.
+- Reduce associated manual processing and payment delays.
+- Maintain correct matching behaviour for valid vendor IDs and genuine mismatches.
+- Support continued use of the E2C service by existing and future customers.
+
+**Measurable Benefits**
+
+| Benefit | How measured | When measured |
+|---|---|---|
+| Eliminate matching failures caused solely by trailing spaces | Count of E2C mismatches attributable solely to trailing spaces. Proposed target: zero following implementation. | During UAT and an agreed post-implementation monitoring period. |
+| Reduce manual intervention | Compare the number of payments requiring manual handling due to this issue before and after implementation. Baseline: **[To be confirmed]**. | Before implementation and during the post-implementation review. |
+| Reduce operational effort | Compare staff time spent investigating and repairing payments affected by this issue. Baseline and savings target: **[To be confirmed]**. | Over comparable periods before and after implementation. |
+| Improve payment processing speed | Compare processing times for payments affected by this issue before implementation with equivalent payments after implementation. Target: **[To be confirmed]**. | During the post-implementation review. |
+| Improve processing accuracy | Monitor errors or rework associated with manual handling of affected payments. Baseline: **[To be confirmed]**. | During the agreed post-implementation monitoring period. |
+
+Customer retention and support for future adoption are additional expected benefits. Financial values have not yet been quantified.
+
+**Proposed Project**
+
+**Project Summary**
+
+This change will update GPE’s E2C processing so that the vendor ID extracted from the first line of the incoming Beneficiary Name is trimmed before matching against the E2C mapping table.
+
+The trimming behaviour must be consistent with the existing rules applied when mapping-table vendor IDs are transferred to GPE. The change will address trailing-space mismatches while preserving the existing matching criteria and valid vendor ID content.
+
+IT services will include confirmation of the existing trimming rules, impact assessment, development, testing support, deployment and post-implementation verification.
+
+| Major milestone | Target date |
+|---|---|
+| Requirements and trimming rules confirmed | **[To be confirmed with IT]** |
+| Development and system testing completed | **[To be confirmed with IT]** |
+| UAT and business sign-off completed | **[To be confirmed]** |
+| Production implementation | **[To be confirmed with IT]** |
+| Post-implementation review | **[To be confirmed]** |
+
+**Project Scope**
+
+In scope:
+
+- Extracting the vendor ID from the first line of the Beneficiary Name using the existing first-line selection logic.
+- Applying trimming before E2C matching, consistent with the mapping-table trimming rules.
+- Verifying that trailing spaces no longer prevent an otherwise valid match.
+- Confirming that Debit Account and Credit Account remain part of the existing matching criteria.
+- Regression testing existing successful matches and genuine mismatches.
+
+Out of scope:
+
+- Combining multiple Beneficiary Name lines to form a vendor ID.
+- Changing the 35-character first-line limit.
+- Removing or altering spaces within a vendor ID.
+- Changing customer mapping records or the mapping-table maintenance process.
+- Redesigning MX message conversion or other payment processing functions.
+- Changing exception handling for genuine mapping failures.
+
+**Constraints**
+
+**Internal constraints**
+
+The change must remain compatible with existing GPE E2C processing and mapping records. IT resource availability, testing capacity and release arrangements are **[To be confirmed]**.
+
+**External constraints and dependencies**
+
+The implementation depends on confirmation of the existing mapping-table trimming rules and availability of representative incoming payment messages, including the MX conversion scenario described above.
+
+Any external dependencies are **[To be confirmed]**.
+
+**Timeline constraints**
+
+The required implementation date and any mandatory deadlines are **[To be confirmed]**.
+
+**Priority of Delivery Characteristics**
+
+The following ranking is proposed for business confirmation:
+
+| Characteristic | Order of priority |
+|---|---:|
+| Delivery of all requirements | 1 |
+| Time-to-market | 2 |
+| Cost | 3 |
+
+The priority is to deliver a complete and correct fix, followed by timely implementation to reduce continued exposure.
+
+| Assessment item | Selection |
+|---|---|
+| Time-to-market expectation | **[To be confirmed with IT]** |
+| Revenue increase or cost savings | **[To be quantified and mapped to the template’s scoring bands]** |
+| Revenue loss / client retention | Potential customer retention risk identified; financial exposure **[To be confirmed]**. |
+| Operational risk if the change is not made | Continued manual processing and associated error risk; formal rating **[To be confirmed]**. |
+
+**Sarbanes-Oxley (SOX) Impacts**
+
+The proposed change affects the handling of a matching identifier within payment processing. Whether it impacts an existing SOX key control, IT dependency or requires a new control must be confirmed with the relevant application and control owners.
+
+| Field | Details |
+|---|---|
+| SOX Process Reference | **[To be confirmed]** |
+| SOX Process Name | **[To be confirmed]** |
+| SOX Key Control | **[To be confirmed]** |
+| Change to current key controls | **[To be assessed]** |
+| New key controls | **[To be assessed]** |
+
+If a SOX impact is identified, the relevant functional documentation, control testing and notification to the IT Regional SOX Coordinator must be completed in accordance with the template requirements.
+
+**Investment Category**
+
+**[To be selected from the internal Project Attribute Values reference list.]**
+
+The business purpose is to correct an existing processing inconsistency and improve service reliability and operational efficiency.
+
+**Customer Group**
+
+Existing and future customers using HBCN’s GPE E2C mapping service.
+
+Formal customer group classification and any allocation across multiple groups: **[To be confirmed against the internal reference list]**.
+
+**Business Involvement**
+
+The following involvement is proposed for confirmation:
+
+| Businesses / Sites | Involvement / Impact | Contact Person |
+|---|---|---|
+| HBCN business owner for the E2C service | Confirm business requirements, expected benefits and acceptance. | **[To be confirmed]** |
+| Payment Operations | Provide affected cases, validate operational impact and support UAT. | **[To be confirmed]** |
+| GPE IT / Application Support | Assess, develop, test and implement the change. | **[To be confirmed]** |
+| Customer-facing teams | Provide relevant customer feedback and coordinate communications where required. | **[To be confirmed]** |
+
+**Requirements**
+
+| ID | Description | Owner / Benefiting Stakeholders | Priority | SOX Reference / Process / Key Control |
+|---|---|---|---|---|
+| **HLR01** | GPE must trim the vendor ID extracted from the first line of the incoming Beneficiary Name before E2C matching, using rules consistent with those applied to mapping-table vendor IDs. Trailing spaces must not prevent an otherwise valid match. | E2C business owner / Payment Operations / E2C customers. Named owner **[To be confirmed]**. | Critical | **[To be confirmed]** |
+| **HLR02** | GPE must retain the existing first-line extraction and matching criteria, including Debit Account and Credit Account. The change must preserve internal spaces and other valid vendor ID characters and must not concatenate subsequent Beneficiary Name lines. | E2C business owner / Payment Operations. Named owner **[To be confirmed]**. | Critical | **[To be confirmed]** |
+| **HLR03** | When the trimmed vendor ID and other required matching fields match a valid E2C record, GPE must apply the existing beneficiary mapping without manual intervention caused by the trailing-space issue. | Payment Operations / E2C customers. Named owner **[To be confirmed]**. | Critical | **[To be confirmed]** |
+| **HLR04** | Existing successful matches must continue to process correctly. Genuine mismatches must continue through the existing exception process, and blank or space-only first-line values must not produce an unintended match. | E2C business owner / Payment Operations. Named owner **[To be confirmed]**. | Critical | **[To be confirmed]** |
+
+**Completeness**
+
+The requirements stated here are estimated to be **[XX]% complete**. The core business change is defined; remaining items include confirmation of trimming semantics, technical impact, ownership, SOX applicability and delivery arrangements.
+
+**Accuracy**
+
+The requirements are based on the current business understanding and the reported processing behaviour. They are estimated to be **[YY]% accurate**, subject to validation of the existing GPE implementation and representative payment examples.
+
+**Preliminary Assessment of General Business Risk**
+
+| Area / Assessment Question | Preliminary Assessment |
+|---|---|
+| Executive sponsorship | Sponsor confirmation is outstanding. Lack of clear sponsorship could delay prioritisation and business decisions. |
+| Team structure, roles and responsibilities | Business, Operations and IT responsibilities need to be agreed. Unclear ownership could delay requirements confirmation, testing or sign-off. |
+| Objectives across multiple business areas | The change supports customer service and operational processing objectives. Relevant stakeholders should agree the scope and acceptance criteria. |
+| Multiple reporting lines and other responsibilities | **[To be confirmed]**. Competing responsibilities could affect resource availability and delivery. |
+| Business staff allocation | **[To be confirmed]%**. Insufficient availability could delay example collection, UAT and acceptance. |
+| Support staff allocation | **[To be confirmed]%**. Insufficient availability could delay technical validation and implementation support. |
+| Location of business and support staff | Number and location of sites **[To be confirmed]**. Any coordination constraints should be assessed. |
+| Political disturbance at key sites | **[To be assessed based on confirmed locations]**. |
+| Physical disturbance at key sites | **[To be assessed based on confirmed locations and continuity arrangements]**. |
+| Business user locations / functional areas | **[To be confirmed]**. The affected population should be identified to support representative testing. |
+| Implementation sites | **[To be confirmed by IT]**. |
+| Expected business acceptance | Positive acceptance is expected because the change addresses avoidable manual handling, subject to stakeholder confirmation and successful testing. |
+| Replacement of an existing system | No system replacement is proposed; this is a change to existing GPE processing. |
+| Market volatility | Increasing MX usage may increase exposure to the existing issue. Other market-related impacts are **[To be assessed]**. |
+| Organisational strategy changes | **[To be confirmed]**. Relevant changes to the service or platform strategy could affect timing or priority. |
+| Certainty of business requirements | The required outcome is clear. The exact trimming behaviour must be validated to prevent unintended changes to identifier matching. |
+| External supplier negotiation time | External supplier involvement and related constraints are **[To be confirmed]**. |
+| Delivery schedule | **[To be confirmed]**. An overly compressed schedule could reduce time available for regression testing. |
+| Local legislation or regulation | Applicability and impact **[To be assessed by the relevant owners]**. |
+| International legislation or regulation | Applicability and impact **[To be assessed by the relevant owners]**. |
+| Number of business functions supported | **[To be confirmed]**. |
+| Number of customers supported | **[To be confirmed]** for the existing E2C service and the subset exposed to this issue. |
+| Value of transactions handled | **[To be confirmed]**. |
+
+A key implementation risk is unintended alteration of vendor IDs. This should be addressed by confirming the existing trimming rules and testing trailing spaces, internal spaces, valid matches, genuine mismatches and blank inputs.
+
+**Terms of Reference for the Initial Request Review**
+
+**Deliverable 1 — Initial Request Assessment / Clear Choice Document**
+
+| Field | Details |
+|---|---|
+| Description | Assess the proposed change, confirm the root cause and recommended solution, and document scope, dependencies, risks, estimated effort and delivery approach. |
+| Acceptance criteria | Business and IT agree that the solution addresses the trimming inconsistency, preserves existing matching behaviour and identifies relevant control and delivery impacts. |
+| Target date | **[To be agreed with IT]** |
+| Reviewers | Business owner, Payment Operations and GPE IT representatives; names **[To be confirmed]**. |
+| Approver | **[To be confirmed]** |
+
+**Deliverable 2 — Agreed Requirements and Acceptance Criteria**
+
+| Field | Details |
+|---|---|
+| Description | Confirm the high-level requirements and the test scenarios required to demonstrate successful implementation. |
+| Acceptance criteria | Requirements cover the reported trailing-space issue, the MX line-splitting example, existing successful matches, genuine mismatches, internal spaces and blank values. |
+| Target date | **[To be agreed with IT]** |
+| Reviewers | Business owner, Payment Operations and GPE IT representatives; names **[To be confirmed]**. |
+| Approver | **[To be confirmed]** |
+
+**Proposed Deliverable Contribution Matrix**
+
+| Deliverable | Budget Owner | User Representative | IT Management | IT Staff |
+|---|---|---|---|---|
+| Initial Request Assessment / Clear Choice | A | I / V | R / V | P |
+| Agreed Requirements and Acceptance Criteria | I | R / A | V | P / I |
+
+R = Responsible; P = Performs; I = Provides Input; V = Reviews; S = Supports; A = Approves / Signs Off.
+
+Role assignments are **[To be confirmed]**.
+
+**Terms of Engagement**
+
+| Item | Details |
+|---|---|
+| Effort | The effort to review this Initial Request must not exceed **[XX] person-days**, to be discussed and agreed with IT. |
+| Cost centre(s) | **[To be confirmed, including allocation where applicable]** |
+| Schedule | **[To be agreed with IT, including review deadlines and resource constraints]** |
+
+**Responsibilities**
+
+| Project Role | Person Responsible | Contact Details |
+|---|---|---|
+| Project Sponsor | **[To be confirmed]** | **[To be confirmed]** |
+| Budget Owner(s) | **[To be confirmed]** | **[To be confirmed]** |
+| User Representative | **[To be confirmed]** | **[To be confirmed]** |
+| IT Management | **[To be confirmed]** | **[To be confirmed]** |
+| IT Staff | **[To be confirmed]** | **[To be confirmed]** |
+
+**Support**
+
+The business and Payment Operations teams will nominate a primary contact and relevant subject matter experts to support the review. Support will include providing representative payment instructions and corresponding mapping records, clarifying current operational handling and reviewing the proposed requirements.
+
+Named contacts, availability and any support restrictions are **[To be confirmed]**.
+
+**Reporting**
+
+Review progress reporting should cover requirements confirmation, findings, outstanding decisions, risks, dependencies and estimated completion dates.
+
+Reporting frequency, recipients and format are **[To be agreed]**.
+
+**Escalation Procedures**
+
+Issues affecting scope, correctness, resources or delivery should be escalated to the designated business and IT owners. Budget or schedule deviations requiring approval should be referred to the relevant budget owner or project sponsor.
+
+Escalation contacts, acceptable variances and approval thresholds are **[To be agreed]**.
+
+**Appendix**
+
+**Glossary of Terms / Abbreviations**
+
+| Term | Description |
+|---|---|
+| E2C | English-to-Chinese mapping service. |
+| Vendor ID | Customer-supplied identifier carried in the first line of the Beneficiary Name and used as part of E2C matching. |
+| E2C Mapping Table | Predefined records maintained by the customer and bank to map payment identifiers to beneficiary information. |
+| Trim | Removal of boundary spaces according to the existing mapping-table rules; exact handling to be confirmed with IT. |
+
+**Referenced Documents**
+
+| Title | Purpose | Version |
+|---|---|---|
+| Business-provided E2C issue background | Describes the existing behaviour and MX line-splitting example. | **[To be confirmed]** |
+| Representative payment instructions and mapping records | Support root-cause validation and testing. | **[To be provided]** |
+| Project Attribute Values | Provides approved project classification values. | **[Current version to be confirmed]** |
+
+**Circulation List**
+
+| Name | Group | Version |
+|---|---|---|
+| **[To be confirmed]** | Business / Payment Operations / IT, as applicable | **[To be confirmed]** |
