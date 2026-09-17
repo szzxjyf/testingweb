@@ -1,0 +1,780 @@
+一、简介
+
+受工信部电子认证相关新规影响，未来数字证书的申请受理、身份核验、证书签发及交付等核心环节需要回归 CA/CFCA 体系完成。汇丰过去在部分环节实际承担了证书申请、生成及发放的角色，因此现有操作模式需要调整。
+
+此次变化不仅涉及后台流程和申请表改造，更重要的是会直接改变客户申请和续期证书的体验。
+
+项目当前的核心目标是：
+
+1. 确保 2026 年 10 月 30 日前完成新流程切换准备；
+2. 尽可能提前处理即将到期的存量证书，降低上线初期的集中压力；
+3. 在 9 月 30 日前完成客户通知及主要沟通准备；
+4. 建立 Helpdesk、Operations、Client Service 等团队的完整支持机制；
+5. 中长期重新评估 Soft Token / Digital Authentication Strategy。
+
+⸻
+
+二、新证书申请流程
+
+1. 客户提交申请
+
+客户提交申请的入口原则上保持不变，但需要重新设计申请表。
+
+预计需要收集：
+
+* 企业及法人信息；
+* 经办人个人信息；
+* 法人与经办人的授权关系；
+* Personal Information Consent；
+* 身份核验相关授权。
+
+目前仍需确认是否需要客户在申请阶段单独提交《授权委托书》。
+
+如果后续 CFCA 的身份核验及存证流程本身已经覆盖授权要求，应尽量避免客户重复提交材料。
+
+⸻
+
+2. 后台录入及生成临时编号
+
+收到客户申请后，由后台完成资料录入，并生成临时 DN 编号，作为后续身份核验及证书申请的识别依据。
+
+⸻
+
+3. 身份核验
+
+后台完成设置后，系统通过短信或邮件向客户发送验证链接，由客户通过手机完成身份核验。
+
+法人本人办理
+
+法人直接完成：
+
+* 身份确认；
+* 人脸识别；
+* 相关授权确认。
+
+整体流程相对简单。
+
+法人授权经办人办理
+
+如由经办人代为办理，则可能需要：
+
+* 提供加盖公章的授权委托书；
+* 经办人身份核验；
+* 授权关系核验；
+* 录音录像，即“双录”。
+
+预计这一场景将成为客户体验和运营支持压力最大的环节。
+
+⸻
+
+4. 审核放行及发码
+
+身份核验完成后，证书进入审核/放行阶段。
+
+银行后台刷新系统，并确认相关证书进入“待生效”状态后，再向客户发送证书所需的“两码”，供客户完成后续下载及激活。
+
+⸻
+
+三、关键监管及系统切换日期
+
+2026 年 10 月 30 日：Hard Cut-off
+
+这是整个项目最重要的日期。
+
+10 月 30 日以后：
+
+* 旧平台不能继续按照现有模式办理新证书；
+* 旧模式下的证书延期停止；
+* 新申请必须进入新的身份核验及 CA 流程。
+
+因此，10 月 30 日不是项目开始时间，而是项目必须已经准备完成的最终切换时间。
+
+项目实际的主要准备窗口只有现在至 10 月底约六周。
+
+⸻
+
+四、存量证书 De-risk Strategy
+
+目前证书可以提前约三个月办理延期。
+
+因此，可以考虑在 10 月 30 日切换前，对未来三个月内即将到期的存量证书进行集中处理。
+
+重点范围建议覆盖：
+
+2026 年 10 月 30 日至 2027 年 1 月 31 日期间到期的证书。
+
+如果系统及流程允许，可以提前：
+
+1. 完成证书延期；
+2. 完成相关后台处理；
+3. 待客户实际提出需求时，再向客户发送两码。
+
+这样可以显著降低新流程上线初期的业务量。
+
+预计效果是将大量原本集中在：
+
+2026 年 11 月—2027 年 1 月
+
+的新流程申请压力，向后平移至：
+
+2027 年 2 月以后。
+
+这可以为 Client Service、Helpdesk、Operations 和客户本身争取约三个月的适应期。
+
+⸻
+
+De-risk 方案的关键前提
+
+目前两码有效期仅为 14 天。
+
+因此必须优先确认：
+
+已经提前完成延期，但两码超过 14 天有效期后，在旧平台关闭的情况下，是否仍然可以重新生成或补发两码？
+
+如果答案是 Yes，则提前延期方案价值较高。
+
+如果答案是 No，则 De-risk Strategy 的覆盖范围会受到明显限制。
+
+因此，该问题应列为整个项目的 P0 Dependency。
+
+⸻
+
+五、Customer Communication
+
+由于客户正式通知原则上需要提前约一个月，因此：
+
+2026 年 9 月 30 日应作为 Customer Communication 的关键 Deadline。
+
+在此之前需要完成：
+
+* 新流程基本确认；
+* 客户通知内容；
+* 新申请表；
+* 客户 User Guide；
+* FAQ；
+* Helpdesk 基础培训资料。
+
+同时计划下周完成两场客户培训。
+
+客户沟通的核心原则应该是：
+
+尽量让客户理解这是认证及监管体系变化，而不是汇丰主动增加额外操作要求。
+
+同时应重点解释：
+
+* 为什么需要身份核验；
+* 法人与经办人的流程区别；
+* 客户需要准备什么材料；
+* 大概需要多少步骤；
+* 汇丰能够提供哪些支持。
+
+⸻
+
+六、客户使用阶段主要风险
+
+1. 客户不熟悉新流程
+
+上线初期预计大量 inquiry 将集中在：
+
+* 不知道如何使用验证链接；
+* 人脸识别失败；
+* 法人不方便操作；
+* 经办人授权问题；
+* 授权委托书不符合要求；
+* 双录失败；
+* 链接过期；
+* 客户不知道申请目前处于哪个阶段。
+
+因此 Helpdesk 必须提前参与。
+
+至少需要准备：
+
+* Customer User Guide；
+* FAQ；
+* Troubleshooting Guide；
+* Helpdesk Script；
+* Escalation Path；
+* 常见错误 Code / Scenario List。
+
+⸻
+
+2. 新旧证书并存
+
+切换后一段时间内，同一企业可能同时拥有：
+
+* Existing Certificate；
+* New Certificate。
+
+由此可能产生：
+
+* UKey 不足；
+* 一个客户需要额外 UKey；
+* 新旧证书和设备匹配问题；
+* 客户不知道应该使用哪张证书；
+* 紧急证书申请。
+
+因此需要提前制定：
+
+Certificate + UKey Co-existence Process。
+
+需要明确：
+
+* 哪些场景发新 UKey；
+* UKey 库存由谁管理；
+* SLA；
+* 紧急发放流程；
+* Certificate / UKey Mapping；
+* Replacement / Lost UKey Process。
+
+⸻
+
+七、客户体验及竞争影响
+
+此次变化不仅仅是合规项目，也可能带来客户体验层面的竞争影响。
+
+部分中资银行主要采用自身 Token 或认证体系，因此受到此次 CA 流程变化的影响可能相对较小。
+
+多数外资银行可能面临与汇丰相似的问题，但市场上亦可能存在不同的认证方案。
+
+例如目前了解到 J.P. 可能采用不同模式，另一家外资银行的情况仍待进一步确认。
+
+这意味着客户可能直接进行不同银行之间的体验比较。
+
+因此项目目标不应只是：
+
+Regulatory Compliance
+
+而应该进一步做到：
+
+Minimise customer friction while remaining compliant.
+
+⸻
+
+八、Resource Requirement
+
+此次项目不能仅依靠 Product 或 Operations 单独完成，建议明确一个跨部门 Working Group。
+
+1. Product / Project Lead
+
+建议指定一名明确的 Project Owner。
+
+主要负责：
+
+* End-to-end process；
+* 项目时间线；
+* Action Tracking；
+* 跨部门协调；
+* Management Update；
+* CFCA / Vendor issue escalation。
+
+建议同时设置 Weekly Project Meeting，并在临近 10 月 30 日时提高至每周两次。
+
+⸻
+
+2. Operations / Certificate Processing Team
+
+这是整个新流程中投入最大的团队之一。
+
+需要支持：
+
+* 新流程设计；
+* 后台操作测试；
+* Temporary DN；
+* Certificate Status；
+* 两码生成/重发；
+* 存量证书批量延期；
+* Exception Handling。
+
+尤其是存量证书 De-risk Strategy，如果实施，建议提前评估：
+
+需要处理多少张证书 × 每张证书平均处理时间 × 可用人力。
+
+从而确定是否需要：
+
+* Temporary Resource；
+* Overtime；
+* Dedicated Processing Window；
+* Batch Processing。
+
+⸻
+
+3. Client Service / RM
+
+主要负责：
+
+* 客户通知；
+* 主动联系重点客户；
+* 收集客户反馈；
+* 协助客户理解新流程；
+* 识别高风险/高使用量客户。
+
+建议提前识别以下 Priority Clients：
+
+* 证书数量多；
+* 用户数量多；
+* Payment Volume 高；
+* 证书将在 10 月—1 月期间到期；
+* 对数字渠道依赖较高。
+
+⸻
+
+4. Helpdesk
+
+Helpdesk 是上线后最重要的 Capacity Risk 之一。
+
+需要：
+
+* 提前接受完整培训；
+* 获取测试账号或 Demo；
+* 熟悉法人/经办人两种流程；
+* 掌握常见 Error；
+* 建立 escalation mechanism。
+
+建议上线初期考虑：
+
+Dedicated Certificate Support Queue / Hotline Tag
+
+至少持续 1–2 个月，以方便快速识别和统计问题。
+
+⸻
+
+5. Legal / Compliance
+
+需要帮助确认：
+
+* 个人信息收集范围；
+* Personal Information Consent；
+* 法人及经办人授权；
+* 授权委托书要求；
+* 人脸识别；
+* 双录；
+* 数据留存。
+
+重点是尽量避免：
+
+申请表、授权书、CFCA 核验页面三套材料重复授权。
+
+⸻
+
+6. IT / Digital / Vendor Support
+
+主要涉及：
+
+* CFCA interface；
+* 短信/邮件 Trigger；
+* Certificate Status；
+* DN；
+* 两码；
+* Resend Capability；
+* 系统 Cut-off；
+* Error Handling。
+
+项目上线前建议 Vendor / IT 明确提供：
+
+Hypercare Support。
+
+尤其是：
+
+10 月 30 日前后至少 1–2 周需要有快速 escalation channel。
+
+⸻
+
+7. UKey / Logistics Resource
+
+需要提前评估：
+
+* 当前 UKey Inventory；
+* 预计新增需求；
+* 安全库存；
+* Procurement Lead Time；
+* Replacement Demand。
+
+建议在上线前准备一定比例的 Buffer Stock，避免客户证书已经完成，但因为缺 UKey 无法正常使用。
+
+⸻
+
+8. Training Resource
+
+至少需要准备三套培训：
+
+Customer Training
+
+面向客户。
+
+Frontline Training
+
+面向 RM / Client Service。
+
+Operation & Helpdesk Training
+
+面向真正处理问题的团队。
+
+三套培训内容不应完全相同。
+
+⸻
+
+九、Key Milestones
+
+Milestone 1｜本周：Process Confirmation
+
+目标：完成新流程框架。
+
+需要完成：
+
+* End-to-end process；
+* 法人流程；
+* Authorized Person 流程；
+* 双录要求；
+* 新申请表 Draft；
+* 两码 Resend 可行性确认；
+* 10 月 30 日 Cut-off scope。
+
+关键输出：
+
+Process v1 + Open Issues List
+
+⸻
+
+Milestone 2｜下周：Operational Readiness
+
+目标：流程从设计进入可以实际操作的状态。
+
+完成：
+
+* Application Form Final Draft；
+* Customer User Guide；
+* FAQ；
+* Helpdesk Guide；
+* Internal SOP；
+* Escalation Matrix。
+
+同时开始：
+
+* 两场 Customer Training；
+* Internal Training。
+
+⸻
+
+Milestone 3｜2026 年 9 月 30 日：Customer Communication Deadline
+
+目标：正式进入客户准备期。
+
+必须完成：
+
+* 正式客户通知；
+* Customer Training；
+* User Guide；
+* Application Form；
+* External FAQ。
+
+同时启动：
+
+Existing Certificate Proactive Renewal Campaign。
+
+⸻
+
+Milestone 4｜2026 年 10 月上旬：Migration Execution
+
+核心工作转向存量客户。
+
+需要：
+
+* 拉出 10 月 30 日—1 月 31 日到期客户名单；
+* Prioritisation；
+* Batch Renewal；
+* 主动联系重点客户；
+* 跟踪 Completion Rate。
+
+建议建立 Dashboard，例如：
+
+Eligible Certificates
+→ Contacted
+→ Renewal Submitted
+→ Renewal Completed
+→ Remaining
+
+⸻
+
+Milestone 5｜2026 年 10 月中旬：Go-live Readiness Review
+
+建议在 Cut-off 前约两周进行正式 Readiness Review。
+
+确认：
+
+* System ready；
+* Operations ready；
+* Helpdesk ready；
+* Client communication completed；
+* UKey inventory ready；
+* Outstanding certificates；
+* Vendor support ready。
+
+最终输出：
+
+Go-live Readiness Checklist
+
+⸻
+
+Milestone 6｜2026 年 10 月 23 日左右：Final Go/No-Go Review
+
+建议在正式切换前一周进行最后一次 Management Review。
+
+重点只看：
+
+* 有没有 Critical Issue；
+* 存量 Renewal 完成率；
+* Client Complaint / Feedback；
+* System Defect；
+* Resource Capacity；
+* Contingency Plan。
+
+⸻
+
+Milestone 7｜2026 年 10 月 30 日：Hard Cut-off / Go-live
+
+正式停止旧模式。
+
+进入：
+
+New Certificate Process Only。
+
+当天及随后一周建议启动 Hypercare。
+
+⸻
+
+Milestone 8｜2026 年 11 月：Hypercare
+
+重点观察：
+
+* Certificate application volume；
+* Verification failure rate；
+* Helpdesk inquiry；
+* Average processing time；
+* Client complaint；
+* UKey demand；
+* Resend volume。
+
+建议至少每周进行一次 Review。
+
+⸻
+
+Milestone 9｜2027 年 1 月：Post-Implementation Review
+
+此时提前 Renewal 的缓冲期基本结束。
+
+需要重新评估：
+
+* 新流程实际 Volume；
+* Operational Capacity；
+* Customer Experience；
+* Error Rate；
+* 是否需要流程优化；
+* 是否需要增加资源。
+
+⸻
+
+Milestone 10｜2027 年 Q1：Soft Token Strategy Review
+
+从 Tactical Fix 转向 Strategic Solution。
+
+正式评估：
+
+* Soft Token；
+* Mobile Authentication；
+* Digital Certificate；
+* UKey Dependency；
+* Authentication Journey。
+
+⸻
+
+十、Management Timeline
+
+可以把整个项目压缩成以下管理层时间线：
+
+本周
+Process Design + Critical Dependencies
+
+↓
+
+下周
+Form / SOP / FAQ / Training Ready
+
+↓
+
+30 Sep
+Customer Communication Complete
+
+↓
+
+Early Oct
+Existing Certificate Renewal Campaign
+
+↓
+
+Mid-Oct
+Go-live Readiness Review
+
+↓
+
+~23 Oct
+Final Go / No-Go Review
+
+↓
+
+30 Oct
+Hard Cut-off
+
+↓
+
+Nov
+Hypercare
+
+↓
+
+Jan 2027
+Post-implementation Review
+
+↓
+
+Q1 2027
+Soft Token Strategic Review
+
+⸻
+
+十一、Immediate Action Points
+
+P0 — Critical Dependencies
+
+1. Confirm Two-code Resend Capability
+
+确认旧平台关闭以后，提前延期证书是否仍然可以补发/重新生成两码。
+
+Owner：IT / Operations / CFCA
+
+⸻
+
+2. Confirm 30 Oct Cut-off Scope
+
+明确：
+
+* New Certificate；
+* Renewal；
+* In-flight Application；
+* Resend；
+* Replacement。
+
+分别如何处理。
+
+Owner：Product / Operations / CFCA
+
+⸻
+
+P1 — Complete This Week
+
+3. Finalise E2E Process
+
+完成法人及授权经办人两个 Journey。
+
+4. Finalise Application Form Draft
+
+包括个人信息、授权及 Consent。
+
+5. Pull Existing Certificate Population
+
+重点识别：
+
+30 Oct 2026 – 31 Jan 2027 expiry population。
+
+6. Estimate Resource Requirement
+
+测算：
+
+Volume × Handling Time = Required Capacity。
+
+⸻
+
+P2 — Before 30 Sep
+
+7. Issue Customer Communication
+
+8. Complete Two Customer Training Sessions
+
+9. Complete Internal Training
+
+覆盖：
+
+* Client Service；
+* RM；
+* Operations；
+* Helpdesk。
+
+10. Launch Proactive Renewal Campaign
+
+⸻
+
+P3 — Before Go-live
+
+11. Complete Existing Certificate Renewal
+
+尽最大可能降低上线初期 Volume。
+
+12. Prepare UKey Buffer
+
+13. Complete Helpdesk Readiness
+
+14. Establish Hypercare & Escalation Channel
+
+15. Complete Go-live Checklist
+
+⸻
+
+十二、项目成功标准
+
+为了避免项目最后只用“有没有按时上线”来判断，可以提前定义几个核心指标：
+
+Compliance
+
+100% 新申请在 10 月 30 日以后按照新流程处理。
+
+Migration
+
+尽可能提高 10 月 30 日至 1 月 31 日到期证书的提前 Renewal Rate。
+
+Customer Experience
+
+控制：
+
+* Client Complaint；
+* Verification Failure；
+* Repeat Inquiry。
+
+Operations
+
+跟踪：
+
+* Average Processing Time；
+* Backlog；
+* Exception Rate；
+* Helpdesk Volume。
+
+Stability
+
+上线初期不出现因 Certificate / UKey 问题导致的大规模客户无法使用网银。
+
+⸻
+
+十三、中长期方向：Soft Token
+
+此次监管变化再次暴露了实体证书及 UKey 模式本身的运营复杂度。
+
+因此完成短期合规迁移后，建议正式启动：
+
+Soft Token / Digital Authentication Strategy Review
+
+短期项目的目标是：
+
+Comply + De-risk。
+
+中长期目标则应该是：
+
+Simplify + Digitise + Improve Customer Experience。
