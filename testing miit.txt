@@ -1,0 +1,61 @@
+Due to the new MIIT requirements on electronic certification services, key activities including certificate application, identity verification, issuance and delivery will need to be performed by the CA/CFCA. As HSBC currently performs part of these activities on behalf of clients, our existing certificate issuance and renewal process will need to change.
+
+Under the new process, clients will be required to complete additional identity verification through CFCA. The legal representative journey is relatively straightforward, while an authorised person may require additional authorisation documents and potentially audio/video verification.
+
+31 October 2026 is the hard cut-off. The legacy and new platforms cannot coexist. After the cut-off, no renewal, replacement or re-issuance can be processed through the legacy platform, even for certificates previously set up there.
+
+Impact
+
+Area	Key Impact
+Client	The new journey will be more complex, especially for authorised-person scenarios. Many Chinese banks, as well as J.P. Morgan and DBS, use Soft Token-based authentication and are largely unaffected, which may further widen the client experience gap and increase the risk of complaints, transaction migration and client attrition.
+Internal Process	The application form and SOP need to be redesigned. The activation-code process will also change: GFC will no longer be able to send the two codes directly to clients, requiring GTS/GSC and relevant Operations teams to redesign the process and clarify ownership. Transition handling between legacy and new-process clients will also add operational complexity.
+Cost	CFCA confirmed that no fee will be charged if the certificate is not downloaded, which provides flexibility to proactively process eligible certificates before cut-over without incurring unnecessary certificate costs.
+
+Transition / Renewal Approach
+
+CFCA is exploring whether the activation-code validity for eligible certificates can be extended from 14 days to 28 days. If confirmed, certificates processed before the cut-off could still be downloaded during November.
+
+However, after 31 October, no further renewal, replacement or re-issuance under the legacy platform will be possible. Therefore, any expired code, failed download or re-issuance request after cut-over would remain a significant risk.
+
+Accordingly, our recommended approach is to:
+
+Action	Approach
+Client early action	Encourage clients with certificate needs to complete the application and receive activation codes by 15 October wherever possible.
+Proactive outreach	Identify all certificates expiring by 31 March 2027 and notify the relevant clients to apply early.
+Pre-processing	Subject to CFCA confirming the 28-day validity, proactively process eligible renewals before 31 October to maximise the transition buffer.
+November window	November should only serve as the download window for certificates already processed before cut-over; it should not be relied upon for renewal, replacement or re-issuance.
+
+Key Action Points
+
+Action	Key Owner / Support
+Confirm 28-day validity and treatment of failed download / expired codes	CFCA / IT
+Finalise new application form and E2E process	Product / Operations
+Redesign activation-code handling and ownership	GTS / GSC / Operations / GFC
+Identify impacted clients and issue proactive communication	Client Service / RM
+Prepare FAQ, training and escalation process	Helpdesk / Client Service / Operations
+Assess Soft Token / Digital Authentication as longer-term solution	Product / Digital
+
+Timeline
+
+Timing	Milestone
+Now – End Sep	Confirm CFCA solution; finalise process, application form and client communication
+By 30 Sep	Identify and notify impacted clients; complete internal readiness
+By 15 Oct	Target completion of client applications and activation-code issuance
+15–31 Oct	Complete remaining eligible pre-processing and cut-over preparation
+31 Oct	Legacy platform cut-off
+Nov	Download window only, subject to CFCA confirming 28-day validity
+Nov–Dec	Hypercare and issue monitoring
+Q1 2027	Review Soft Token / Digital Authentication strategy
+
+Resource Ask
+
+Given the compressed timeline and client impact, we would appreciate management support to prioritise the following resources:
+
+Resource	Support Required
+GTS / GSC	Redesign activation-code and operating process
+Operations / GFC	Certificate pre-processing and transition support
+Client Service / Helpdesk	Proactive client outreach, training and post-go-live support
+IT / CFCA	Final solution confirmation and rapid escalation during cut-over
+Management	Prioritisation of resources and support for a longer-term Soft Token assessment
+
+The immediate priority is to maximise completion before the October cut-off while minimising client disruption, particularly given the widening experience gap versus banks already using Soft Token solutions.
