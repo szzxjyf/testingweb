@@ -331,3 +331,43 @@ abnormal_df = abnormal_df.drop(
 ---
 
 如果你要，我下一条可以直接给你一版**最终定稿版**：把“损益科目代码”保留在输出里，并且自动尝试 `utf-8-sig` 和 `gb18030` 两种编码读取。
+
+可以，背景只加两三句，重点还是让大家意识到 这是监管驱动、10 月 30 日是硬时间点、客户影响会比较大。
+
+Subject: Invitation | Important ECDS Certificate Change Briefing – Action Required Before 30 Oct
+
+Hi all,
+
+Due to the new MIIT requirements on electronic certification services, key certificate activities such as identity verification, issuance and delivery will need to be handled directly by CA/CFCA. As a result, the current ECDS certificate process will undergo a significant change after 30 October 2026.
+
+Under the new process, clients will be required to complete stricter identity verification, and authorised-person scenarios may involve additional authorisation requirements and audio/video verification (dual recording). This will significantly change the current client journey.
+
+We will hold a short briefing to walk through the key changes, client impact, timeline and required actions.
+
+We strongly encourage everyone to join, particularly colleagues covering clients who:
+
+* are currently using ECDS; or
+* have frequent ECDS / certificate usage.
+
+Given the 30 October cut-off, early client engagement will be important to minimise disruption.
+
+Thanks and look forward to seeing you there.
+
+Subject: Resource Support Request – ECDS Certificate Change
+
+Hi all,
+
+Due to the new MIIT requirements, the ECDS certificate process will change significantly after 30 October. The new journey will involve stricter identity verification and more complex client handling, and we expect a noticeable increase in both pre-cutover coordination and post-go-live enquiries.
+
+Given the client impact and compressed timeline, we would like to request the following support:
+
+Resource	Support Required
+Data Analysis	One resource to support impacted-client/certificate identification, tracking, renewal/re-issuance monitoring and related coordination.
+CSM	One CSM resource to coordinate client communication, especially for key clients, including pre-cutover renewal communication, client education and post-go-live feedback/issues.
+GSC Help Desk	One experienced ECDS SME to support enquiries and troubleshooting. Before cut-over, the focus will be on communication support; after go-live, we expect more customer enquiries to come directly to the Help Desk.
+
+Given that the biggest impact will be on the client side, these resources will be important to ensure a smooth transition and consistent client support.
+
+Your support in allocating the above resources would be highly appreciated.
+
+
