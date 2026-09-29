@@ -40,3 +40,34 @@ The outcome: An AI Pricing Health Check Report in every colleague’s hands.
 Each report brings together the team’s conclusions: the customer pricing panorama, peer positioning, risk findings, earnings opportunities, tailored offers and recommended next steps, supported by evidence that colleagues can explore and validate.
 For frontline teams, it is an action guide for the next customer conversation. For management, these reports form a dynamic bank-wide view of pricing health—showing where risks are concentrated, where returns can improve and where growth opportunities lie.
 An AI team behind every colleague. An actionable report for every customer. Starting with pricing—and going beyond to lower risk, stronger returns and shared growth.
+
+
+1. 想解决什么跨境问题？
+跨境客户的定价往往分散在不同国家、客户实体、产品与系统中，难以形成完整视图。我们希望通过 AI Agent 协作，连接这些分散的信息，建立客户及集团层面的 Pricing 全景，帮助团队识别定价风险、评估整体价值，并设计更有竞争力的跨境业务方案。
+2. 谁会使用？
+所有面向客户的 Coverage Team 都是潜在使用者，尤其是服务跨境及跨国集团客户的客户经理与客户覆盖团队。产品、定价及风险团队可共同使用，管理层则可以查看跨客户、产品与市场的汇总分析。
+3. 现在怎么做？
+目前主要依靠业务人员从不同产品系统、报表及审批记录中查找信息，再向相关团队逐一核实、手工整理。大家通常只能看到自己负责的产品、实体或市场，缺少能够连接全局、持续更新的分析工具。
+4. 有什么痛点？
+- **看不到全貌：**难以全面掌握客户跨产品、跨实体、跨市场的价格与优惠条件，也难以理解这些安排之间的关系。
+- **看不清价值：**缺少将定价与交易、存款及整体贡献连接起来的分析，难以评估优惠是否换来了相应业务，以及我行获得的客户业务与价值份额（Value Share）是否还有提升空间。
+- **缺少比较基准：**没有统一的可比客户 Benchmark，难以判断客户的价格与贡献处于什么水平，哪些差异合理，哪些值得调整。
+5. 与跨境业务有什么关系？
+跨境业务会放大上述问题：同一集团可能在多个国家、通过不同实体使用不同币种和产品，各地又有不同的定价规则与商业条件。单个市场看似合理的报价，放到集团整体关系中，可能存在重复让利、条件不一致或价值未充分实现的情况。
+AI 可以帮助团队在保留各地定价背景的基础上，拼出跨市场的客户全景，让跨境定价有据可比、风险有迹可查，也让团队更有能力设计跨市场、跨产品的组合方案，争取客户更多业务。
+
+
+通过 AI Agent 协作，将零散信息转化为客户全景、经营洞察与行动建议，项目主要带来三方面价值：
+1. 降低风险、释放时间：让 AI 排查，让人聚焦判断与业务。
+由熟悉定价规则的 AI 裁判 Agent，结合规则引擎持续检查价格执行、优惠有效期及审批条件，整理异常与依据，再由人工确认和处理。通过“AI + 人工”，减少人工遗漏与重复核查，缩短审核时间，让团队有更多精力服务客户、拓展业务。
+2. 改善客户体验：让提醒走在问题前面。
+AI 主动识别优惠即将到期、适用条件变化或收费可能出现偏差的情况，提示业务团队及时核实并与客户沟通。通过提前提醒和及时纠偏，减少意外收费、反复解释与事后调整，让客户更清楚自己的价格安排，获得更准确、一致、可预期的服务。
+3. 发现业务机会：把该赚的钱赚足，用更合适的定价赢得更多业务。
+一方面，收益 Agent 结合客户整体贡献及可比客户基准，发现收入遗漏、优惠与贡献不匹配等情况，帮助团队找到合理的收益改善空间。另一方面，增长 Agent 根据客户交易模式与需求，设计阶梯定价、组合优惠及增量激励，并推演客户成本与银行收益，让客户有明确理由将更多业务放在我行，实现双方受益的增长。
+最终，每位业务同事都能获得一份持续更新的 AI 定价体检报告。 它将分散的 Information 转化为有依据的 Insights，再落到有优先级、可执行的 Action Points：哪些问题需要处理、哪些客户值得跟进、应该谈什么、可以提供怎样的方案。
+成效可通过审核耗时、人工确认的遗漏与错误、收费相关投诉及更正次数、有效机会采纳率，以及经核实的增量业务与收益来衡量。
+
+
+本项目的愿景，是让每位对客同事背后都有一支可随时调用的 AI 专家团队。产品 Agent 拼出客户全景，裁判 Agent 排查风险，收益与增长 Agent 共同寻找价值，最终将分析汇聚成一份可追问、有依据、能指导行动的定价体检报告。
+项目可从重点跨境客户及少量产品切入，利用银行既有数据源逐步建立能力，降低对一次性打通所有系统的依赖。AI 提供分析与建议，业务人员保留关键判断与审批责任；客户反馈和实际业务结果则持续用于验证、改善建议。
+随着应用积累，分散在不同团队和市场中的定价经验，可以逐步沉淀为全行共享的经营能力。始于定价，不止于定价——让 AI 帮助我们更深入地理解客户，并将理解转化为客户与银行共同受益的增长。
