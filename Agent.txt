@@ -1,0 +1,42 @@
+ValuePilot AI｜定价增长引擎
+始于定价，不止于定价。
+Starts with Pricing. Goes Beyond.
+如果每位业务同事都拥有一支 AI 专家团队，能看清客户的全部价格、排查定价风险、找出收益空间，还能设计打动客户的报价，会怎样？
+ValuePilot AI 将这个设想变成一场持续进行的 “AI 专家会诊”：不同 Agent 各展所长，共同拼出客户定价全景，最终交付一份人人可用、持续更新的 AI 定价体检报告——看见事实、给出建议、展望未来。
+AI 专家开会：把分散的价格，拼成完整的客户。
+付款、存款、资金池等产品各有专属 Pricing Agent，理解各自的价格、优惠条件与审批背景。像专家会诊一样，它们交换发现、交叉核对，由统筹 Agent 汇总分析，形成完整的客户 Pricing 画像。
+结合银行既有数据与启信宝等企业信息，AI 为客户匹配同行业、相似规模及业务结构的可比群体，让每个价格都有参照，让业务团队看清客户在本行可比客户中的位置。
+AI 裁判：把规则查到底，把风险降下来。
+熟悉定价规则的 裁判 Agent，结合规则引擎，逐项排查现有四五十条风险规则，识别执行偏差、过期优惠、审批缺失及缺乏依据的价格差异。
+它以统一标准核查，以证据解释判断，标明需要人工确认的例外，让业务同事从重复排查中释放出来，也让风险更早被发现、更及时被处理。
+AI 收益侦探：把藏着的价值找出来，把该赚的钱赚足。
+收益 Agent 持续汇集价格、交易、存款与客户贡献数据，主动寻找容易被忽略的收益空间：同样规模、相似业务的客户，价格为什么不同？优惠给出去了，承诺的业务是否到位？客户贡献已经变化，价格是否还停留在过去？
+AI 同时寻找价格与客户实际价值的差距，以及价格与可比客户基准的差距；在有可靠外部报价数据时，进一步扩展市场对标。每项发现都附上依据与建议，帮助团队判断哪些优惠值得保留、哪些条件需要重谈、哪些收益原本就应该实现。
+AI 增长策划师：算出客户心动的方案，赢来双方受益的增长。
+增长 Agent 看懂客户怎样交易、怎样用钱、在意什么，再与产品及收益 Agent 协作，设计量身定制的报价：用得越多、单位费用越低的阶梯定价，跨产品组合优惠，以及与新增业务挂钩的增量激励。
+AI 推演不同方案，让客户看清“多放一些业务，可以得到什么”，也让银行看清“给出这些优惠，可能换来什么”。让定价成为客户愿意增加合作的理由，让让利换来有价值的增长。
+最终，每位同事都拿得到一份 AI 定价体检报告。
+报告汇集整支 AI 团队的结论：客户价格全景、同类客户坐标、风险清单、收益空间、定制报价与下一步行动，并保留支持依据，供业务人员追问、核实和使用。
+对一线，它是可以带进客户沟通的行动指南；对管理层，它汇聚成全行动态的定价健康图景，呈现风险在哪里、收益空间在哪里、增长机会在哪里。
+让一支 AI 团队共同会诊，让一份报告带来行动——始于定价，走向更低的风险、更好的收益与共同的增长。
+English Version
+ValuePilot AI | The Pricing-to-Growth Engine
+Starts with Pricing. Goes Beyond.
+What if every relationship manager had an AI expert team that could connect the customer’s entire pricing picture, check for risks, uncover earnings opportunities and design offers that win more business?
+ValuePilot AI brings this vision to life through an ongoing AI expert council. Specialist agents combine their expertise to build a complete customer pricing view and deliver a living AI Pricing Health Check Report for every relationship team: see the facts, understand the options and plan the next move.
+The AI Expert Council: Many specialists. One complete customer picture.
+Dedicated Pricing Agents for payments, deposits and cash pooling interpret their respective prices, preferential terms and approval context. They share findings and cross-check information, while a coordinating agent brings the analysis together into a unified customer pricing profile.
+By combining existing bank data with company information from sources such as Qixinbao, AI identifies comparable customers by industry, size and business profile. Every price gains context, helping teams understand where the customer stands among relevant peers within the bank.
+The AI Risk Referee: Check every rule. Bring risk into view.
+A Risk Referee Agent, equipped with pricing policies and supported by a rules engine, systematically checks the bank’s existing 40–50 risk rules. It flags execution discrepancies, expired concessions, missing approvals and unexplained pricing differences.
+It applies consistent standards, explains findings with evidence and highlights exceptions requiring human review—freeing colleagues from repetitive checks while enabling earlier risk detection and faster resolution.
+The AI Value Detective: Find the hidden value. Capture the earnings we should be making.
+A Value Agent continuously brings together pricing, transaction, deposit and customer contribution data to investigate overlooked opportunities. Why do comparable customers receive different prices? Have concessions delivered the promised business? Has the customer’s contribution changed while pricing has stayed the same?
+AI looks for gaps between pricing and actual customer value, and between pricing and relevant peer benchmarks. Where reliable external pricing data is available, it extends the comparison to the market. Each finding comes with evidence and recommendations, helping teams decide which concessions to retain, which terms to renegotiate and which earnings opportunities to pursue.
+The AI Growth Strategist: Shape offers customers want. Create growth both sides value.
+A Growth Agent understands how customers transact, manage funds and prioritize costs. Working with the product and value agents, it develops tailored offers: volume-based pricing with lower unit fees as usage grows, cross-product packages and incentives linked to incremental business.
+AI models alternative scenarios so customers can see what they gain by bringing more business, while the bank can assess what its concessions could deliver. Pricing becomes a compelling reason to deepen the relationship, creating tangible customer benefits and sustainable bank growth.
+The outcome: An AI Pricing Health Check Report in every colleague’s hands.
+Each report brings together the team’s conclusions: the customer pricing panorama, peer positioning, risk findings, earnings opportunities, tailored offers and recommended next steps, supported by evidence that colleagues can explore and validate.
+For frontline teams, it is an action guide for the next customer conversation. For management, these reports form a dynamic bank-wide view of pricing health—showing where risks are concentrated, where returns can improve and where growth opportunities lie.
+An AI team behind every colleague. An actionable report for every customer. Starting with pricing—and going beyond to lower risk, stronger returns and shared growth.
