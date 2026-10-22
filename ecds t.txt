@@ -1,0 +1,186 @@
+<!doctype html>
+<!-- Self-contained offline HTML: embedded CSS, native JavaScript, inline SVG, system fonts. -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="电子商业汇票业务全流程与客户服务流程" />
+  <title>电子商业汇票（ECDS）业务培训</title>
+  <style>
+    :root {
+      --ink:#152238; --muted:#647084; --paper:#f4f6f9; --card:#fff;
+      --line:#dce2ea; --navy:#173657; --blue:#2563b8; --red:#c73542;
+      --green:#18805a; --amber:#b97410; --soft-blue:#edf3fb;
+      --shadow:0 14px 36px rgba(21,34,56,.08); --radius:18px;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+    a{color:inherit}.shell{width:min(1160px,calc(100% - 36px));margin:auto}
+    .topbar{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+    .topbar-inner{height:62px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}.mark{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--red);color:#fff;font-size:13px}
+    nav{display:flex;gap:24px;font-size:14px;color:var(--muted)}nav a{text-decoration:none}nav a:hover{color:var(--blue)}
+    .hero{padding:76px 0 62px;background:linear-gradient(135deg,#fff 0,#eef3f9 100%);border-bottom:1px solid var(--line)}
+    .kicker{color:var(--blue);font-size:13px;font-weight:800;letter-spacing:.12em}
+    h1{font-size:clamp(42px,6vw,70px);line-height:1.08;letter-spacing:-.05em;margin:13px 0 17px}
+    .hero p{font-size:20px;color:var(--muted);margin:0;max-width:760px}
+    section{padding:60px 0;scroll-margin-top:62px}.white{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .section-head{display:grid;grid-template-columns:.8fr 1.2fr;gap:44px;align-items:end;margin-bottom:30px}
+    .index{font-size:12px;font-weight:900;letter-spacing:.12em;color:var(--red)}
+    h2{font-size:clamp(30px,4vw,45px);line-height:1.18;letter-spacing:-.035em;margin:7px 0 0}.lead{margin:0;color:var(--muted);font-size:17px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:0 8px 24px rgba(21,34,56,.035)}
+    .card h3{font-size:20px;margin:12px 0 8px}.card p{margin:0;color:var(--muted)}
+    .infra-text{font-size:17px;color:#34445a;margin:0}.infra-text b{color:var(--ink)}
+    .infra-chain{margin-top:22px;padding:19px 22px;background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:13px;box-shadow:0 8px 24px rgba(21,34,56,.035)}
+    .infra-chain span{flex:1}.infra-chain b{display:block;color:var(--navy)}.infra-chain small{display:block;color:var(--muted);margin-top:2px}.infra-arrow{flex:0!important;color:#92a0b1;font-size:20px}
+    .precise{margin-top:17px;border-left:4px solid var(--blue);padding:15px 18px;background:var(--soft-blue);border-radius:4px 12px 12px 4px;color:#294563}
+    .flow-tabs{display:flex;gap:8px;margin-bottom:14px;padding:5px;background:#edf0f4;border-radius:12px;width:max-content;max-width:100%}
+    .flow-tab{border:0;background:transparent;color:#5e6b7e;padding:10px 18px;border-radius:9px;font:inherit;font-size:14px;font-weight:800;cursor:pointer}.flow-tab:hover{color:var(--navy)}.flow-tab.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(21,34,56,.1)}
+    .master-flow{display:grid;grid-template-columns:repeat(6,1fr);gap:20px;background:var(--navy);padding:26px;border-radius:22px;color:#fff;box-shadow:var(--shadow)}
+    .flow-step{position:relative;min-height:128px;padding:15px;border-radius:14px;background:#23496f;border:1px solid #4b6988}
+    .flow-step:not(:last-child)::after{content:"→";position:absolute;right:-18px;top:48px;color:#9eb1c5}
+    .flow-step small{display:block;color:#b7c7d7;font-weight:800;letter-spacing:.08em}.flow-step b{display:block;margin:7px 0 4px}.flow-step span{display:block;color:#d8e3ee;font-size:12px;line-height:1.48}
+    .flow-step.optional{background:#225b59;border-color:#438f86}
+    .flow-caption{margin:12px 4px 0;color:var(--muted);font-size:13px;min-height:22px}
+    .endorsement-panel{margin-top:26px;padding:26px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 8px 24px rgba(21,34,56,.035)}
+    .endorsement-head{display:grid;grid-template-columns:.75fr 1.25fr;gap:32px}.endorsement-head h3{margin:0;font-size:25px}.endorsement-head p{margin:0;color:var(--muted)}
+    .return-law{margin:22px 0 16px;padding:20px 24px;border-left:4px solid var(--navy);background:var(--soft-blue);border-radius:0 12px 12px 0}.return-law a{font-size:14px;font-weight:800;color:var(--navy);text-decoration:none}.return-law p{margin:8px 0 0;font-size:19px;line-height:1.8;color:var(--ink)}
+    .return-figure{margin:0}.return-diagram{display:block;width:100%;height:auto;font-family:inherit}.return-figure figcaption{display:flex;gap:25px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px}.key-line{display:inline-block;width:28px;border-top:3px solid var(--navy);vertical-align:middle;margin-right:7px}.key-line.green{border-color:var(--green)}.key-line.red{border-color:var(--red)}
+    .return-note{font-size:13px;color:var(--muted);margin:14px 0 0;padding-top:14px;border-top:1px solid var(--line)}
+    .economics{display:grid;grid-template-columns:1.18fr .82fr;gap:18px}
+    .money-card{background:linear-gradient(135deg,#153654,#214e75);color:#fff;border:none}.money-card p{color:#dce7f1}.money-line{display:flex;align-items:center;gap:12px;margin:22px 0}.money-node{flex:1;padding:16px 12px;text-align:center;border:1px solid #58748e;border-radius:13px;background:rgba(255,255,255,.07)}.money-arrow{color:#9fb3c6;font-size:22px}
+    .formula{margin-top:20px;padding-top:18px;border-top:1px solid #4c6984;display:flex;justify-content:space-between;gap:18px;align-items:end}.formula strong{font-size:31px}.formula span{font-size:13px;color:#c9d8e6}
+    .cost-total{font-size:48px;font-weight:900;letter-spacing:-.04em;color:var(--red);line-height:1}.cost-formula{margin:18px 0;padding:16px;background:#f7f8fa;border-radius:12px;font-weight:800}.cost-list{list-style:none;padding:0;margin:14px 0 0}.cost-list li{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);color:var(--muted)}.cost-list b{color:var(--ink)}
+    .lifecycle{position:relative}.phase{margin-bottom:18px;border:1px solid var(--line);background:#fff;border-radius:20px;overflow:hidden}.phase-head{display:grid;grid-template-columns:82px 1fr;align-items:stretch}.phase-no{display:grid;place-items:center;background:var(--navy);color:#fff;font-size:25px;font-weight:900}.phase-title{padding:20px 24px}.phase-title h3{margin:0;font-size:23px}.phase-title p{margin:4px 0 0;color:var(--muted)}.phase-body{padding:0 24px 24px 106px}
+    .two-steps{display:grid;grid-template-columns:1fr 1fr;gap:14px}.step-box{padding:18px;border:1px solid var(--line);border-radius:14px;background:#f9fafc}.step-box h4{margin:0 0 8px;font-size:17px}.step-box p,.step-box li{color:var(--muted);font-size:14px}.step-box ul{margin:8px 0 0;padding-left:20px}
+    .signing{margin-top:13px;padding:13px 15px;border-left:4px solid var(--amber);background:#fff7e8;color:#67450e;border-radius:4px 10px 10px 4px;font-size:14px}
+    .ops-flow{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}.ops-node{position:relative;padding:15px 12px;border-radius:13px;background:#f2f5f9;border:1px solid var(--line);font-size:13px;text-align:center;font-weight:800}.ops-node:not(:last-child)::after{content:"→";position:absolute;right:-15px;color:#8ca0b6}.ops-node small{display:block;color:var(--muted);font-weight:500;margin-top:5px;line-height:1.35}
+    .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.role{padding:18px;border-radius:14px;background:#f9fafc;border:1px solid var(--line)}.role b{display:block;margin-bottom:6px}.role p{font-size:14px}.role.approver{border-color:#efc9cc;background:#fff7f7}.role.approver b{color:var(--red)}
+    .close-gate{padding:22px;background:#fff5f5;border:1px solid #ecc5c9;border-radius:15px}.close-gate h4{margin:0;color:#a62b35;font-size:19px}.close-gate p{margin:8px 0 0;color:#6e5053}.close-gate ul{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px;margin:17px 0 0;padding-left:20px;color:#6e5053}.rule{margin-top:15px;padding-top:14px;border-top:1px solid #ecc5c9;font-size:13px;color:#7f3a40}
+    .team-list{width:100%;border-collapse:collapse;font-size:15px}.team-list th,.team-list td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--line)}.team-list thead{background:#f2f5f9;color:var(--navy)}.team-list th:last-child,.team-list td:last-child{width:36%}.team-list tbody tr:last-child td{border-bottom:0}.team-list td:last-child{font-weight:800;color:var(--blue)}
+    footer{padding:42px 0 58px;color:var(--muted);font-size:13px}.sources{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;margin-top:13px}.sources a{text-decoration:none;border-bottom:1px dotted #8b97a6}.sources a:hover{color:var(--blue)}
+    @media(max-width:980px){.master-flow{grid-template-columns:repeat(3,1fr)}.flow-step:nth-child(3)::after,.flow-step:nth-child(6)::after{display:none}.infra-chain{display:grid;grid-template-columns:1fr}.infra-arrow{transform:rotate(90deg);justify-self:center}.ops-flow{grid-template-columns:repeat(3,1fr)}.ops-node:nth-child(3)::after{display:none}.economics{grid-template-columns:1fr}.endorsement-head{grid-template-columns:1fr}}
+    @media(max-width:700px){.shell{width:min(100% - 24px,1160px)}nav{display:none}.hero{padding:50px 0}.section-head,.two-steps,.grid-2,.roles{grid-template-columns:1fr;gap:14px}.flow-tabs{width:100%;overflow-x:auto}.flow-tab{white-space:nowrap;flex:1}.master-flow,.ops-flow{grid-template-columns:1fr}.flow-step:not(:last-child)::after,.ops-node:not(:last-child)::after{content:"↓";right:auto;left:50%;bottom:-20px;top:auto}.phase-head{grid-template-columns:58px 1fr}.phase-body{padding:0 16px 20px}.close-gate ul,.sources{grid-template-columns:1fr}.money-line{flex-direction:column}.money-node{width:100%}.money-arrow{transform:rotate(90deg)}.endorsement-panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="shell topbar-inner"><div class="brand"><span class="mark">票</span><span>ECDS 业务培训</span></div><nav aria-label="页面目录"><a href="#background">市场基础设施</a><a href="#journey">票据全流程</a><a href="#economics">收益与成本</a><a href="#lifecycle">开通至关户</a></nav></div></header>
+  <main>
+    <header class="hero"><div class="shell"><div class="kicker">ELECTRONIC COMMERCIAL DRAFTS</div><h1>电子商业汇票（ECDS）</h1><p>业务全流程与客户服务流程</p></div></header>
+    <section id="background"><div class="shell">
+      <div class="section-head"><div><div class="index">01 · MARKET INFRASTRUCTURE</div><h2>票据市场基础设施</h2></div><p class="lead">电子商业汇票的登记、流转和结清依托全国统一的票据市场基础设施完成。银行作为接入机构，为企业提供账户、渠道、身份认证和票据业务服务。</p></div>
+      <p class="infra-text"><b>中国人民银行</b>负责票据市场的制度建设与监督管理；<b>上海票据交易所</b>是经中国人民银行批准设立的全国统一票据交易平台，建设并运营中国票据业务系统；<b>商业银行</b>作为接入机构，为企业客户提供账户、渠道、身份认证、业务处理及资金结算服务。</p>
+      <div class="infra-chain" aria-label="票据市场关系"><span><b>中国人民银行</b><small>制度建设与监督管理</small></span><span class="infra-arrow">→</span><span><b>上海票据交易所</b><small>市场基础设施与系统运营</small></span><span class="infra-arrow">→</span><span><b>商业银行</b><small>系统接入与客户服务</small></span><span class="infra-arrow">→</span><span><b>企业客户</b><small>出票、流转、融资与结算</small></span></div>
+      <div class="precise"><b>系统名称：</b>原电子商业汇票系统已由新一代票据业务系统承接。本培训沿用业务中常用的 “ECDS” 简称，不再区分新旧系统名称。</div>
+    </div></section>
+    <section id="journey" class="white"><div class="shell">
+      <div class="section-head"><div><div class="index">02 · BILL LIFECYCLE</div><h2>票据全流程</h2></div><p class="lead">商业汇票既是延期支付工具，也可通过背书、贴现和转贴现实现流转及融资。到期后，最终持票人发起提示付款并完成结清。</p></div>
+      <div class="flow-tabs" role="tablist" aria-label="票据业务流程"><button class="flow-tab active" type="button" role="tab" aria-selected="true" data-route="maturity">正常到期</button><button class="flow-tab" type="button" role="tab" aria-selected="false" data-route="discount">贴现与转贴现</button><button class="flow-tab" type="button" role="tab" aria-selected="false" data-route="recourse">追索</button></div>
+      <div class="master-flow" id="bill-flow" aria-live="polite"></div>
+      <p class="flow-caption" id="flow-caption"></p>
+      <article class="endorsement-panel" id="return-endorsement">
+        <div class="endorsement-head"><h3>回头背书与追索限制</h3><p>票据经背书流转后，再次回到出票人或原背书人手中，即形成回头背书。以下两种情形分别对应法条的两款规定。</p></div>
+        <blockquote class="return-law"><a href="https://www.gov.cn/banshi/2005-07/11/content_13699.htm" target="_blank" rel="noreferrer">《中华人民共和国票据法》第六十九条（完整条文）</a><p>持票人为出票人的，对其前手无追索权。<br>持票人为背书人的，对其后手无追索权。</p></blockquote>
+        <figure class="return-figure">
+          <svg class="return-diagram" viewBox="0 0 1120 570" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="return-title return-desc">
+            <title id="return-title">回头背书的两个循环与追索限制</title>
+            <desc id="return-desc">左图：A出票给B，B背书给C，C背书回A。A是出票人兼现持票人，不得向前手B、C追索。右图：A出票给B，B背书给C，C背书给D，D背书回B。B是原背书人兼现持票人，不得向原后手C、D追索；符合法定条件时，可向原前手A追索。实线箭头只表示票据流转，不表示追索方向。</desc>
+            <defs>
+              <marker id="bill-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#173657"/></marker>
+              <marker id="return-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#18805a"/></marker>
+            </defs>
+            <rect x="1" y="1" width="538" height="568" rx="16" fill="#f7f9fc" stroke="#dce2ea"/>
+            <rect x="559" y="1" width="560" height="568" rx="16" fill="#f7f9fc" stroke="#dce2ea"/>
+            <text x="26" y="37" font-size="21" font-weight="800" fill="#173657">情形一：回到出票人 A</text>
+            <text x="26" y="65" font-size="14" fill="#647084">对应第一款：持票人为出票人</text>
+            <text x="585" y="37" font-size="21" font-weight="800" fill="#173657">情形二：回到原背书人 B</text>
+            <text x="585" y="65" font-size="14" fill="#647084">对应第二款：持票人为背书人</text>
+
+            <path d="M225 174L133 277" fill="none" stroke="#173657" stroke-width="3" marker-end="url(#bill-arrow)"/>
+            <path d="M180 320L351 320" fill="none" stroke="#173657" stroke-width="3" marker-end="url(#bill-arrow)"/>
+            <path d="M420 279Q434 198 338 143" fill="none" stroke="#18805a" stroke-width="4" marker-end="url(#return-arrow)"/>
+            <text x="92" y="218" font-size="15" fill="#173657">出票交付</text>
+            <text x="248" y="306" font-size="15" fill="#173657">背书</text>
+            <text x="373" y="204" font-size="15" font-weight="700" fill="#18805a">回头背书</text>
+            <rect x="210" y="100" width="120" height="74" rx="12" fill="#edf9f3" stroke="#18805a" stroke-width="2.5"/>
+            <text x="270" y="130" text-anchor="middle" font-size="26" font-weight="800" fill="#18805a">A</text>
+            <text x="270" y="155" text-anchor="middle" font-size="14" fill="#18805a">出票人 · 现持票人</text>
+            <rect x="60" y="285" width="120" height="70" rx="12" fill="#fff" stroke="#dce2ea"/>
+            <text x="120" y="314" text-anchor="middle" font-size="25" font-weight="800" fill="#173657">B</text>
+            <text x="120" y="340" text-anchor="middle" font-size="14" fill="#647084">收款人／背书人</text>
+            <rect x="360" y="285" width="120" height="70" rx="12" fill="#fff" stroke="#dce2ea"/>
+            <text x="420" y="314" text-anchor="middle" font-size="25" font-weight="800" fill="#173657">C</text>
+            <text x="420" y="340" text-anchor="middle" font-size="14" fill="#647084">背书人</text>
+
+            <path d="M685 139L806 139" fill="none" stroke="#173657" stroke-width="3" marker-end="url(#bill-arrow)"/>
+            <path d="M927 177L995 277" fill="none" stroke="#173657" stroke-width="3" marker-end="url(#bill-arrow)"/>
+            <path d="M945 320L863 320" fill="none" stroke="#173657" stroke-width="3" marker-end="url(#bill-arrow)"/>
+            <path d="M790 278Q782 226 845 178" fill="none" stroke="#18805a" stroke-width="4" marker-end="url(#return-arrow)"/>
+            <text x="714" y="124" font-size="15" fill="#173657">出票交付</text>
+            <text x="980" y="223" font-size="15" fill="#173657">背书</text>
+            <text x="888" y="306" font-size="15" fill="#173657">背书</text>
+            <text x="705" y="223" font-size="15" font-weight="700" fill="#18805a">回头背书</text>
+            <rect x="585" y="100" width="100" height="74" rx="12" fill="#fff" stroke="#dce2ea"/>
+            <text x="635" y="130" text-anchor="middle" font-size="26" font-weight="800" fill="#173657">A</text>
+            <text x="635" y="155" text-anchor="middle" font-size="14" fill="#647084">出票人</text>
+            <rect x="815" y="100" width="130" height="74" rx="12" fill="#edf9f3" stroke="#18805a" stroke-width="2.5"/>
+            <text x="880" y="130" text-anchor="middle" font-size="26" font-weight="800" fill="#18805a">B</text>
+            <text x="880" y="155" text-anchor="middle" font-size="14" fill="#18805a">原背书人 · 现持票人</text>
+            <rect x="945" y="285" width="130" height="70" rx="12" fill="#fff" stroke="#dce2ea"/>
+            <text x="1010" y="314" text-anchor="middle" font-size="25" font-weight="800" fill="#173657">C</text>
+            <text x="1010" y="340" text-anchor="middle" font-size="14" fill="#647084">B 的原后手</text>
+            <rect x="725" y="285" width="130" height="70" rx="12" fill="#fff" stroke="#dce2ea"/>
+            <text x="790" y="314" text-anchor="middle" font-size="25" font-weight="800" fill="#173657">D</text>
+            <text x="790" y="340" text-anchor="middle" font-size="14" fill="#647084">B 的原后手</text>
+
+            <rect x="25" y="394" width="490" height="148" rx="12" fill="#fff" stroke="#edc8cd"/>
+            <text x="48" y="427" font-size="20" font-weight="800" fill="#c73542">A 不能向 B、C 追索</text>
+            <text x="48" y="458" font-size="15" fill="#647084">B、C 是本次票据回流中 A 的前手。</text>
+            <text x="48" y="485" font-size="15" fill="#647084">A 同时是出票人，因此适用第一款的限制。</text>
+            <text x="48" y="518" font-size="15" font-weight="700" fill="#173657">出票人的身份，不因重新持票而改变。</text>
+            <rect x="584" y="394" width="510" height="148" rx="12" fill="#fff" stroke="#edc8cd"/>
+            <text x="607" y="427" font-size="20" font-weight="800" fill="#c73542">B 不能向 C、D 追索</text>
+            <text x="607" y="458" font-size="15" fill="#647084">C、D 是 B 原先背书后的后手。</text>
+            <text x="607" y="485" font-size="15" fill="#647084">即使它们在回流时位于 B 之前，也不能向其追索。</text>
+            <text x="607" y="518" font-size="15" font-weight="700" fill="#173657">符合法定追索条件时，B 可向原前手 A 追索。</text>
+          </svg>
+          <figcaption><span><i class="key-line"></i>出票／背书流转</span><span><i class="key-line green"></i>回头背书</span><span><i class="key-line red"></i>法定追索限制</span></figcaption>
+        </figure>
+        <p class="return-note">图中箭头仅表示票据流转方向，不表示追索方向。前手、后手需结合当事人在原流转链中的身份判断，不能只看票据最后由谁背书回流。</p>
+      </article>
+    </div></section>
+    <section id="economics"><div class="shell">
+      <div class="section-head"><div><div class="index">03 · GPS ECONOMICS</div><h2>GPS 的收益与成本</h2></div><p class="lead">这项业务不以开通收费为主要收益来源。核心经济价值来自票据到期兑付后，资金进入结算账户并留存一段时间所形成的存款沉淀。</p></div>
+      <div class="economics"><article class="card money-card"><h3>收益来源：到期兑付资金沉淀</h3><div class="money-line"><div class="money-node">票据到期</div><div class="money-arrow">→</div><div class="money-node">提示付款</div><div class="money-arrow">→</div><div class="money-node">资金进入结算账户</div><div class="money-arrow">→</div><div class="money-node">账户留存</div></div><p>资金在账户中的留存时间和平均余额，决定这项业务能带来的存款价值。若客户收到票款后立即转出，业务贡献会相应降低。</p><div class="formula"><span>业务价值的核心逻辑</span><strong>余额 × 留存时间</strong></div></article><article class="card"><div class="cost-total">¥680</div><h3>单套初始直接成本</h3><div class="cost-formula">U-Key ¥80 + 证书 ¥200 × 3 年 = ¥680</div><ul class="cost-list"><li><span>U-Key</span><b>¥80 / 个</b></li><li><span>电子签名认证证书</span><b>¥200 / 年</b></li><li><span>首次提供周期</span><b>3 年</b></li><li><span>客户支付</span><b>¥0</b></li></ul></article></div>
+    </div></section>
+    <section id="lifecycle" class="white"><div class="shell lifecycle">
+      <div class="section-head"><div><div class="index">04 · CLIENT LIFECYCLE</div><h2>从开通到关户</h2></div><p class="lead">客户开通分为渠道功能启用和文件提交；银行端完成审核及系统处理后，客户再完成登录、证书下载和授权环境配置。</p></div>
+      <article class="phase"><div class="phase-head"><div class="phase-no">01</div><div class="phase-title"><h3>客户提交开通申请</h3><p>渠道功能和申请文件需要同时完成。</p></div></div><div class="phase-body"><div class="two-steps"><div class="step-box"><h4>1. 启用网银功能</h4><p>先在网银启用 ECDS Function，按照电子渠道的正常流程，通过 <b>ECLA</b> 或 <b>ECAF</b> 指令办理。</p></div><div class="step-box"><h4>2. 提交申请文件</h4><p>从下载中心取得最新版本的申请资料。通常包括：</p><ul><li>ECDS 申请表及相关表单（两份）</li><li>新一代票据业务系统承诺函（一份）</li></ul></div></div><div class="signing"><b>签署要求：</b>承诺函必须加盖公章；另外两份文件按照电子渠道文件的签署方式办理。</div></div></article>
+      <article class="phase"><div class="phase-head"><div class="phase-no">02</div><div class="phase-title"><h3>银行端处理</h3><p>文件收取、审核、系统开通及介质发放。</p></div></div><div class="phase-body"><div class="ops-flow"><div class="ops-node">WCATS<small>收取客户文件</small></div><div class="ops-node">Client Ops / IT Ops<small>接收并分派审核</small></div><div class="ops-node">Document Review<small>审核三份文件</small></div><div class="ops-node">Processing Team<small>完成系统开通</small></div><div class="ops-node">ECDS Team<small>复核申请表</small></div><div class="ops-node">Banker<small>接收 U-Key 与证书</small></div></div></div></article>
+      <article class="phase"><div class="phase-head"><div class="phase-no">03</div><div class="phase-title"><h3>客户端后续操作</h3><p>普通登录与审批授权的要求不同。</p></div></div><div class="phase-body"><div class="roles"><div class="role"><b>登录验证</b><p>系统仅校验 ECDS 用户名是否与网银用户名一致。两者一致，用户即可进入。</p></div><div class="role"><b>操作员</b><p>成功进入后，可按照已配置的权限正常发起和处理票据业务。</p></div><div class="role approver"><b>审批员</b><p>授权指令需要从客户端传递至银行端，并通过电子签名完成验证。客户必须先下载证书、安装相关控件并完成环境配置，之后才能在网银票据平台正常授权。</p></div></div></div></article>
+      <article class="phase"><div class="phase-head"><div class="phase-no">04</div><div class="phase-title"><h3>关户与服务终止</h3><p>具体条件可在 Qbot 查询，并以最新操作要求为准。</p></div></div><div class="phase-body"><div class="close-gate"><h4>存在未结清或在途票据时，不得办理关户。</h4><p>关户前不能只检查客户当前是否持票，还必须核对其作为出票人、承兑人、背书人、保证人等角色所承担的票据责任，以及所有待签收、待应答、提示付款和追索事项。</p><ul><li>未到期票据及未解除的票据责任</li><li>已到期但尚未完成付款的票据</li><li>待签收、待应答或处理中的业务</li><li>提示付款、拒付或追索中的事项</li></ul><div class="rule"><b>法规依据：</b>《电子商业汇票业务管理办法》第二十五条规定，电子商业汇票责任解除前，承兑人不得撤销原办理电子商业汇票业务的账户，接入机构不得为其办理销户手续。</div></div></div></article>
+      <article class="phase" id="related-teams"><div class="phase-head"><div class="phase-no">05</div><div class="phase-title"><h3>相关团队</h3><p>按问题类型联系对应团队。</p></div></div><div class="phase-body"><table class="team-list"><thead><tr><th scope="col">问题类型</th><th scope="col">相关团队／联系人</th></tr></thead><tbody><tr><td>日常业务咨询</td><td>XXX</td></tr><tr><td>IT 问题</td><td>XXX</td></tr><tr><td>文件操作、处理与设置</td><td>XXX</td></tr><tr><td>证书及 U-Key 发放</td><td>XXX</td></tr><tr><td>Product Manager</td><td>XXX</td></tr></tbody></table></div></article>
+    </div></section>
+  </main>
+  <footer><div class="shell"><b>主要法规与公开资料</b><div class="sources"><a href="https://www.shcpe.com.cn/content/shcpe/about/introduction.html" target="_blank" rel="noreferrer">上海票据交易所｜票交所介绍</a><a href="https://www.shcpe.com.cn/content/shcpe/vip.html" target="_blank" rel="noreferrer">上海票据交易所｜中国票据业务系统简介</a><a href="https://www.pbc.gov.cn/zhengwugongkai/attachDir/2025/11/2025111914150216887.pdf" target="_blank" rel="noreferrer">中国人民银行｜电子商业汇票业务管理办法</a><a href="https://www.nfra.gov.cn/cbircweb/download/downloadPdf?docId=879935&amp;itemId=927&amp;zcfg=0" target="_blank" rel="noreferrer">中华人民共和国票据法</a><a href="https://www.nfra.gov.cn/cn/view/pages/ItemDetail.html?docId=1082286&amp;itemId=928" target="_blank" rel="noreferrer">商业汇票承兑、贴现与再贴现管理办法</a><a href="https://www.moj.gov.cn/pub/sfbgw/flfggz/flfggzbmgz/202101/t20210105_146493.html" target="_blank" rel="noreferrer">人民币银行结算账户管理办法</a></div></div></footer>
+  <script>
+    const flowRoutes = {
+      maturity: {caption: "正常到期路径：票据完成出票、承兑及收票后，可持有至到期或在到期前背书转让；最终持票人提示付款，承兑人付款后完成结清。", steps: [["出票", "登记金额、到期日、收款人及承兑人。"], ["承兑", "承兑人确认到期无条件支付票款。"], ["提示收票", "收款人核对票面信息并签收。"], ["持有／背书", "持有至到期，或转让给下一手。"], ["提示付款", "最终持票人在规定期限内发起付款请求。"], ["付款结清", "承兑人付款，票据责任相应解除。"]]},
+      discount: {caption: "融资路径：贴现发生在企业与金融机构之间；转贴现发生在金融机构之间。转贴现并不改变票据最终仍需提示付款并完成到期结算的基本逻辑。", steps: [["企业持票", "企业已合法取得未到期商业汇票。"], ["申请贴现", "持票企业向金融机构申请提前融资。"], ["审查与签约", "审查票据、交易关系及融资条件。"], ["贴现放款", "扣除贴现利息后向企业支付资金。"], ["转贴现", "持票金融机构可将票据转让给另一金融机构。"], ["到期收款", "最终持票金融机构提示付款并收回票款。"]]},
+      recourse: {caption: "追索路径包括拒付追索和非拒付追索。被追索人清偿后，可依法向其前手再追索；回头背书情形还需同时适用《票据法》第六十九条的限制。", steps: [["追索事由", "到期拒付，或出现法定的非拒付追索事由。"], ["取得证明", "取得拒绝证明或法律规定的其他证明。"], ["发起追索", "向出票人、背书人、保证人等责任主体主张权利。"], ["清偿金额", "被追索人支付票据金额及法定费用。"], ["再追索", "已清偿的票据债务人可向其前手继续追索。"], ["责任结清", "相关款项清偿，票据责任关系结束。"]]}
+    };
+    const flow = document.querySelector("#bill-flow");
+    const caption = document.querySelector("#flow-caption");
+    const tabs = document.querySelectorAll(".flow-tab");
+    function renderFlow(key) {
+      const route = flowRoutes[key];
+      flow.innerHTML = route.steps.map((step, index) => `<div class="flow-step${key === "discount" && index === 4 ? " optional" : ""}"><small>${String(index + 1).padStart(2, "0")}</small><b>${step[0]}</b><span>${step[1]}</span></div>`).join("");
+      caption.textContent = route.caption;
+      tabs.forEach(tab => { const active = tab.dataset.route === key; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", String(active)); });
+    }
+    tabs.forEach(tab => tab.addEventListener("click", () => renderFlow(tab.dataset.route)));
+    renderFlow("maturity");
+  </script>
+</body>
+</html>
