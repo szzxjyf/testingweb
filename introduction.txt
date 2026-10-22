@@ -1,9 +1,15 @@
-We received an inquiry regarding several failed incoming payments via IBPS (Internet Banking Payment System), where the transactions were rejected with the error message “Counterparty Rejection / Digital Signature Verification Failed”.
 
-Following investigation, we identified that the issue occurred during the weekend when HSBC logged out of and subsequently reconnected to the IBPS system. During this period, five banks happened to send their respective key update messages while HSBC was offline or reconnecting. As a result, HSBC did not receive and update the latest keys from these banks in time, which subsequently caused digital signature verification failures for payments initiated by these banks.
 
-The five impacted banks are A, B, C, D and E. Other banks were not affected by this issue.
 
-The relevant keys have now been successfully updated and the issue has been resolved.
+Please find attached our current GPS Client 360 demo environment.
 
-Please inform the relevant teams accordingly. If you receive any related enquiries or failed payment cases, please ask the customer to re-initiate the payment.
+After selecting a client on the first-page search, the second page presents the AI-enabled features, highlighted in purple. These include conversational analysis of the charts, anomaly and driver identification, forecasting, opportunity discovery, and recommended action points based on the selected client data.
+
+The key characteristics of the solution are:
+
+1. Deep GPS client intelligence — By combining revenue, transaction-level and client-tag data, we create a comprehensive GPS view of each client. GPS’s unique access to granular payment data enables transaction reconstruction and analysis of key payment attributes. Same-name transfers reveal competitor-bank activity, while transaction narratives and counterparty flows uncover pipeline and NCA opportunities.
+
+2. From data analysis to intelligent forecasting — AI identifies anomalies, key drivers and emerging patterns, forecasts client trends and potential opportunities, and translates them into clear, actionable insights and recommended actions.
+
+3. Replacing complex navigation with conversation — AI brings previously fragmented data and analytical capabilities into one interface. Users can simply ask questions to analyze clients, investigate anomalies, understand drivers, discover opportunities and plan actions—powered by the structured data that GPS has accumulated and continuously governed.
+
