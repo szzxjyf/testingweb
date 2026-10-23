@@ -13,3 +13,5 @@ The key characteristics of the solution are:
 
 3. Replacing complex navigation with conversation — AI brings previously fragmented data and analytical capabilities into one interface. Users can simply ask questions to analyze clients, investigate anomalies, understand drivers, discover opportunities and plan actions—powered by the structured data that GPS has accumulated and continuously governed.
 
+GPS Client 360 uses unique transaction-level data and same-name transfer analysis to reveal client activities with competitor banks and uncover pipeline and NCA opportunities. AI makes these insights easier to access through simple, conversational questions.
+
