@@ -63,3 +63,39 @@ ORDER BY
     TXN_HOUR,
     TXN_MINUTE
 
+
+
+Dear Team,
+
+We would like to propose a pressure test for Domestic Payments, based on transaction data from the past 6 months.
+
+**1. Peak Volume Testing**
+
+We propose testing the following scenarios across different time windows:
+
+| Time Window | Historical Peak (PP + ACH) | Peak PP | Peak ACH | Combined Peak |
+|---|---|---|---|---|
+| 1 min | TBD | TBD | TBD | TBD |
+| 5 mins | TBD | TBD | TBD | TBD |
+| 10 mins | TBD | TBD | TBD | TBD |
+| 15 mins | TBD | TBD | TBD | TBD |
+| 30 mins | TBD | TBD | TBD | TBD |
+| 60 mins | TBD | TBD | TBD | TBD |
+
+The **Combined Peak** assumes PP and ACH reach their respective historical maximum volumes simultaneously. We would also like to consider the largest individual ACH batch.
+
+**2. Full-Day Volume Testing**
+
+We propose using the highest-volume day over the past 6 months (over 160k transactions) as a real-life simulation.
+
+The actual transaction data, including the exact timing and payment type of each transaction, is available at minute- and second-level granularity. This would allow us to replay the actual transaction pattern throughout the day, rather than simply distributing the volume evenly.
+
+**3. Additional Stress Testing**
+
+Gradually increase the above testing volumes to **1.5x, 2x and 3x** to assess system capacity and identify potential bottlenecks.
+
+The objective is to understand the maximum processing capacity, potential delays or backlogs, and any impact on payment processing SLAs.
+
+Please share your feedback on the proposed approach and its feasibility.
+
+Best regards
