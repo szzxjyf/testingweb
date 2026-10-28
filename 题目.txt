@@ -1,91 +1,35 @@
 
-
-Domestic Payments – 单选题
-
-1. 关于 ACH“一借多贷”付款，以下哪项描述正确？
-
-A. 每笔付款分别借记付款人账户
-
-B. 汇总借记一次，分别向多个收款人付款
-
-C. 仅支持行内转账
-
-D. 仅支持单笔付款
-
-2. 客户需要在周末办理一笔人民币 80 万元的实时跨行付款，以下哪个清算渠道最合适？
-
-A. HVPS（大额支付）
-
-B. BEPS（小额支付）
-
-C. IBPS（超级网银）
-
-D. Book Transfer（行内转账）
-
-3. 正常工作日，大额支付（HVPS）实际停止处理客户付款的时间是？
-
-A. 16:30
-
-B. 17:10
-
-C. 17:15
-
-D. 17:30
-
-4. 客户通过电子渠道（PP/ACH）办理一笔人民币 3 万元的跨行付款，标准手续费是多少？
-
-A. RMB 1.2
-
-B. RMB 5
-
-C. RMB 10
-
-D. RMB 15
-
-5. 客户通过柜台办理一笔人民币 20 万元的跨行汇款，标准手续费是多少？
-
-A. RMB 10
-
-B. RMB 15
-
-C. RMB 20
-
-D. RMB 25
-
-参考答案与解析
-
-培训讲师可在答题后揭晓答案
-
-隐藏答案
-
-第 1 题
-
-答案 B
-
-ACH 采用 One Debit, Many Credits 模式，一次借记、多笔贷记，适用于工资、报销等场景。
-
-第 2 题
-
-答案 C
-
-IBPS 支持 7×24 小时运行，单笔金额不超过人民币 100 万元，适合实时跨行付款。
-
-第 3 题
-
-答案 C
-
-17:10 为对外截止时间，17:15 为实际停止处理客户付款的时间。
-
-第 4 题
-
-答案 A
-
-电子渠道单笔付款金额不超过人民币 5 万元，标准手续费为 RMB 1.2。
-
-第 5 题
-
-答案 B
-
-柜台跨行汇款金额在人民币 10 万至 50 万元（含 50 万元），标准手续费为 RMB 15。
-
-这套题偏向实际业务应用，不仅考察概念，也能检验同事是否理解清算渠道、付款截止时间及不同渠道的收费差异。
+WITH DAILY_COUNT AS (
+    SELECT
+        DATE(PO@CDT) AS TXN_DATE,
+        HOUR(PO@CDT) AS TXN_HOUR,
+        MINUTE(PO@CDT) AS TXN_MINUTE,
+        COUNT(*) AS TXN_COUNT
+    FROM YOUR_TABLE
+    GROUP BY
+        DATE(PO@CDT),
+        HOUR(PO@CDT),
+        MINUTE(PO@CDT)
+),
+RANKED_COUNT AS (
+    SELECT
+        TXN_DATE,
+        TXN_HOUR,
+        TXN_MINUTE,
+        TXN_COUNT,
+        ROW_NUMBER() OVER (
+            PARTITION BY TXN_HOUR, TXN_MINUTE
+            ORDER BY TXN_COUNT DESC, TXN_DATE DESC
+        ) AS RN
+    FROM DAILY_COUNT
+)
+SELECT
+    TXN_HOUR,
+    TXN_MINUTE,
+    TXN_COUNT AS MAX_TXN_COUNT,
+    TXN_DATE AS PEAK_DATE
+FROM RANKED_COUNT
+WHERE RN = 1
+ORDER BY
+    TXN_HOUR,
+    TXN_MINUTE
