@@ -1,0 +1,49 @@
+Good morning, Nick. I’m Jeffrey, currently covering Domestic Payments products.
+
+I joined HSBC back in 2014. Before 2018, I worked in both Operations and IWPB. Then I moved to GPS and spent eight years in Client Service. This April, I was very fortunate to join the Product team.
+
+We actually had three new joiners in the Payments Product team this year. And after six months of hard work, I’m proud to announce that I’ve officially become the most senior Band 5 in the team!
+
+Looking back, I think I’m quite lucky to have experienced different parts of the bank.
+
+In Operations, I learned how things work behind the scenes. In Client Service, I got much closer to our clients, understanding their needs and hearing both their frustrations and appreciation.
+
+I really enjoyed my time in Client Service, and I’m proud of what we achieved, particularly in driving innovation and improving self-service capabilities. Some of these initiatives were also recognized by our leadership, which meant a lot to me.
+
+Moving into Product has been a very different experience.
+
+In Client Service, I was already trying to make things better, but mostly from a service and process perspective. Now, in Product, I have the opportunity to look at things more broadly and strategically.
+
+Previously, when facing certain limitations, I would think about how to work around them. Now, I can take one step further and ask, “Can we change something more fundamental? Can we create something new?”
+
+I think this change in perspective has been the biggest motivation for me.
+
+I’m also very grateful to the leaders who supported me through this transition and always encouraged me to stay positive and optimistic. I’ve realized how important that mindset is in Product, especially when facing challenges.
+
+Another thing I’d like to share is my passion for AI.
+
+I’m actually a big AI enthusiast. In my personal life, I have quite a few AI agents helping me with everyday tasks.
+
+I started with prompt engineering, then moved on to building agents and agent skills.
+
+And AI is evolving incredibly fast, especially this year. There have been so many breakthroughs and updates that it’s honestly quite hard to keep up.
+
+Sometimes I even wonder whether the smartest way to build an AI agent is simply to wait for the next update from the big tech companies!
+
+Tools like Grok, GPT, and Codex have already become incredibly powerful. Even in China, Tencent’s WorkBuddy can now help with almost any everyday task you can think of.
+
+It’s really amazing how quickly things are moving, and that’s what makes AI so exciting to me.
+
+At work, I’ve also been actively exploring how AI could help us do more.
+
+There are two areas I’m currently focusing on.
+
+One is integrating AI into a data mining tool I built earlier this year, helping identify anomalies and generate insights rather than just presenting data.
+
+The other is exploring how AI can support pricing reviews, with the aim of developing more intelligent capabilities and ultimately uncovering greater client value.
+
+Both are still in progress, but I’m excited about the possibilities.
+
+So that’s a little bit about me. I’m really enjoying this new chapter in Product, and hopefully I can bring together my previous experience, my curiosity, and my passion for technology to create something meaningful.
+
+Thank you!
