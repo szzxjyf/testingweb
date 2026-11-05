@@ -116,3 +116,38 @@ The objective is to understand the maximum processing capacity, potential delays
 Please share your feedback on the proposed approach and its feasibility.
 
 Best regards
+
+Dear Team,
+
+I would like to emphasize the critical business risk associated with ACH payment delays, which must not be underestimated.
+
+1. Significant Client Exposure
+
+ACH supports XX client groups and XX entities, representing XX% of our total groups and XX% of entities, including major corporate clients such as XX. Any disruption could therefore affect a substantial portion of our client base.
+
+2. Critical Nature of Salary Payments
+
+ACH is heavily used for salary and reimbursement payments, with volumes concentrated around the 15th, 20th, month-end and beginning of each month.
+
+Salary payments are not transactions that clients can simply afford to delay. Failure to process them on time could severely damage client trust, trigger escalations and complaints, and ultimately put key banking relationships at risk. This is not merely a processing inconvenience, but a serious business and reputational risk.
+
+3. Peak Volume and Client Concentration
+
+The business exposure is further demonstrated by the following:
+
+* Key clients: Average monthly and peak-day transaction volumes.
+* Peak-day concentration: Number and profile of clients processing payments on peak days.
+* Peak processing demand:
+
+Time Window	Peak ACH Volume
+1 min	XX
+5 mins	XX
+10 mins	XX
+30 mins	XX
+60 mins	XX
+
+We must be clear that ACH payment delays of 20–30 minutes are not a minor service degradation. During critical payroll periods or close to cut-off times, such delays could have severe consequences for our clients and potentially result in the loss of major relationships.
+
+ACH processing capacity and timely execution must therefore be treated as a critical business priority, not simply a technical performance consideration.
+
+Best regards
