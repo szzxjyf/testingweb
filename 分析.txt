@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
 <title>交易量对比 · 简版</title>
 <style>
 :root{color-scheme:light;--ink:#172e37;--muted:#576d77;--accent:#087d75;--accent-light:#e6f4ef;--line:#dce6e7;--paper:#fff;--bg:#f2f6f6;--down:#b54835}
@@ -14,6 +14,7 @@ main{padding:20px 0 32px}.card{border:1px solid var(--line);background:var(--pap
 .chart-scroll{overflow:auto;max-width:100%;margin-top:7px}.chart-scroll svg{display:block;max-width:none;font-family:system-ui,'Microsoft YaHei',sans-serif}.chart-note{color:var(--muted);font-size:12px;margin-top:5px;min-height:18px}.chart-note strong{color:var(--ink)}.chart-legend{display:flex;gap:13px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:7px 0 0}.chart-legend span{display:inline-flex;gap:6px;align-items:center}.chart-title{font-weight:680}.month-hit{cursor:pointer}.month-hit:focus{outline:0}.month-hit:focus rect{stroke:var(--accent);stroke-width:1.5}.month-hit:hover rect{fill:#edf5f4}.bar:focus{outline:0;stroke:#172e37;stroke-width:2}.badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pill{display:inline-block;border:1px solid #d9e8e6;color:#31635d;background:#f3faf8;border-radius:999px;padding:4px 9px;font-size:12px}.pill .swatch{margin-right:5px}
 .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:9px;margin-top:10px}table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums;font-size:13px}th,td{padding:8px 11px;border-bottom:1px solid #e8eff0;white-space:nowrap}th{font-size:12px;font-weight:650;color:#38565d;background:#f1f6f6}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#f8fbfa}td.num,th.num{text-align:right}td.up{color:#096d55}td.down{color:var(--down)}td.na{color:#71828a}td .link-btn{background:transparent;border:0;padding:0;white-space:normal;text-align:left;color:#11655e;cursor:pointer;font-size:13px}.link-btn:hover{text-decoration:underline}.object-id{color:var(--muted);font-size:11px;display:block}.totals{font-weight:680;background:#f4faf8}.pager{margin-top:10px;justify-content:flex-end}.detail-help{font-size:12px;color:var(--muted);margin-top:9px}footer{font-size:12px;color:var(--muted);padding:3px 0 0}.filter-label{font-weight:640}.import-form{margin-top:10px}
 @media(max-width:700px){.wrap{width:calc(100% - 22px)}header{padding:20px 0 17px}h1{font-size:24px}.local-tag{font-size:11px}.card{padding:13px;margin-bottom:10px}.file-grid{grid-template-columns:1fr}.scale{margin-left:0}.section-top{align-items:flex-start}.chip{padding:4px 6px}.tabs button{padding:6px 8px}.detail-search{width:100%}}
+button[data-quarter][aria-pressed=true]{background:var(--accent);color:white;border-color:var(--accent)}button[data-quarter][aria-pressed=mixed]{background:var(--accent-light);border-color:var(--accent);border-style:dashed}
 </style>
 </head>
 <body>
@@ -38,7 +39,7 @@ main{padding:20px 0 32px}.card{border:1px solid var(--line);background:var(--pap
       <div class="filters">
         <div id="yoyControls">
           <div class="filter"><strong>年份</strong><div class="chips" id="yearChoices"></div></div>
-          <div class="filter" style="margin-top:8px"><label class="control">展示方式 <select id="periodMode"><option value="monthly">逐月对比</option><option value="combined">所选月份合计</option></select></label><span class="hint">合计模式支持任意月份组合，各年按相同月份比较。</span></div><div class="filter" style="margin-top:8px"><strong>月份</strong><div class="chips" id="monthChoices"></div><button id="firstTenMonths" class="small-btn">1–10月</button><button id="allMonths" class="small-btn">全选</button><button id="latestMonth" class="small-btn">仅最新月</button></div>
+          <div class="filter" style="margin-top:8px"><label class="control">展示方式 <select id="periodMode"><option value="monthly">逐月对比</option><option value="combined">所选月份合计</option></select></label><span class="hint">合计模式支持任意月份组合，各年按相同月份比较。</span></div><div class="filter" style="margin-top:8px"><strong>月份</strong><div class="chips" id="monthChoices"></div><button class="small-btn" data-quarter="1" title="切换 Q1 的三个月">Q1</button><button class="small-btn" data-quarter="2" title="切换 Q2 的三个月">Q2</button><button class="small-btn" data-quarter="3" title="切换 Q3 的三个月">Q3</button><button class="small-btn" data-quarter="4" title="切换 Q4 的三个月">Q4</button><button id="firstTenMonths" class="small-btn">1–10月</button><button id="allMonths" class="small-btn">全选</button><button id="latestMonth" class="small-btn">仅最新月</button></div>
         </div>
         <div id="momControls" class="filter hidden"><label class="control"><strong>比较期</strong> <select id="momMonth"></select></label><span class="hint" id="momBase"></span></div>
         <div class="filter"><span class="hint">单位为笔。点击图表月份，可切换下方明细。</span><label class="control scale">纵轴 <select id="axisMode"><option value="focus">放大差异</option><option value="zero">从零开始</option></select></label></div>
@@ -48,13 +49,13 @@ main{padding:20px 0 32px}.card{border:1px solid var(--line);background:var(--pap
       <p id="chartNote" class="chart-note"></p>
     </section>
     <section class="card" id="detailPanel" aria-labelledby="detailHeading">
-      <div class="section-top"><div><h2 id="detailHeading">Group 明细</h2><p class="hint" id="detailHint"></p></div><div class="row"><label class="control" id="detailPeriodControl">对比期间 <select id="detailPeriodMode"><option value="monthly">单月</option><option value="combined">所选月份合计</option></select></label><label class="control" id="focusControl">重点月份 <select id="focusMonth"></select></label><input type="search" class="detail-search" id="detailSearch" placeholder="搜索名称或 ID" aria-label="搜索明细"></div></div>
-      <div id="detailTable"></div>
+      <div class="section-top"><div><h2 id="detailHeading">Group 明细</h2><p class="hint" id="detailHint"></p></div><div class="row"><label class="control" id="detailPeriodControl">对比期间 <select id="detailPeriodMode"><option value="monthly">单月</option><option value="combined">所选月份合计</option></select></label><label class="control" id="focusControl">重点月份 <select id="focusMonth"></select></label><label class="control" id="detailSortControl">排序 <select id="detailSort"><option value="decrease">减少最多优先（变化数升序）</option><option value="increase" selected>增长最多优先（变化数降序）</option><option value="volume">最新期笔数从高到低</option></select></label><input type="search" class="detail-search" id="detailSearch" placeholder="搜索名称或 ID" aria-label="搜索明细"></div></div>
+      <div class="row" id="detailExports" style="margin-top:10px"><button id="exportDetailXlsx" class="small-btn">导出明细 Excel</button><button id="exportDetailCsv" class="small-btn">导出明细 CSV</button><button id="exportPageCsv" class="small-btn">导出本页 CSV</button><button id="exportScopeData" class="small-btn">导出当前层级全部所选期间 Excel</button></div><p class="hint" id="detailExportHint">明细导出保留当前搜索和排序，包含全部分页；本页导出仅包含当前页。</p><div id="detailTable"></div>
       <div class="row pager hidden" id="pager"><span class="muted" id="pageNote"></span><button id="prevPage" class="small-btn">上一页</button><button id="nextPage" class="small-btn">下一页</button></div>
       <p class="detail-help" id="detailNote"></p>
     </section>
   </div>
-  <footer>文件在浏览器内读取。导出数据包含当前所选期间的完整明细。</footer>
+  <footer>纯本地离线运行，无外部库或 CDN。文件读取、分析及导出均在当前浏览器内完成，不上传数据。导出数据包含当前所选期间的完整明细。</footer>
 </main>
 <script>
 'use strict';
@@ -109,7 +110,7 @@ const PAGE_SIZE = 25;
 const state = {
   counts: null, maps: null, data: null, countSpecs: new Map(), mapSpecs: new Map(),
   pendingFiles: new Map(), mode: 'yoy', years: new Set(), months: new Set(MONTHS),
-  periodMode: 'monthly', combinedPeriods: new Map(), focus: 1, target: '', group: null, client: null, page: 0,
+  detailSort: 'increase', periodMode: 'monthly', combinedPeriods: new Map(), focus: 1, target: '', group: null, client: null, page: 0,
 };
 
 function status(message, kind = '') {
@@ -299,6 +300,16 @@ function renderFilters() {
   $('monthChoices').innerHTML = MONTHS.map(calendarMonth => `<label class="chip"><input type="checkbox" value="${calendarMonth}" ${state.months.has(calendarMonth) ? 'checked' : ''}>${calendarMonth}月</label>`).join('');
 }
 
+function syncQuarters() {
+  document.querySelectorAll('[data-quarter]').forEach(button => {
+    const start = (Number(button.dataset.quarter) - 1) * 3;
+    const months = MONTHS.slice(start, start + 3);
+    const count = months.filter(month => state.months.has(month)).length;
+    button.setAttribute('aria-pressed', count === 3 ? 'true' : count ? 'mixed' : 'false');
+    button.title = count === 3 ? '取消该季度（至少保留一个月份）' : '加入该季度的三个月，可多选';
+  });
+}
+
 function setFocus(calendarMonth) {
   state.focus = calendarMonth;
   state.page = 0;
@@ -451,7 +462,13 @@ function displayedObjects(scope, focus) {
   const target = focus.at(-1).period;
   return scope.objects.map(item => ({item, name: item[nameField], id: item[idField] || item.key.replace(/^U:/, '')}))
     .filter(row => !query || `${row.name} ${row.id}`.toLowerCase().includes(query))
-    .sort((a, b) => (valueAt(b.item.values, target) ?? -1) - (valueAt(a.item.values, target) ?? -1) || a.name.localeCompare(b.name));
+    .sort((a, b) => {
+      const metric = row => state.detailSort === 'volume' || focus.length < 2
+        ? valueAt(row.item.values, target) : difference(row.item.values, focus)[0];
+      const av = metric(a), bv = metric(b);
+      if (av == null || bv == null) return av == null && bv == null ? a.name.localeCompare(b.name) : av == null ? 1 : -1;
+      return (state.detailSort === 'decrease' && focus.length >= 2 ? av - bv : bv - av) || a.name.localeCompare(b.name);
+    });
 }
 
 function numberCell(value, kind = 'count') {
@@ -472,6 +489,14 @@ function renderDetails(view, scope) {
   $('detailPeriodMode').value = state.periodMode;
   $('focusControl').classList.toggle('hidden', state.mode !== 'yoy' || state.periodMode === 'combined' || !drill);
   $('detailSearch').classList.toggle('hidden', !drill);
+  $('detailSortControl').classList.toggle('hidden', !drill);
+  $('detailSort').value = state.detailSort;
+  for (const option of $('detailSort').options) option.disabled = option.value !== 'volume' && view.focus.length < 2;
+  if (view.focus.length < 2) $('detailSort').value = 'volume';
+  $('detailExports').classList.toggle('hidden', !drill && !scope.client);
+  $('detailExportHint').classList.toggle('hidden', !drill && !scope.client);
+  $('exportPageCsv').classList.toggle('hidden', !drill);
+  $('detailExportHint').textContent = scope.client ? '导出当前 Client 的全部所选期间数据。' : '明细导出保留当前搜索和排序，包含全部分页；本页导出仅包含当前页。变化数比较所选年份中最新两年，缺数据排在末尾。';
   $('pager').classList.add('hidden');
   if (scope.client) {
     $('detailHeading').textContent = state.mode === 'yoy' && state.periodMode === 'combined' ? 'Client 所选月份合计' : 'Client 各月笔数';
@@ -517,6 +542,7 @@ function renderDetails(view, scope) {
 
 function render() {
   if (!state.data) return;
+  syncQuarters();
   const view = buildComparison();
   const scope = scopeForSelection();
   $('modeYoy').setAttribute('aria-pressed', String(state.mode === 'yoy'));
@@ -601,6 +627,24 @@ $('modeMom').onclick = () => { state.mode = 'mom'; state.page = 0; render(); };
 $('momMonth').onchange = event => { state.target = event.target.value; state.page = 0; render(); };
 $('focusMonth').onchange = event => setFocus(Number(event.target.value));
 $('axisMode').onchange = () => renderChart(buildComparison(), scopeForSelection());
+document.querySelectorAll('[data-quarter]').forEach(button => {
+  button.onclick = () => {
+    const start = (Number(button.dataset.quarter) - 1) * 3;
+    const months = MONTHS.slice(start, start + 3);
+    const selected = months.every(month => state.months.has(month));
+    const next = new Set(state.months);
+    months.forEach(month => selected ? next.delete(month) : next.add(month));
+    if (!next.size) {
+      $('chartNote').textContent = '请至少保留一个月份；可先选中其他月份或季度，再取消当前季度。';
+      return;
+    }
+    state.months = next;
+    if (!state.months.has(state.focus)) state.focus = Math.max(...state.months);
+    state.page = 0;
+    renderFilters(); render();
+  };
+});
+$('detailSort').onchange = event => { state.detailSort = event.target.value; state.page = 0; renderDetails(buildComparison(), scopeForSelection()); };
 $('detailSearch').oninput = () => { state.page = 0; renderDetails(buildComparison(), scopeForSelection()); };
 $('prevPage').onclick = () => { state.page--; renderDetails(buildComparison(), scopeForSelection()); };
 $('nextPage').onclick = () => { state.page++; renderDetails(buildComparison(), scopeForSelection()); };
@@ -617,6 +661,42 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => { if (state.data) renderChart(buildComparison(), scopeForSelection()); }, 100);
 });
+
+
+function detailExportRows(view, scope, pageOnly = false) {
+  if (scope.client) {
+    const heads = state.mode === 'yoy' ? view.groups[0].points.map(point => point.label) : ['笔数'];
+    return [['Client', 'ID', '期间', ...heads], ...view.groups.map(group => [scope.name, scope.client.key, group.label, ...group.points.map(point => valueAt(scope.values, point.period))])];
+  }
+  let objects = displayedObjects(scope, view.focus);
+  if (pageOnly) objects = objects.slice(state.page * PAGE_SIZE, (state.page + 1) * PAGE_SIZE);
+  const withDelta = view.focus.length >= 2;
+  const amounts = values => [...view.focus.map(point => valueAt(values, point.period)), ...(withDelta ? difference(values, view.focus) : [])];
+  return [['名称', 'ID', ...view.focus.map(point => point.period), ...(withDelta ? ['变化笔数', '变化率（小数）'] : [])],
+    [`${scope.name}合计（整个层级）`, '', ...amounts(scope.values)], ...objects.map(row => [row.name, row.id, ...amounts(row.item.values)])];
+}
+
+function csvBlob(rows) {
+  const cell = value => {
+    let text = value == null ? '' : String(value);
+    if (typeof value === 'string' && /^[=+\-@\t\r\n]/.test(text)) text = "'" + text;
+    return '"' + text.replace(/"/g, '""') + '"';
+  };
+  return new Blob(['\ufeff' + rows.map(row => row.map(cell).join(',')).join('\r\n')], {type: 'text/csv;charset=utf-8'});
+}
+
+function exportDetails(format, pageOnly = false) {
+  try {
+    const view = buildComparison(), scope = scopeForSelection();
+    const rows = detailExportRows(view, scope, pageOnly);
+    const blob = format === 'xlsx' ? xlsx([['当前明细', rows]]) : csvBlob(rows);
+    download(blob, `${scope.name}_${pageOnly ? '本页' : '明细'}_${state.mode}.${format}`);
+  } catch (error) { $('detailNote').textContent = `导出失败。${error.message}`; }
+}
+$('exportDetailXlsx').onclick = () => exportDetails('xlsx');
+$('exportDetailCsv').onclick = () => exportDetails('csv');
+$('exportPageCsv').onclick = () => exportDetails('csv', true);
+$('exportScopeData').onclick = () => $('exportData').click();
 
 </script>
 </body>
