@@ -48,7 +48,7 @@ main{padding:20px 0 32px}.card{border:1px solid var(--line);background:var(--pap
       <p id="chartNote" class="chart-note"></p>
     </section>
     <section class="card" id="detailPanel" aria-labelledby="detailHeading">
-      <div class="section-top"><div><h2 id="detailHeading">Group 明细</h2><p class="hint" id="detailHint"></p></div><div class="row"><label class="control" id="focusControl">重点月份 <select id="focusMonth"></select></label><input type="search" class="detail-search" id="detailSearch" placeholder="搜索名称或 ID" aria-label="搜索明细"></div></div>
+      <div class="section-top"><div><h2 id="detailHeading">Group 明细</h2><p class="hint" id="detailHint"></p></div><div class="row"><label class="control" id="detailPeriodControl">对比期间 <select id="detailPeriodMode"><option value="monthly">单月</option><option value="combined">所选月份合计</option></select></label><label class="control" id="focusControl">重点月份 <select id="focusMonth"></select></label><input type="search" class="detail-search" id="detailSearch" placeholder="搜索名称或 ID" aria-label="搜索明细"></div></div>
       <div id="detailTable"></div>
       <div class="row pager hidden" id="pager"><span class="muted" id="pageNote"></span><button id="prevPage" class="small-btn">上一页</button><button id="nextPage" class="small-btn">下一页</button></div>
       <p class="detail-help" id="detailNote"></p>
@@ -468,6 +468,8 @@ function detailValues(values, focus) {
 
 function renderDetails(view, scope) {
   const drill = !!scope.objects?.length;
+  $('detailPeriodControl').classList.toggle('hidden', state.mode !== 'yoy' || !drill);
+  $('detailPeriodMode').value = state.periodMode;
   $('focusControl').classList.toggle('hidden', state.mode !== 'yoy' || state.periodMode === 'combined' || !drill);
   $('detailSearch').classList.toggle('hidden', !drill);
   $('pager').classList.add('hidden');
@@ -487,7 +489,7 @@ function renderDetails(view, scope) {
     return;
   }
   $('detailHeading').textContent = scope.group ? 'Client 明细' : 'Group 明细';
-  $('detailHint').textContent = scope.group ? '点击 Client 名称查看各月柱状图。' : '点击 Group 名称查看该集团的柱状图和 Client。';
+  $('detailHint').textContent = (state.mode === 'yoy' ? (state.periodMode === 'combined' ? `当前比较各年 ${MONTHS.filter(month => state.months.has(month)).join('、')} 月合计。` : '当前比较单个重点月份；选择“所选月份合计”可比较多月同期。') : '') + (scope.group ? '点击 Client 名称查看柱状图。' : '点击 Group 名称查看该集团的柱状图和 Client。');
   $('focusMonth').innerHTML = view.groups.filter(group => group.calendarMonth != null).map(group => `<option value="${group.calendarMonth}" ${group.calendarMonth === state.focus ? 'selected' : ''}>${group.label}</option>`).join('');
   const records = displayedObjects(scope, view.focus);
   const pageCount = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
@@ -521,6 +523,7 @@ function render() {
   $('modeMom').setAttribute('aria-pressed', String(state.mode === 'mom'));
   $('yoyControls').classList.toggle('hidden', state.mode !== 'yoy');
   $('momControls').classList.toggle('hidden', state.mode !== 'mom');
+  $('periodMode').value = state.periodMode;
   $('momBase').textContent = `基期 ${shiftMonth(state.target, -1)}`;
   renderScope(scope);
   renderChart(view, scope);
@@ -581,6 +584,7 @@ $('monthChoices').onchange = event => changeChoices(event, state.months, Number,
   state.page = 0;
   render();
 });
+$('detailPeriodMode').onchange = event => { state.periodMode = event.target.value; state.page = 0; render(); };
 $('periodMode').onchange = event => { state.periodMode = event.target.value; state.page = 0; render(); };
 $('firstTenMonths').onclick = () => { state.months = new Set(MONTHS.slice(0, 10)); state.focus = 10; state.page = 0; renderFilters(); render(); };
 $('allMonths').onclick = () => { state.page = 0; state.months = new Set(MONTHS); renderFilters(); render(); };
