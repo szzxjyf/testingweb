@@ -9,7 +9,7 @@
 :root{color-scheme:light;--ink:#172e37;--muted:#576d77;--accent:#087d75;--accent-light:#e6f4ef;--line:#dce6e7;--paper:#fff;--bg:#f2f6f6;--down:#b54835}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,-apple-system,'Microsoft YaHei',sans-serif}button,input,select{font:inherit}button,input[type=checkbox],summary,select{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #168377;outline-offset:3px}button:disabled{opacity:.45;cursor:default}button{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:7px 12px;color:var(--ink);font-weight:600;white-space:nowrap}button:hover:not(:disabled){background:#eef5f4}button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button.primary:hover:not(:disabled){background:#06675f}select,input[type=month],input[type=search]{border:1px solid #cbd9db;border-radius:7px;padding:7px 9px;background:white;color:var(--ink);max-width:100%}input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;vertical-align:middle;margin:0}.hidden,[hidden]{display:none!important}
 header{background:#12353e;color:#fff;padding:26px 0 24px;border-bottom:4px solid #3a9b89}.wrap{width:min(1480px,calc(100% - 48px));margin:0 auto}.heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.eyebrow{font-size:11px;letter-spacing:.15em;color:#a5d4cd;font-weight:700;text-transform:uppercase}h1{font-size:30px;line-height:1.2;margin:6px 0;font-weight:720;letter-spacing:-.025em}h2{font-size:19px;margin:0;line-height:1.35}p{margin:0}.subtitle{color:#c7dbe0;font-size:13px}.local-tag{border:1px solid #578087;border-radius:99px;padding:5px 11px;font-size:12px;color:#deeeeb;white-space:nowrap}
-main{padding:20px 0 32px}.card{border:1px solid var(--line);background:var(--paper);border-radius:13px;padding:17px 20px;margin-bottom:14px;box-shadow:0 2px 9px #1c475106}.section-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.hint,.muted{font-size:12px;color:var(--muted)}.hint{margin-top:5px}.section-top .hint{margin-top:4px}.file-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.file-box{display:grid;gap:5px;align-content:start;min-width:0;border:1px dashed #b3c8cb;border-radius:9px;background:#f7fbfa;padding:12px}.file-box label{font-weight:670}.file-box input{max-width:100%;font-size:13px}.file-name{font-size:12px;color:var(--accent);overflow-wrap:anywhere}.control{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap}.control select{max-width:100%}details>summary{font-weight:650}details.mapping{border-top:1px solid var(--line);padding-top:10px;margin-top:9px}details.mapping[open]>summary{margin-bottom:9px}.mapping select{max-width:230px}.sheetedit{max-height:310px}.status{font-size:13px;margin:9px 0 0;color:var(--muted)}.status.error{color:#992d21;background:#fff1ee;border-radius:7px;padding:8px 10px}.status.success{color:#08685e}.empty{padding:35px 22px;text-align:center;background:linear-gradient(#fff,#f8fbfa)}.empty h2{font-size:17px;margin:0 0 6px}.empty-icon{color:var(--accent);margin-bottom:10px;display:block}
+main{padding:20px 0 32px}.card{border:1px solid var(--line);background:var(--paper);border-radius:13px;padding:17px 20px;margin-bottom:14px;box-shadow:0 2px 9px #1c475106}.section-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.hint,.muted{font-size:12px;color:var(--muted)}.hint{margin-top:5px}.section-top .hint{margin-top:4px}.file-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.file-box{display:grid;gap:5px;align-content:start;min-width:0;border:1px dashed #b3c8cb;border-radius:9px;background:#f7fbfa;padding:12px}.file-box label{font-weight:670}.file-box input{max-width:100%;font-size:13px}.file-name{font-size:12px;color:var(--accent);overflow-wrap:anywhere}.control{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap}.control select{max-width:100%}details>summary{font-weight:650}details.mapping{border-top:1px solid var(--line);padding-top:10px;margin-top:9px}details.mapping[open]>summary{margin-bottom:9px}.mapping select{max-width:230px}.sheetedit{max-height:310px;overflow:auto;min-width:0;isolation:isolate}.sheetedit .tablewrap{margin-top:0;border:0;border-radius:0;overflow:visible}.sheetedit th{position:sticky;top:0;z-index:1}.mapping{min-width:0}.filter>*{min-width:0}.heading{flex-wrap:wrap}.card{min-width:0}.status{font-size:13px;margin:9px 0 0;color:var(--muted)}.status.error{color:#992d21;background:#fff1ee;border-radius:7px;padding:8px 10px}.status.success{color:#08685e}.empty{padding:35px 22px;text-align:center;background:linear-gradient(#fff,#f8fbfa)}.empty h2{font-size:17px;margin:0 0 6px}.empty-icon{color:var(--accent);margin-bottom:10px;display:block}
 .tabs{display:inline-flex;gap:3px;padding:3px;border-radius:9px;background:#edf3f3}.tabs button{background:transparent;border-color:transparent;color:var(--muted);padding:6px 12px}.tabs button[aria-pressed=true]{background:#fff;border-color:var(--line);color:#145f58;box-shadow:0 1px 2px #172e3710}.filters{display:grid;gap:8px;margin:13px 0;border-block:1px solid #edf1f2;padding:10px 0}.filter{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.filter>strong{min-width:50px;font-size:12px}.chips{display:flex;gap:5px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #d6e3e4;border-radius:7px;padding:5px 8px;font-size:12px;cursor:pointer;white-space:nowrap}.chip:has(input:checked){background:#edf8f5;border-color:#a2cfc6}.chip input{height:13px;width:13px}.swatch{width:9px;height:9px;border-radius:2px;display:inline-block;flex:none}.small-btn{font-size:12px;padding:5px 8px}.scale{margin-left:auto;font-size:12px}.scope{margin-bottom:9px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px;flex-wrap:wrap}.scope button{border:0;background:#edf4f3;color:#14665e;padding:4px 9px}.scope strong{color:var(--ink)}
 .chart-scroll{overflow:auto;max-width:100%;margin-top:7px}.chart-scroll svg{display:block;max-width:none;font-family:system-ui,'Microsoft YaHei',sans-serif}.chart-note{color:var(--muted);font-size:12px;margin-top:5px;min-height:18px}.chart-note strong{color:var(--ink)}.chart-legend{display:flex;gap:13px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:7px 0 0}.chart-legend span{display:inline-flex;gap:6px;align-items:center}.chart-title{font-weight:680}.month-hit{cursor:pointer}.month-hit:focus{outline:0}.month-hit:focus rect{stroke:var(--accent);stroke-width:1.5}.month-hit:hover rect{fill:#edf5f4}.bar:focus{outline:0;stroke:#172e37;stroke-width:2}.badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pill{display:inline-block;border:1px solid #d9e8e6;color:#31635d;background:#f3faf8;border-radius:999px;padding:4px 9px;font-size:12px}.pill .swatch{margin-right:5px}
 .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:9px;margin-top:10px}table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums;font-size:13px}th,td{padding:8px 11px;border-bottom:1px solid #e8eff0;white-space:nowrap}th{font-size:12px;font-weight:650;color:#38565d;background:#f1f6f6}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#f8fbfa}td.num,th.num{text-align:right}td.up{color:#096d55}td.down{color:var(--down)}td.na{color:#71828a}td .link-btn{background:transparent;border:0;padding:0;white-space:normal;text-align:left;color:#11655e;cursor:pointer;font-size:13px}.link-btn:hover{text-decoration:underline}.object-id{color:var(--muted);font-size:11px;display:block}.totals{font-weight:680;background:#f4faf8}.pager{margin-top:10px;justify-content:flex-end}.detail-help{font-size:12px;color:var(--muted);margin-top:9px}footer{font-size:12px;color:var(--muted);padding:3px 0 0}.filter-label{font-weight:640}.import-form{margin-top:10px}
@@ -38,7 +38,7 @@ main{padding:20px 0 32px}.card{border:1px solid var(--line);background:var(--pap
       <div class="filters">
         <div id="yoyControls">
           <div class="filter"><strong>年份</strong><div class="chips" id="yearChoices"></div></div>
-          <div class="filter" style="margin-top:8px"><strong>月份</strong><div class="chips" id="monthChoices"></div><button id="allMonths" class="small-btn">全选</button><button id="latestMonth" class="small-btn">仅最新月</button></div>
+          <div class="filter" style="margin-top:8px"><label class="control">展示方式 <select id="periodMode"><option value="monthly">逐月对比</option><option value="combined">所选月份合计</option></select></label><span class="hint">合计模式支持任意月份组合，各年按相同月份比较。</span></div><div class="filter" style="margin-top:8px"><strong>月份</strong><div class="chips" id="monthChoices"></div><button id="firstTenMonths" class="small-btn">1–10月</button><button id="allMonths" class="small-btn">全选</button><button id="latestMonth" class="small-btn">仅最新月</button></div>
         </div>
         <div id="momControls" class="filter hidden"><label class="control"><strong>比较期</strong> <select id="momMonth"></select></label><span class="hint" id="momBase"></span></div>
         <div class="filter"><span class="hint">单位为笔。点击图表月份，可切换下方明细。</span><label class="control scale">纵轴 <select id="axisMode"><option value="focus">放大差异</option><option value="zero">从零开始</option></select></label></div>
@@ -109,7 +109,7 @@ const PAGE_SIZE = 25;
 const state = {
   counts: null, maps: null, data: null, countSpecs: new Map(), mapSpecs: new Map(),
   pendingFiles: new Map(), mode: 'yoy', years: new Set(), months: new Set(MONTHS),
-  focus: 1, target: '', group: null, client: null, page: 0,
+  periodMode: 'monthly', combinedPeriods: new Map(), focus: 1, target: '', group: null, client: null, page: 0,
 };
 
 function status(message, kind = '') {
@@ -249,6 +249,7 @@ function yearColor(year) {
 }
 
 function buildComparison() {
+  state.combinedPeriods.clear();
   if (state.mode === 'mom') {
     const previous = shiftMonth(state.target, -1);
     const periods = [previous, state.target].map((period, index) => ({
@@ -257,6 +258,16 @@ function buildComparison() {
     return {groups: periods.map(point => ({label: point.period, points: [point]})), focus: periods};
   }
   const years = state.allYears.filter(year => state.years.has(year));
+  if (state.periodMode === 'combined') {
+    const months = MONTHS.filter(month => state.months.has(month));
+    const label = `${months.join('、')}月合计`;
+    const points = years.map(year => {
+      const period = `${year}年（${label}）`;
+      state.combinedPeriods.set(period, months.map(month => monthPeriod(year, month)));
+      return {period, label: `${year}年`, color: yearColor(year)};
+    });
+    return {groups: [{label, points}], focus: points};
+  }
   const groups = MONTHS.filter(calendarMonth => state.months.has(calendarMonth)).map(calendarMonth => ({
     calendarMonth,
     label: `${calendarMonth}月`,
@@ -266,6 +277,11 @@ function buildComparison() {
 }
 
 function valueAt(values, period) {
+  const members = state.combinedPeriods.get(period);
+  if (members) {
+    const amounts = members.map(member => valueAt(values, member));
+    return amounts.some(value => value == null) ? null : safe(amounts.reduce((sum, value) => sum + value, 0));
+  }
   const index = state.monthIndex.get(period);
   return index === undefined ? null : values[index];
 }
@@ -347,7 +363,7 @@ function barSvg(view, values, minWidth, zoom) {
   const bottom = height - 45;
   const y = value => bottom - (value - min) / (max - min) * (bottom - top);
   const coord = number => number.toFixed(2);
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="group" aria-label="交易笔数柱状图" style="font-family:system-ui,'Microsoft YaHei',sans-serif;background:white"><title>交易笔数对比</title><desc>纵轴从${fmt(min)}笔起。横轴按月份对齐。横线符号表示缺整月数据。</desc>`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="group" aria-label="交易笔数柱状图" style="font-family:system-ui,'Microsoft YaHei',sans-serif;background:white"><title>交易笔数对比</title><desc>纵轴从${fmt(min)}笔起。横轴按月份对齐。横线符号表示所选期间缺月数据。</desc>`;
   legend.forEach((point, index) => {
     const x = left + index % legendColumns * 90;
     const row = Math.floor(index / legendColumns) * 20;
@@ -364,7 +380,7 @@ function barSvg(view, values, minWidth, zoom) {
     group.points.forEach((point, seriesIndex) => {
       const centerX = center - totalWidth / 2 + (seriesIndex + 0.5) * pitch;
       const value = valueAt(values, point.period);
-      const caption = `${point.period} ${value == null ? '缺整月数据' : `${fmt(value)} 笔`}`;
+      const caption = `${point.period} ${value == null ? '所选期间缺月数据' : `${fmt(value)} 笔`}`;
       if (value == null) {
         svg += `<text x="${coord(centerX)}" y="${bottom - 5}" text-anchor="middle" font-size="12" fill="#72868b"><title>${caption}</title>—</text>`;
         return;
@@ -389,13 +405,13 @@ function barSvg(view, values, minWidth, zoom) {
 }
 
 function renderChart(view, scope) {
-  $('chartHeading').textContent = state.mode === 'yoy' ? '各年份同月交易量' : '月度交易量环比';
+  $('chartHeading').textContent = state.mode === 'yoy' ? (state.periodMode === 'combined' ? '各年份所选月份合计' : '各年份同月交易量') : '月度交易量环比';
   $('chartContext').textContent = state.mode === 'yoy'
-    ? `${scope.name} · ${state.years.size} 个年份 · ${state.months.size} 个月份`
+    ? `${scope.name} · ${state.years.size} 个年份 · ${state.months.size} 个月份${state.periodMode === 'combined' ? '合计 · 所选月份缺月时不计算合计' : ''}`
     : `${scope.name} · ${view.focus[0].period} 与 ${view.focus[1].period}`;
   const chart = barSvg(view, scope.values, $('chart').clientWidth, $('axisMode').value === 'focus');
   $('chart').innerHTML = chart.svg;
-  $('chartNote').innerHTML = `纵轴从 <strong>${fmt(chart.min)}</strong> 笔起，最高刻度 ${fmt(chart.max)} 笔。${chart.missing ? ' — 表示缺整月数据。' : ''}`;
+  $('chartNote').innerHTML = `纵轴从 <strong>${fmt(chart.min)}</strong> 笔起，最高刻度 ${fmt(chart.max)} 笔。${chart.missing ? ' — 表示所选期间缺月数据。' : ''}`;
   const values = view.focus.map(point => {
     const value = valueAt(scope.values, point.period);
     return `<span class="pill"><i class="swatch" style="background:${point.color}"></i>${point.period} <strong>${value == null ? '缺数据' : `${fmt(value)} 笔`}</strong></span>`;
@@ -452,11 +468,11 @@ function detailValues(values, focus) {
 
 function renderDetails(view, scope) {
   const drill = !!scope.objects?.length;
-  $('focusControl').classList.toggle('hidden', state.mode !== 'yoy' || !drill);
+  $('focusControl').classList.toggle('hidden', state.mode !== 'yoy' || state.periodMode === 'combined' || !drill);
   $('detailSearch').classList.toggle('hidden', !drill);
   $('pager').classList.add('hidden');
   if (scope.client) {
-    $('detailHeading').textContent = 'Client 各月笔数';
+    $('detailHeading').textContent = state.mode === 'yoy' && state.periodMode === 'combined' ? 'Client 所选月份合计' : 'Client 各月笔数';
     $('detailHint').textContent = `${scope.name} · ${scope.client.key}`;
     const heads = state.mode === 'yoy' ? view.groups[0].points.map(point => point.label) : ['笔数'];
     $('detailTable').innerHTML = `<div class="tablewrap"><table><thead><tr><th>月份</th>${heads.map(label => `<th class="num">${E(label)}</th>`).join('')}</tr></thead><tbody>${view.groups.map(group => `<tr><td>${group.label}</td>${group.points.map(point => numberCell(valueAt(scope.values, point.period))).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -514,7 +530,7 @@ function render() {
 function exportSheets(view, scope) {
   const periods = view.groups.flatMap(group => group.points);
   const chartRows = [['范围', '期间', '笔数', '整月数据已导入'], ...periods.map(point => [
-    scope.name, point.period, valueAt(scope.values, point.period), state.monthIndex.has(point.period) ? '是' : '否',
+    scope.name, point.period, valueAt(scope.values, point.period), (state.combinedPeriods.get(point.period) || [point.period]).every(period => state.monthIndex.has(period)) ? '是' : '否',
   ])];
   const result = [['柱状图数据', chartRows]];
   const objects = displayedObjects(scope, view.focus);
@@ -528,7 +544,7 @@ function exportSheets(view, scope) {
     const comparison = [['名称', 'ID', ...view.focus.map(point => point.period), '变化笔数', '变化率']];
     comparison.push([`${scope.name}合计`, '', ...view.focus.map(point => valueAt(scope.values, point.period)), ...difference(scope.values, view.focus)]);
     for (const row of objects) comparison.push([row.name, row.id, ...view.focus.map(point => valueAt(row.item.values, point.period)), ...difference(row.item.values, view.focus)]);
-    result.push(['重点月份比较', comparison]);
+    result.push(['所选期间比较', comparison]);
   }
   return result;
 }
@@ -565,7 +581,9 @@ $('monthChoices').onchange = event => changeChoices(event, state.months, Number,
   state.page = 0;
   render();
 });
-$('allMonths').onclick = () => { state.months = new Set(MONTHS); renderFilters(); render(); };
+$('periodMode').onchange = event => { state.periodMode = event.target.value; state.page = 0; render(); };
+$('firstTenMonths').onclick = () => { state.months = new Set(MONTHS.slice(0, 10)); state.focus = 10; state.page = 0; renderFilters(); render(); };
+$('allMonths').onclick = () => { state.page = 0; state.months = new Set(MONTHS); renderFilters(); render(); };
 $('latestMonth').onclick = () => {
   const latest = state.data.months.findLast(period => state.years.has(period.slice(0, 4)));
   state.focus = Number(latest.slice(-2));
