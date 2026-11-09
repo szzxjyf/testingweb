@@ -1,49 +1,21 @@
-Good morning, Nick. I’m Jeffrey, currently covering Domestic Payments products.
+### 2026 Self-Assessment
 
-I joined HSBC back in 2014. Before 2018, I worked in both Operations and IWPB. Then I moved to GPS and spent eight years in Client Service. This April, I was very fortunate to join the Product team.
+I am grateful for the opportunity to join the Product Team in April 2026. Over the past few months, I have quickly adapted to the new role, gained a deeper understanding of the Product function, and built up my expertise in Domestic Payments.
 
-We actually had three new joiners in the Payments Product team this year. And after six months of hard work, I’m proud to announce that I’ve officially become the most senior Band 5 in the team!
+**1. Product Ownership & Client Experience**
 
-Looking back, I think I’m quite lucky to have experienced different parts of the bank.
+Shortly after joining, I took ownership of Omni Collection following the departure of the previous Product Manager, independently managing the product, supporting multiple RFPs, and completing a smooth handover to the next PM without any outstanding issues. I also successfully drove the implementation and launch of SafeX Pay, addressing client needs around payroll confidentiality and data localization. Meanwhile, I actively promoted ACH adoption through client enablement and training, while driving manual payment reduction to improve payment efficiency and enhance client experience.
 
-In Operations, I learned how things work behind the scenes. In Client Service, I got much closer to our clients, understanding their needs and hearing both their frustrations and appreciation.
+**2. Risk & Control**
 
-I really enjoyed my time in Client Service, and I’m proud of what we achieved, particularly in driving innovation and improving self-service capabilities. Some of these initiatives were also recognized by our leadership, which meant a lot to me.
+Under significant time pressure and complex regulatory requirements, I successfully drove the ECDS certificate transition, coordinating closely with stakeholders to ensure smooth implementation and proactively mitigate the risk of major client disruption and complaints. For RTPI, I represented GPS Product throughout the fraud detection process, actively assessing and challenging potential impacts on payment efficiency and customer journeys to strike the right balance between fraud prevention and client experience. I also supported the successful completion of the DCE annual regulatory inspection.
 
-Moving into Product has been a very different experience.
+**3. Innovation & Commercial Opportunities**
 
-In Client Service, I was already trying to make things better, but mostly from a service and process perspective. Now, in Product, I have the opportunity to look at things more broadly and strategically.
+I successfully implemented AI-related capabilities, receiving positive recognition from senior management. In parallel, I leveraged data mining and payment analytics to identify target clients and uncover ACH opportunities, supporting more targeted commercial initiatives and data-driven decision-making. These efforts have also allowed me to combine my previous Client Service experience with a broader Product perspective.
 
-Previously, when facing certain limitations, I would think about how to work around them. Now, I can take one step further and ask, “Can we change something more fundamental? Can we create something new?”
+**4. Looking Ahead to 2027**
 
-I think this change in perspective has been the biggest motivation for me.
+My key priority will be driving Domestic Payments NFI growth through volume expansion and pricing optimization, including the normalization of preferential pricing and broader RMB payment fee adjustments. I also aim to deepen AI-driven analytics and collaborate closely with Sales and Client Service to develop differentiated RMB Payroll and ACH propositions, leveraging existing capabilities such as Mapping Service.
 
-I’m also very grateful to the leaders who supported me through this transition and always encouraged me to stay positive and optimistic. I’ve realized how important that mindset is in Product, especially when facing challenges.
-
-Another thing I’d like to share is my passion for AI.
-
-I’m actually a big AI enthusiast. In my personal life, I have quite a few AI agents helping me with everyday tasks.
-
-I started with prompt engineering, then moved on to building agents and agent skills.
-
-And AI is evolving incredibly fast, especially this year. There have been so many breakthroughs and updates that it’s honestly quite hard to keep up.
-
-Sometimes I even wonder whether the smartest way to build an AI agent is simply to wait for the next update from the big tech companies!
-
-Tools like Grok, GPT, and Codex have already become incredibly powerful. Even in China, Tencent’s WorkBuddy can now help with almost any everyday task you can think of.
-
-It’s really amazing how quickly things are moving, and that’s what makes AI so exciting to me.
-
-At work, I’ve also been actively exploring how AI could help us do more.
-
-There are two areas I’m currently focusing on.
-
-One is integrating AI into a data mining tool I built earlier this year, helping identify anomalies and generate insights rather than just presenting data.
-
-The other is exploring how AI can support pricing reviews, with the aim of developing more intelligent capabilities and ultimately uncovering greater client value.
-
-Both are still in progress, but I’m excited about the possibilities.
-
-So that’s a little bit about me. I’m really enjoying this new chapter in Product, and hopefully I can bring together my previous experience, my curiosity, and my passion for technology to create something meaningful.
-
-Thank you!
+Overall, 2026 has been a challenging but highly rewarding year. I am pleased with the progress made in a relatively short period, and look forward to building on this foundation to deliver greater commercial value and a stronger client experience.
