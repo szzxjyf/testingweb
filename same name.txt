@@ -1,16 +1,22 @@
-Hi all,  
+**Subject: ECDS Transition Update — Stable Operations and First Certificate Issued Under the New Process**
 
-Please find attached the potential pipeline list identified from RMB same-name transfer analysis (Jan–Jul 2026).
+Dear all,
 
-We reviewed around 9 million RMB payment transactions, identified over 500K same-name transfer records, and further filtered transactions containing salary and reimbursement related keywords. In total, 253 customers were identified.
+After nearly two months of sustained effort, the ECDS transition project is nearing completion. **Operations have remained stable over the past two weeks, with no client complaints or major business issues**, reflecting the effectiveness of the mitigation measures taken ahead of implementation.
 
-These customers are likely using other banks for salary disbursement or reimbursement activities, and could be potential pipeline opportunities for further engagement. Please use this list as a reference and validate based on client-specific circumstances, as some transactions may have other business reasons.
+**Today, we also successfully issued the first certificate under the new process**, with the first client completing the end-to-end journey.
 
-If you have any other relevant pipeline opportunities, clients that AIC should be aware of, or existing opportunities requiring further discussion, please feel free to share and invite them.
+This transition has been supported by coordinated preparation, intensive client outreach, advance certificate renewals, and implementation of the new system and process. Key achievements include:
 
-As SafeX Pay may also be discussed, it would be helpful to include clients with significant corporate-to-individual payment volumes.
+- **Advance renewals to mitigate client risk.** The new requirements involve clients’ legal representatives, making renewals considerably more complex. Through intensive follow-up and hands-on assistance, we issued **1,632 certificates to 810 clients in the final two weeks of October—exceeding the previous full year’s issuance volume**.
 
-Thanks.  
+- **Actual usage demonstrates the value of mitigation.** In the first two weeks following implementation, **41 client groups used 92 of these certificates for actual business activities**, including major clients such as XXX. These renewals supported real business needs and reduced the risk of delays, disruption and complaints arising from complex renewal requirements during the initial transition.
+
+- **Coordinated execution across teams.** Internal briefings and continued coordination helped align client outreach and prioritise renewals according to business needs and risk, enabling delivery within a tight timeframe.
+
+- **New system and process implemented.** Working closely with the technology team, we secured implementation priority with CFCA and achieved system go-live on **10 November**. The new process and application forms have been published, supported by staff training and client testing, culminating in today’s first successful issuance.
+
+Thank you to everyone involved for your continued support. We will monitor operations and client feedback as we complete the remaining project activities.
 
 Best regards,  
-[Your Name]
+XXX
