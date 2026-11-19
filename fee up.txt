@@ -58,3 +58,30 @@
   - 明确 Fiona 的深入分析范围、方案评估结果和反馈时间。
   - 明确 Ops 准备清单、通知安排及例外处理负责人。
   - 建议补充上线验收负责人，以及上线后发现错收时的核查和纠正流程。
+
+
+Meeting Minutes | SME Fee Adjustment & System Enhancement
+
+1. Overall Approach & Timeline
+
+* Target Go-Live: End of February / early March, prioritising key functionalities to support the March pricing adjustment.
+* System Solution: Differentiate CIB and PSB clients at the front end and apply separate pricing rules:
+    * CIB: Revert to standard pricing.
+    * PSB: Maintain the 10% discount for transactions below RMB 100k (excluding SH).
+
+2. Pricing Rules & Special Arrangements
+
+* PSB Pricing: Due to GPE system limitations, ACH transactions cannot be separately identified for special pricing. Three scenarios need to be accommodated:
+    1. Full waiver – supported.
+    2. Waiver below RMB 50k, standard pricing above – requires special handling.
+    3. Standard pricing – RMB 1 below RMB 50k, 10% discount below RMB 100k, and no discount above RMB 100k.
+* Xi’an Bill Exchange & FX Settlement Payments: In principle, increase the fee from RMB 1.08 to RMB 1.20.
+* Smart Form: No changes in this phase. It will remain outside the e-channel scope, subject to future review.
+
+3. Action Items
+
+Owner	Action Items
+Jeffrey	Identify the PSB client population, coordinate with relevant teams to assess the pricing impact, and develop an overall action and communication plan for the coming months.
+Charles	Identify existing clients using the Xi’an bill exchange service and assess the proposed pricing adjustment.
+Fiona	Assess the technical solution and confirm the implementation timeline, particularly for PSB special pricing scenarios.
+TBC	Assess whether a fee waiver can be arranged for the specific Qingdao client, with the existing BIPS special pricing rule removed accordingly.
